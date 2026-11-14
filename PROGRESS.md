@@ -4,18 +4,20 @@ Last update: 2026-11-14
 
 ## Done
 - Read the design docs and all diagrams; checked the machine; settled the open decisions (see PLAN.md).
-- **Milestone 0 gate passed.** Core package (message types, bus, registry, clock, generators,
-  frames stub), Hydra scenario loader, `LanderEnv` with the slot loop. 1,024 envs step without
-  error; hook order is tested; 61 CPU tests pass.
-- Milestone 1a so far:
-  - Apollo LM preset, every number with its source (`configs/landers/apollo_lunar_module.yaml`).
-  - Lander articulation built from the preset (body, 4 legs, 4 prismatic spring-damper struts).
-  - `engine_rcs_pulse` actuators, `terminal_box` start, `physx_site` plant, `flat` surface.
-  - Physics validation tests pass: free fall, hover, RCS torque, propellant (CPU), contact rest.
-  - Contact settings chosen: PGS solver, 16 position iterations, 1 velocity iteration.
+- **Milestone 0 gate passed.** Core package, Hydra scenario loader, `LanderEnv` with the slot
+  loop. 1,024 envs step without error; hook order is tested.
+- **Milestone 1a gate passed.** See `M1A_REPORT.md`.
+  - Apollo LM preset with a source for every number; lander articulation built from it.
+  - `engine_rcs_pulse`, `terminal_box`, `physx_site`, `flat`, `procedural`, `truth`, `touchdown`.
+  - Physics validation tests pass: free fall, hover, RCS torque, propellant, contact rest.
+  - Controller in four tested steps: attitude hold, hover, vertical descent, full ZEM/ZEV.
+  - ZEM/ZEV: 256 of 256 nominal starts; 96.8 % over the full `terminal_box` range (3 seeds x 4,096).
+  - Run manifest, episode records, `lunarsim figures`, `lunarsim summary`.
+  - Speed baseline: 69,646 env steps/s at 1,024 envs, 203,702 at 16,384 (RTX 5060).
+- Overview figure and lander render in the README.
 
 ## In progress
-- Touchdown metric, run manifest, episode records. Then the controller, in four steps.
+- Nothing. The session stops at the M1a gate; M1b (RL on S1) is not started.
 
 ## Blocked
 - **CI workflow cannot be pushed.** The GitHub token of `gh` has no `workflow` scope, so GitHub
@@ -39,3 +41,6 @@ Last update: 2026-11-14
 | 2026-11-14 | Body frame origin = centre of mass of the whole vehicle (body + legs); forces act there | The Apollo mass table gives the whole-vehicle centre of mass; found by the RCS torque test |
 | 2026-11-14 | PGS solver, 16 position iterations (not the default TGS) | TGS made the strut spring 22 % too soft at rest; PGS reproduces it to 0.2 % at the same speed |
 | 2026-11-14 | Descent engine: throttle 10-65 % of rated thrust, time constant 0.08 s, slew 85 %/s; fixed throttle point not modelled | Values from NASA TN D-7143 and Klumpp (MIT R-695) |
+| 2026-11-14 | `zem_zev` flies to a gate 3 m above the target, then uses the vertical-descent controller; it waits above the ground until the horizontal speed is small | Raised full-range success from 81 % to 97 % |
+| 2026-11-14 | `surface: procedural` is smoke-tested only | Agents assume the ground at z = 0 until the altimeter exists (M2) |
+| 2026-11-14 | The lander USD has thin visual struts (no collision, no mass) | For pictures; physics tests rerun after the change |
