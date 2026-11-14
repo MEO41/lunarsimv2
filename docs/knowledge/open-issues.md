@@ -3,7 +3,7 @@ id: open-issues
 title: Open issues
 type: issue
 status: open
-updated: 2026-11-14
+updated: 2026-11-15
 summary: Known weak points of the model and the code, with what each one affects.
 ---
 
@@ -12,9 +12,11 @@ summary: Known weak points of the model and the code, with what each one affects
 | Issue | Affects | Next step |
 | --- | --- | --- |
 | Linear strut spring along body z; real struts are inclined honeycomb crushers. Peak leg forces 19–71 kN in successful landings, above the real crush loads (20 and 42 kN) | Leg loads; not touchdown speeds or tilt | Crush model later (milestone 5 footpads); see [[lander-articulation-model]] |
-| Sphere footpads, one-cylinder body, no nozzle | Contact on uneven ground, rock strikes | Planned in [[terrain-integration-plan]] |
-| RCS cluster height marked ASSUMPTION in the preset | Cross-coupling of horizontal jets | MIT R-567 confirms it; update the source line ([[apollo-lm-geometry-research]]) |
-| Inertia about y: 13,667 or 13,867 slug ft² | Pitch dynamics, about 1.5 % | Read the Mission Report page again ([[pending-user-decisions]]) |
+| Dish footpad is fixed to its leg (real one swivels on a ball joint); stages are a cylinder and a box | Contact on rough ground | Accept for now |
+| Nozzle has no collision shape (crushable skirt); a rock under it is recorded as low clearance, not as a force | Rock strikes under the engine | `minimum_nozzle_clearance_m` in the records |
+| Rocks are domes in the ground mesh; craters use a model-choice rim profile; no regolith sinkage | Terrain realism | Bekker footpads in milestone 5 |
+| Height above ground is taken straight below the c.g.; under a rough footprint the pads can be up to about 1 m higher or lower | Agents' cut-off height on rough ground | Altimeter beams (milestone 2) |
+| `procedural` surface has no height lookup | Its height above ground is from z = 0 | Use `measured_terrain` |
 | Fixed throttle point (92.5 %) and gimbal not modelled; engine off below 5 % is a model choice | Engine realism | Later actuator bindings |
 | RCS propellant not limited | Long hovers | Add a budget |
 | Mass in PhysX updated once per control step; inertia scaled with mass | Small dynamics error | Accept for now |
@@ -26,6 +28,7 @@ summary: Known weak points of the model and the code, with what each one affects
 | `surface: procedural` smoke-tested only | Terrain studies | Replaced by the terrain plan |
 | Isaac Lab 3.0 is a development branch; `isaaclab.sh` is deprecated | Upgrades, setup script | Pinned commit; [[isaac-lab-quirks]] |
 | `setup_workstation.sh` never run on a clean machine; it uses `--install core`, a guess | First setup on the RTX 5090 | Fix when it fails ([[workstation-setup-and-machines]]) |
-| Simulator process sometimes does not exit after tests | Test runs | Handled by `scripts/run_isaac_tests.py` |
+| Simulator process sometimes does not exit after tests, or stalls at launch | Test runs | Handled by `scripts/run_isaac_tests.py` (kill, shm clean-up, restart) |
+| Fixed 2026-11-15: RCS torque arms 29 % too short; forces applied 0.1 m above the vehicle c.g.; Iyy text error | M1a numbers were made with these | M1a evaluation rerun ([[terrain-results]]) |
 
 Results these issues belong to: [[milestone-1a-results]].

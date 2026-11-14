@@ -50,10 +50,6 @@ class VerticalController:
         self.constant_rate_below_altitude = float(constant_rate_below_altitude_m)
         self.engine_cutoff_altitude = float(engine_cutoff_altitude_m)
 
-    def footpad_altitude(self, position: Tensor) -> Tensor:
-        """Return the height of the footpad plane above the ground from the centre-of-mass position."""
-        return position[:, 2] - self.preset.center_of_mass_height_above_footpad_plane
-
     def acceleration_to_hold_altitude(self, altitude: Tensor, vertical_speed: Tensor, target_altitude: Tensor) -> Tensor:
         """Return the wanted vertical acceleration (m/s^2, up positive) of a critically damped altitude hold."""
         return self.altitude_gain * (target_altitude - altitude) - self.altitude_rate_gain * vertical_speed

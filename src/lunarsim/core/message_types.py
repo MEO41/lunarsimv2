@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import enum
 from dataclasses import dataclass, fields
+from typing import Any, Protocol
 
 import torch
 from torch import Tensor
@@ -38,6 +39,7 @@ class MessageKey:
     """Names of the messages on the :class:`~lunarsim.core.message_bus.MessageBus`."""
 
     START_STATE = "start_state"  # TruthState sampled by the start slot, used by the plant at reset
+    SURFACE_GEOMETRY = "surface_geometry"  # SurfaceGeometry: site origins and ground heights (truth side)
     TRUTH_STATE = "truth_state"
     NAVIGATION_ESTIMATE = "navigation_estimate"
     OBSERVATION = "observation"
@@ -72,11 +74,19 @@ class TruthState:
     angular_velocity: Tensor  # (N, 3) rad/s, body rates in the body frame
     mass: Tensor  # (N,) kg
     contact: Tensor  # (N, n_legs) leg contact force magnitudes, N
+    # Height of the footpad plane (struts not stroked) above the ground straight below the
+    # centre of mass, m. NaN where unknown (a sampled start state).
+    footpad_height_above_ground: Tensor | None = None  # (N,)
+    body_contact: Tensor | None = None  # (N,) contact force magnitude on the vehicle body (stages), N
 
     def __post_init__(self) -> None:
-        """Check the shapes of all fields."""
+        """Check the shapes of all fields and fill the optional ones."""
         if not isinstance(self.frame, Frame):
             raise TypeError("TruthState.frame must be a Frame")
+        if self.footpad_height_above_ground is None:
+            self.footpad_height_above_ground = torch.full_like(self.time, float("nan"), dtype=self.position.dtype)
+        if self.body_contact is None:
+            self.body_contact = torch.zeros_like(self.time, dtype=self.position.dtype)
         number_of_environments = _first_dimension_of(self)
         expected_shapes = {
             "time": (number_of_environments,),
@@ -85,6 +95,8 @@ class TruthState:
             "orientation_quaternion": (number_of_environments, 4),
             "angular_velocity": (number_of_environments, 3),
             "mass": (number_of_environments,),
+            "footpad_height_above_ground": (number_of_environments,),
+            "body_contact": (number_of_environments,),
         }
         for name, shape in expected_shapes.items():
             if tuple(getattr(self, name).shape) != shape:
@@ -144,7 +156,10 @@ class NavigationStateLayout:
     ORIENTATION_QUATERNION = slice(6, 10)
     ANGULAR_VELOCITY = slice(10, 13)
     MASS = slice(13, 14)
-    DIMENSION = 14
+    # Height of the footpad plane above the ground straight below the lander, m. On flat ground
+    # it equals position z minus the centre-of-mass height above the footpads.
+    HEIGHT_ABOVE_GROUND = slice(14, 15)
+    DIMENSION = 15
 
 
 @dataclass
@@ -228,6 +243,48 @@ class Wrench:
             force=torch.zeros(number_of_environments, 3, device=device),
             torque=torch.zeros(number_of_environments, 3, device=device),
         )
+
+
+class GroundHeightLookup(Protocol):
+    """Anything that returns ground heights for world positions (for example a TerrainHeightField)."""
+
+    def height_at(self, x: Tensor, y: Tensor) -> Tensor:
+        """Return the ground height at world (x, y)."""
+        ...
+
+    def gradient_at(self, x: Tensor, y: Tensor) -> tuple[Tensor, Tensor]:
+        """Return the ground slope (dz/dx, dz/dy) at world (x, y)."""
+        ...
+
+
+@dataclass
+class SurfaceGeometry:
+    """Output of the surface slot that truth-side slots use: where each site is, how high the ground is.
+
+    ``site_origin`` is the world position of the origin of every environment's SITE frame (the
+    landing target on the ground). ``height_field`` gives the ground height at any world point;
+    None means flat ground at world z = 0.
+    """
+
+    site_origin: Tensor  # (N, 3) m, world frame
+    height_field: Any | None = None  # GroundHeightLookup
+
+    def __post_init__(self) -> None:
+        """Check the shape of the site origins."""
+        if self.site_origin.dim() != 2 or self.site_origin.shape[1] != 3:
+            raise ValueError("SurfaceGeometry.site_origin must have shape (N, 3)")
+
+    def ground_height_at(self, x: Tensor, y: Tensor) -> Tensor:
+        """Return the ground height at world (x, y)."""
+        if self.height_field is None:
+            return torch.zeros_like(x)
+        return self.height_field.height_at(x, y)
+
+    def ground_gradient_at(self, x: Tensor, y: Tensor) -> tuple[Tensor, Tensor]:
+        """Return the ground slope (dz/dx, dz/dy) at world (x, y)."""
+        if self.height_field is None:
+            return torch.zeros_like(x), torch.zeros_like(x)
+        return self.height_field.gradient_at(x, y)
 
 
 @dataclass

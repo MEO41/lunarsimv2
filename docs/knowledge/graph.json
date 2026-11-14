@@ -23,7 +23,7 @@
       "title": "Apollo 17 height maps (LROC NAC DTM)",
       "type": "research",
       "status": "current",
-      "updated": "2026-11-14",
+      "updated": "2026-11-15",
       "summary": "The two NASA height maps of the Apollo 17 site, their file layout, projection and local-frame formula, and where they live (not in git).",
       "path": "apollo17-height-maps.md"
     },
@@ -32,7 +32,7 @@
       "title": "Bindings catalogue",
       "type": "component",
       "status": "current",
-      "updated": "2026-11-14",
+      "updated": "2026-11-15",
       "summary": "Every binding that exists, per slot, with its file and what it does; the two scenario files.",
       "path": "bindings-catalogue.md"
     },
@@ -41,8 +41,8 @@
       "title": "Classical agents",
       "type": "component",
       "status": "current",
-      "updated": "2026-11-14",
-      "summary": "The four-step classical controller chain ending in ZEM/ZEV guidance, its parameters and its assumption of flat ground at z = 0.",
+      "updated": "2026-11-15",
+      "summary": "The four-step classical controller chain ending in ZEM/ZEV guidance, its parameters, and how it uses the observed height above ground.",
       "path": "classical-agents.md"
     },
     {
@@ -50,7 +50,7 @@
       "title": "Decisions log",
       "type": "decision",
       "status": "current",
-      "updated": "2026-11-14",
+      "updated": "2026-11-15",
       "summary": "Every decision taken so far, with date and reason; the place to add new ones.",
       "path": "decisions-log.md"
     },
@@ -59,7 +59,7 @@
       "title": "Isaac Lab quirks",
       "type": "environment",
       "status": "current",
-      "updated": "2026-11-14",
+      "updated": "2026-11-15",
       "summary": "Behaviours of this Isaac Sim 6.0.1 / Isaac Lab 3.0 develop build that cost time to find, and how the code handles each.",
       "path": "isaac-lab-quirks.md"
     },
@@ -77,8 +77,8 @@
       "title": "Lander articulation model",
       "type": "component",
       "status": "current",
-      "updated": "2026-11-14",
-      "summary": "How the lander is built in USD from the preset - body, four leg links on prismatic spring struts, sphere footpads - and its simplifications.",
+      "updated": "2026-11-15",
+      "summary": "How the lander is built in USD from the preset - two stage shapes, four legs with dish footpads on prismatic spring struts - and its simplifications.",
       "path": "lander-articulation-model.md"
     },
     {
@@ -86,8 +86,8 @@
       "title": "Lander preset, Apollo LM",
       "type": "component",
       "status": "current",
-      "updated": "2026-11-14",
-      "summary": "The Apollo LM-5 preset with its sourced numbers, the body frame, and the values that are model choices or assumptions.",
+      "updated": "2026-11-15",
+      "summary": "The Apollo LM-5 preset with its sourced numbers, the body frame, the corrections of 2026-11-15, and the values that are model choices.",
       "path": "lander-preset-apollo-lm.md"
     },
     {
@@ -100,11 +100,20 @@
       "path": "lunar-surface-statistics-research.md"
     },
     {
+      "id": "measured-terrain-surface",
+      "title": "Measured terrain surface (Apollo 17)",
+      "type": "component",
+      "status": "current",
+      "updated": "2026-11-15",
+      "summary": "The measured_terrain surface binding - real NASA height map, craters and rocks from published laws, one landing target per environment, exact GPU height lookup.",
+      "path": "measured-terrain-surface.md"
+    },
+    {
       "id": "metrics-and-run-records",
       "title": "Touchdown metric and run records",
       "type": "component",
       "status": "current",
-      "updated": "2026-11-14",
+      "updated": "2026-11-15",
       "summary": "How a landing is judged (outcome codes, detection settings) and what every run writes to disk, plus the figure and summary tools.",
       "path": "metrics-and-run-records.md"
     },
@@ -122,7 +131,7 @@
       "title": "Milestone roadmap and status",
       "type": "milestone",
       "status": "current",
-      "updated": "2026-11-14",
+      "updated": "2026-11-15",
       "summary": "The eight milestones of the design, which gates have passed, and what comes next.",
       "path": "milestone-roadmap-and-status.md"
     },
@@ -131,7 +140,7 @@
       "title": "Open issues",
       "type": "issue",
       "status": "open",
-      "updated": "2026-11-14",
+      "updated": "2026-11-15",
       "summary": "Known weak points of the model and the code, with what each one affects.",
       "path": "open-issues.md"
     },
@@ -140,7 +149,7 @@
       "title": "Pending user decisions",
       "type": "plan",
       "status": "waiting-for-user",
-      "updated": "2026-11-14",
+      "updated": "2026-11-15",
       "summary": "Questions that wait for the user's answer; work that depends on them must not start before.",
       "path": "pending-user-decisions.md"
     },
@@ -176,7 +185,7 @@
       "title": "Session history",
       "type": "history",
       "status": "current",
-      "updated": "2026-11-14",
+      "updated": "2026-11-15",
       "summary": "Timeline of the work so far with commit hashes, so a new session knows how the project got here.",
       "path": "session-history.md"
     },
@@ -185,7 +194,7 @@
       "title": "Slot loop architecture",
       "type": "component",
       "status": "current",
-      "updated": "2026-11-14",
+      "updated": "2026-11-15",
       "summary": "The nine slots, the message bus with its truth guard, the hook order of one control step, timing and message fields.",
       "path": "slot-loop-architecture.md"
     },
@@ -194,7 +203,7 @@
       "title": "Sources bibliography",
       "type": "research",
       "status": "current",
-      "updated": "2026-11-14",
+      "updated": "2026-11-15",
       "summary": "Every public source used for numbers in the preset and the plans, with its short key and link.",
       "path": "sources-bibliography.md"
     },
@@ -211,17 +220,26 @@
       "id": "terrain-integration-plan",
       "title": "Terrain integration plan",
       "type": "plan",
-      "status": "waiting-for-user",
-      "updated": "2026-11-14",
-      "summary": "The plan for real Apollo 17 terrain with craters and rocks, and LM-accurate footpads and body shapes; not started, waits for \"Proceed\".",
+      "status": "superseded",
+      "updated": "2026-11-15",
+      "summary": "The plan (2026-11-14) for real Apollo 17 terrain and an LM-accurate lander; approved and built on 2026-11-15, kept as the record of what was agreed.",
       "path": "terrain-integration-plan.md"
+    },
+    {
+      "id": "terrain-results",
+      "title": "Results with the LM-accurate lander and real terrain",
+      "type": "result",
+      "status": "open",
+      "updated": "2026-11-15",
+      "summary": "ZEM/ZEV success on flat ground with the corrected lander, and on the Apollo 17 terrain; evaluations in progress.",
+      "path": "terrain-results.md"
     },
     {
       "id": "testing-and-commands",
       "title": "Testing and commands",
       "type": "environment",
       "status": "current",
-      "updated": "2026-11-14",
+      "updated": "2026-11-15",
       "summary": "How to run the tests, scenarios, evaluations, benchmarks, figures and the knowledge-graph check.",
       "path": "testing-and-commands.md"
     },
@@ -230,7 +248,7 @@
       "title": "Workstation setup and machines",
       "type": "environment",
       "status": "current",
-      "updated": "2026-11-14",
+      "updated": "2026-11-15",
       "summary": "The two machines, where the Python environment lives on each, how to set up a new one, and what does not travel with git.",
       "path": "workstation-setup-and-machines.md"
     }
@@ -273,7 +291,7 @@
     },
     {
       "source": "apollo17-height-maps",
-      "target": "terrain-integration-plan",
+      "target": "measured-terrain-surface",
       "relation": "used by"
     },
     {
@@ -288,17 +306,17 @@
     },
     {
       "source": "bindings-catalogue",
+      "target": "measured-terrain-surface",
+      "relation": "mentions"
+    },
+    {
+      "source": "bindings-catalogue",
       "target": "metrics-and-run-records",
       "relation": "mentions"
     },
     {
       "source": "bindings-catalogue",
       "target": "classical-agents",
-      "relation": "mentions"
-    },
-    {
-      "source": "bindings-catalogue",
-      "target": "terrain-integration-plan",
       "relation": "mentions"
     },
     {
@@ -314,16 +332,6 @@
     {
       "source": "classical-agents",
       "target": "milestone-1a-results",
-      "relation": "mentions"
-    },
-    {
-      "source": "classical-agents",
-      "target": "terrain-integration-plan",
-      "relation": "mentions"
-    },
-    {
-      "source": "classical-agents",
-      "target": "pending-user-decisions",
       "relation": "mentions"
     },
     {
@@ -354,6 +362,21 @@
     {
       "source": "decisions-log",
       "target": "knowledge-graph-tooling",
+      "relation": "mentions"
+    },
+    {
+      "source": "decisions-log",
+      "target": "terrain-integration-plan",
+      "relation": "mentions"
+    },
+    {
+      "source": "decisions-log",
+      "target": "measured-terrain-surface",
+      "relation": "mentions"
+    },
+    {
+      "source": "decisions-log",
+      "target": "isaac-lab-quirks",
       "relation": "mentions"
     },
     {
@@ -403,12 +426,12 @@
     },
     {
       "source": "lander-articulation-model",
-      "target": "apollo-lm-geometry-research",
+      "target": "metrics-and-run-records",
       "relation": "mentions"
     },
     {
       "source": "lander-articulation-model",
-      "target": "terrain-integration-plan",
+      "target": "apollo-lm-geometry-research",
       "relation": "mentions"
     },
     {
@@ -433,16 +456,6 @@
     },
     {
       "source": "lander-preset-apollo-lm",
-      "target": "terrain-integration-plan",
-      "relation": "mentions"
-    },
-    {
-      "source": "lander-preset-apollo-lm",
-      "target": "pending-user-decisions",
-      "relation": "mentions"
-    },
-    {
-      "source": "lander-preset-apollo-lm",
       "target": "sources-bibliography",
       "relation": "sources"
     },
@@ -462,13 +475,38 @@
       "relation": "feeds"
     },
     {
+      "source": "measured-terrain-surface",
+      "target": "terrain-integration-plan",
+      "relation": "mentions"
+    },
+    {
+      "source": "measured-terrain-surface",
+      "target": "open-issues",
+      "relation": "mentions"
+    },
+    {
+      "source": "measured-terrain-surface",
+      "target": "bindings-catalogue",
+      "relation": "part of"
+    },
+    {
+      "source": "measured-terrain-surface",
+      "target": "apollo17-height-maps",
+      "relation": "data"
+    },
+    {
+      "source": "measured-terrain-surface",
+      "target": "lunar-surface-statistics-research",
+      "relation": "statistics"
+    },
+    {
       "source": "metrics-and-run-records",
       "target": "lander-preset-apollo-lm",
       "relation": "mentions"
     },
     {
       "source": "metrics-and-run-records",
-      "target": "terrain-integration-plan",
+      "target": "measured-terrain-surface",
       "relation": "mentions"
     },
     {
@@ -523,12 +561,17 @@
     },
     {
       "source": "milestone-roadmap-and-status",
-      "target": "workstation-setup-and-machines",
+      "target": "measured-terrain-surface",
       "relation": "mentions"
     },
     {
       "source": "milestone-roadmap-and-status",
-      "target": "terrain-integration-plan",
+      "target": "terrain-results",
+      "relation": "mentions"
+    },
+    {
+      "source": "milestone-roadmap-and-status",
+      "target": "workstation-setup-and-machines",
       "relation": "mentions"
     },
     {
@@ -543,8 +586,8 @@
     },
     {
       "source": "milestone-roadmap-and-status",
-      "target": "terrain-integration-plan",
-      "relation": "next step"
+      "target": "measured-terrain-surface",
+      "relation": "built"
     },
     {
       "source": "milestone-roadmap-and-status",
@@ -558,27 +601,17 @@
     },
     {
       "source": "open-issues",
-      "target": "terrain-integration-plan",
-      "relation": "mentions"
-    },
-    {
-      "source": "open-issues",
-      "target": "apollo-lm-geometry-research",
-      "relation": "mentions"
-    },
-    {
-      "source": "open-issues",
-      "target": "pending-user-decisions",
-      "relation": "mentions"
-    },
-    {
-      "source": "open-issues",
       "target": "isaac-lab-quirks",
       "relation": "mentions"
     },
     {
       "source": "open-issues",
       "target": "workstation-setup-and-machines",
+      "relation": "mentions"
+    },
+    {
+      "source": "open-issues",
+      "target": "terrain-results",
       "relation": "mentions"
     },
     {
@@ -718,6 +751,16 @@
     },
     {
       "source": "session-history",
+      "target": "measured-terrain-surface",
+      "relation": "mentions"
+    },
+    {
+      "source": "session-history",
+      "target": "terrain-results",
+      "relation": "mentions"
+    },
+    {
+      "source": "session-history",
       "target": "workstation-setup-and-machines",
       "relation": "mentions"
     },
@@ -739,11 +782,6 @@
     {
       "source": "slot-loop-architecture",
       "target": "decisions-log",
-      "relation": "mentions"
-    },
-    {
-      "source": "slot-loop-architecture",
-      "target": "terrain-integration-plan",
       "relation": "mentions"
     },
     {
@@ -793,7 +831,17 @@
     },
     {
       "source": "terrain-integration-plan",
-      "target": "pending-user-decisions",
+      "target": "measured-terrain-surface",
+      "relation": "mentions"
+    },
+    {
+      "source": "terrain-integration-plan",
+      "target": "decisions-log",
+      "relation": "mentions"
+    },
+    {
+      "source": "terrain-integration-plan",
+      "target": "apollo17-height-maps",
       "relation": "mentions"
     },
     {
@@ -804,11 +852,6 @@
     {
       "source": "terrain-integration-plan",
       "target": "apollo-lm-geometry-research",
-      "relation": "mentions"
-    },
-    {
-      "source": "terrain-integration-plan",
-      "target": "apollo17-height-maps",
       "relation": "mentions"
     },
     {
@@ -855,6 +898,21 @@
       "source": "terrain-integration-plan",
       "target": "pending-user-decisions",
       "relation": "depends on"
+    },
+    {
+      "source": "terrain-results",
+      "target": "measured-terrain-surface",
+      "relation": "mentions"
+    },
+    {
+      "source": "terrain-results",
+      "target": "milestone-1a-results",
+      "relation": "compares with"
+    },
+    {
+      "source": "terrain-results",
+      "target": "measured-terrain-surface",
+      "relation": "measured on"
     },
     {
       "source": "testing-and-commands",

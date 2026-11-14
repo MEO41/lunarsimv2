@@ -1,0 +1,73 @@
+binding: measured_terrain
+# Apollo 17 landing site, Taurus-Littrow valley: measured terrain plus small craters and rocks.
+#
+# Sources:
+#   [NAC-DTM]  LROC NAC digital terrain model NAC_DTM_APOLLO17_2M (v1.9, 2 m/pixel), Arizona
+#              State University, PDS data set LRO-L-LROC-5-RDR-V1.0, volume LROLRC_2001.
+#              https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/SDP/NAC_DTM/APOLLO17_2M/
+#   [HAASE]    Haase, Waehlisch, Glaeser, Oberst, Robinson (2019), "Coordinates and maps of the
+#              Apollo 17 landing site", Earth and Space Science 6, doi:10.1029/2018EA000408, Table 3.
+#   [DSNE]     NASA SLS-SPEC-159 Rev I, Cross-Program Design Specification for Natural
+#              Environments (2021). https://ntrs.nasa.gov/citations/20210024522
+#   [MINTON]   Minton et al. (2019), Icarus 326, 63-87, Eq. 2. https://arxiv.org/abs/1902.07746
+#   [D-6850]   Rogers, NASA TN D-6850 (1972). https://ntrs.nasa.gov/citations/19720018253
+#
+# The height-map files are NOT in git. Get them with:  python scripts/download_height_maps.py
+
+height_map:
+  directory: assets/terrain/apollo17          # relative to the repository root, or absolute
+  label_file: NAC_DTM_APOLLO17_2M.LBL
+  data_file: NAC_DTM_APOLLO17_2M.TIF
+  source: "[NAC-DTM]"
+
+site:
+  latitude_deg: 20.19091
+  longitude_deg: 30.77168
+  source: "[HAASE] Table 3: position of the Apollo 17 lunar module (descent stage)"
+  east_offset_m: 0.0      # move the terrain centre away from the LM site, for other ground
+  north_offset_m: 0.0
+
+# Outer grid: the measured map on its native 2 m spacing. 600 m covers the 300 m out-of-bounds
+# limit of the touchdown metric around any target.
+outer_half_size_m: 600.0
+outer_cell_size_m: 2.0
+# Detail patch: craters and rocks on a 0.25 m grid, 160 m square. Model choice: 0.25 m lets a
+# rock of 0.75 m (the smallest drawn) span three cells.
+detail_half_size_m: 80.0
+detail_cell_size_m: 0.25
+detail_taper_width_m: 5.0
+# Landing targets are uniform in this square around the centre, drawn again at every reset.
+target_half_size_m: 50.0
+
+craters:
+  enabled: true
+  cumulative_coefficient_per_m2: 0.0336
+  cumulative_exponent: 2.0
+  source: "[MINTON] Eq. 2: equilibrium n(>r) = 0.0084 r^-2 per m^2 on the Apollo 15 mare, i.e. N(>D) = 0.0336 D^-2. The NASA design upper limit is 0.0794 D^-2 ([DSNE] 3.4.1.1); use it for a harder surface"
+  minimum_diameter_m: 1.0     # model choice: four detail cells across the smallest crater
+  maximum_diameter_m: 10.0    # model choice: larger craters are in the 2 m height map already
+  rim_height_to_depth: 0.2    # model choice: no fetched source gives a rim-height ratio
+  degradation_classes:        # [DSNE] Table 3.4.1.2-2 (after Basilevsky 1976), D < 1 km
+    - {share: 0.005, depth_to_diameter: [0.12, 0.20]}
+    - {share: 0.025, depth_to_diameter: [0.12, 0.20]}
+    - {share: 0.17, depth_to_diameter: [0.10, 0.15]}
+    - {share: 0.30, depth_to_diameter: [0.07, 0.10]}
+    - {share: 0.50, depth_to_diameter: [0.02, 0.07], has_rim: false}   # "< 0.07, no rim"; the 0.02 floor is a model choice
+
+rocks:
+  enabled: true
+  cumulative_coefficient_per_m2: 0.00234
+  cumulative_exponent: -2.11
+  source: "[DSNE] 3.4.1.4, Table 3.4.1.4-1: Surveyor 1, N(>D) = 0.234 D^-2.11 per 100 m^2 (valid below 2 m), the suggested design distribution"
+  minimum_diameter_m: 0.75    # model choice: three detail cells across
+  maximum_diameter_m: 2.0     # [DSNE] 3.4.1.4: the law holds below 2 m
+  height_to_diameter_mean: 0.6
+  height_to_diameter_standard_deviation: 0.28
+  height_source: "[DSNE] 3.4.1.4: h/D = 0.60, sigma 0.28 (Demidov and Basilevsky 2014)"
+  height_to_diameter_limits: [0.2, 1.0]   # model choice: clip of the drawn ratio
+
+# Footpad-to-soil friction: [D-6850], 0.4 judged realistic after flight (as on the flat surface).
+static_friction: 0.4
+dynamic_friction: 0.4
+restitution: 0.0
+seed_offset: 0

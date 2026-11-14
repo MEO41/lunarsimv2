@@ -3,7 +3,7 @@ id: slot-loop-architecture
 title: Slot loop architecture
 type: component
 status: current
-updated: 2026-11-14
+updated: 2026-11-15
 summary: The nine slots, the message bus with its truth guard, the hook order of one control step, timing and message fields.
 ---
 
@@ -39,25 +39,29 @@ start → plant → sensors → faults → nav → [observation builder] → age
 2. `_apply_action`: actuators + surface → `Wrench` → plant. Repeats **every PhysX substep**.
 3. `_get_dones`: plant state read, then metrics.
 4. `_get_rewards`: returns zeros (rewards arrive with milestone 1b).
-5. `_reset_idx`: start slot, then the other slots, only for finished environments. Runs in
-   torch inference mode (fix for "Inplace update to inference tensor outside InferenceMode").
+5. `_reset_idx`: start slot, then surface (it may move the site), plant, and the others, only
+   for finished environments. Runs in torch inference mode (fix for "Inplace update to inference
+   tensor outside InferenceMode").
 6. `_get_observations`: plant read **again** (after resets), sensors, faults, nav → `Observation`.
 
 ## Timing and sizes
 
 - PhysX step 5 ms (200 Hz); 4 substeps per control step → control at 20 ms (50 Hz).
 - **Action: 19 values** = throttle, 2 gimbal angles (accepted, unused), 16 jet commands.
-- **Observation: 14 values** = position 3, velocity 3, quaternion 4 (w, x, y, z), body rates 3,
-  mass 1 (`NavigationStateLayout`). A 15th value (height above the ground below) is proposed in
-  [[terrain-integration-plan]] and not yet decided.
+- **Observation: 15 values** = position 3, velocity 3, quaternion 4 (w, x, y, z), body rates 3,
+  mass 1, **footpad height above the ground straight below the c.g.** 1 (`NavigationStateLayout`,
+  `HEIGHT_ABOVE_GROUND`; added 2026-11-15, user decision). On flat ground it equals position z
+  minus 3.62 m.
 - Lateral acceleration comes from tilting the lander (no gimbal model).
 
 ## Message types (`core/message_types.py`)
 
 `TruthState` (frame, time, position, velocity, orientation_quaternion, angular_velocity, mass,
-contact), `Measurement`, `NavEstimate`, `Observation`, `Command` (`from_action_tensor`,
+contact, footpad_height_above_ground, body_contact), `SurfaceGeometry` (site_origin per env,
+height_field; written by the surface, read by plant and metrics), `Measurement`, `NavEstimate`, `Observation`, `Command` (`from_action_tensor`,
 `to_action_tensor`), `Wrench` (force, torque and the extra `mass_flow_rate`), `EpisodeEvents`.
-Message keys include `start_state` (start slot → plant at reset). Design short names map to
+Message keys include `start_state` (start slot → plant at reset) and `surface_geometry`
+(surface → plant and metrics; written once in `initialize`, site origins updated at reset). Design short names map to
 descriptive code names: t→time, r→position, v→velocity, q→orientation_quaternion,
 w→angular_velocity, cov→covariance, rcs→reaction_control_jets.
 
@@ -66,6 +70,11 @@ w→angular_velocity, cov→covariance, rcs→reaction_control_jets.
 - Frames: SITE frame, z up, origin at the landing target on the surface. Isaac quaternions are
   x, y, z, w; LunarSim uses w, x, y, z; conversion happens **only in the plant**.
 - Body frame: origin at the whole-vehicle centre of mass, +z along the thrust axis.
+- Forces: Isaac Lab's wrench composer applies a body force at an offset **from the body's own
+  centre of mass**. The plant passes minus the root body's c.g. as that offset, so actuator
+  forces act at the vehicle c.g. (fixed 2026-11-15; before, zero offsets put them 0.1 m higher).
+- SITE frame origin per environment comes from the surface (`SurfaceGeometry.site_origin`), not
+  from the clone grid.
 - Random numbers: one root seed, one generator per slot (`core/random_generators.py`).
 
 - implements: [[project-goal-and-design-documents]]

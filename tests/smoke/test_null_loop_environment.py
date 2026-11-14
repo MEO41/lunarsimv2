@@ -6,6 +6,7 @@ import torch
 from isaac_test_support import build_agent, make_environment, read_truth, step_with_agent
 
 from lunarsim.core.binding import SlotName
+from lunarsim.core.message_types import NavigationStateLayout
 
 NUMBER_OF_ENVIRONMENTS = 1024
 
@@ -22,7 +23,7 @@ def test_reset_puts_every_box_at_the_start_state(environment):
     """After reset, the observation shows the configured start position for all environments."""
     observations, _ = environment.reset()
     policy = observations["policy"]
-    assert policy.shape == (NUMBER_OF_ENVIRONMENTS, 14)
+    assert policy.shape == (NUMBER_OF_ENVIRONMENTS, NavigationStateLayout.DIMENSION)
     expected_position = torch.tensor([0.0, 0.0, 2.0], device=policy.device)
     # Tolerance 1 mm: positions are float32 and environment origins are up to ~130 m away.
     assert torch.allclose(policy[:, 0:3], expected_position.expand_as(policy[:, 0:3]), atol=1e-3)

@@ -141,7 +141,7 @@ class ZeroEffortMissZeroEffortVelocityAgent(ClassicalLandingAgentBase):
         """Return the command of the current phase for every environment."""
         position, velocity, orientation, angular_velocity, mass = self.split_state(observation)
         controller = self.vertical_controller
-        altitude = controller.footpad_altitude(position)
+        altitude = self.height_above_ground(observation)
         count = position.shape[0]
         if bool(self.needs_plan.any()):
             self._plan(position, velocity, mass)

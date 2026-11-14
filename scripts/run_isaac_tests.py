@@ -10,6 +10,7 @@ Usage::
 One simulator process can hold only one environment, so every file gets a fresh process.
 """
 
+import os
 import re
 import subprocess
 import sys
@@ -19,6 +20,38 @@ from pathlib import Path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 FILE_TIME_LIMIT_SECONDS = 600
+STARTUP_SILENCE_SECONDS = 120
+LAUNCH_ATTEMPTS = 3
+SHARED_MEMORY_DIRECTORY = Path("/dev/shm")
+# Name patterns of the shared-memory files that the simulator leaves behind, ending in its process id.
+SIMULATOR_SHARED_MEMORY_PATTERNS = ("carb-RStringInternals-*", "sem.carb-RStringInternals-*")
+
+
+def process_is_alive(process_id: int) -> bool:
+    """Return True if a process with this id exists."""
+    try:
+        os.kill(process_id, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def remove_stale_simulator_files() -> int:
+    """Remove the simulator's shared-memory files whose process has ended; return how many.
+
+    Every simulator process leaves such files; after many runs a new launch can stall at start.
+    Only files of dead processes are removed.
+    """
+    removed = 0
+    for pattern in SIMULATOR_SHARED_MEMORY_PATTERNS:
+        for path in SHARED_MEMORY_DIRECTORY.glob(pattern):
+            process_id = path.name.rsplit("-", 1)[-1]
+            if process_id.isdigit() and not process_is_alive(int(process_id)):
+                path.unlink(missing_ok=True)
+                removed += 1
+    return removed
 
 
 def collect_test_files(selections: list[str]) -> list[Path]:
@@ -39,23 +72,42 @@ def run_one_file(test_file: Path) -> tuple[int, str, list[str]]:
 
     The simulator sometimes does not exit after pytest has finished. So the result is taken
     from pytest's summary line, and a process that is still alive 30 s after that line (or
-    after ``FILE_TIME_LIMIT_SECONDS`` in total) is stopped.
+    after ``FILE_TIME_LIMIT_SECONDS`` in total) is stopped. The simulator also sometimes stalls
+    at launch and prints nothing; such a launch is stopped after ``STARTUP_SILENCE_SECONDS``
+    and tried again, up to ``LAUNCH_ATTEMPTS`` times.
     """
+    for attempt in range(1, LAUNCH_ATTEMPTS + 1):
+        remove_stale_simulator_files()
+        result = _run_once(test_file)
+        if result is not None:
+            return result
+        print(f"[RETRY] {test_file.name}: the simulator printed nothing for {STARTUP_SILENCE_SECONDS} s "
+              f"(attempt {attempt} of {LAUNCH_ATTEMPTS})", flush=True)
+    return 1, f"the simulator did not start in {LAUNCH_ATTEMPTS} attempts", []
+
+
+def _run_once(test_file: Path) -> tuple[int, str, list[str]] | None:
+    """Run the file once. Return None if the simulator stalled silently at launch."""
     process = subprocess.Popen(
         [sys.executable, "-m", "pytest", str(test_file), "-q", "-x", "--no-header", "-p", "no:cacheprovider"],
         cwd=REPOSITORY_ROOT,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
+        stdin=subprocess.DEVNULL,
         text=True,
+        # Unbuffered, so the launch watchdog sees the simulator's first lines when they are printed.
+        env={**os.environ, "PYTHONUNBUFFERED": "1"},
     )
     lines: list[str] = []
     summary = ""
     reader_done = threading.Event()
+    first_line = threading.Event()
 
     def read_output() -> None:
         """Collect the output and remember pytest's summary line."""
         nonlocal summary
         for line in process.stdout:
+            first_line.set()
             lines.append(line.rstrip())
             if re.search(r"\b\d+ (passed|failed|error)", line) and " in " in line:
                 summary = line.strip("= \n")
@@ -63,6 +115,10 @@ def run_one_file(test_file: Path) -> tuple[int, str, list[str]]:
         reader_done.set()
 
     threading.Thread(target=read_output, daemon=True).start()
+    if not first_line.wait(timeout=STARTUP_SILENCE_SECONDS) and process.poll() is None:
+        process.kill()
+        process.wait()
+        return None
     reader_done.wait(timeout=FILE_TIME_LIMIT_SECONDS)
     try:
         process.wait(timeout=30 if summary else 1)

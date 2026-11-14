@@ -1,0 +1,31 @@
+# @package _global_
+# S1 on real terrain: terminal touchdown with truth state at the Apollo 17 site, with craters
+# and rocks. Same bindings as s1_terminal_truth except the surface. Every environment lands on
+# its own target inside the 160 m detail patch.
+# Needs the height-map files: python scripts/download_height_maps.py
+defaults:
+  - /start: terminal_box
+  - /plant: physx_site
+  - /surface: apollo17_taurus_littrow
+  - /sensors: none
+  - /faults: none
+  - /nav: truth
+  - /agent: zem_zev
+  - /actuators: engine_rcs_pulse
+  - /metrics: touchdown
+  - /landers@lander: apollo_lunar_module
+  - _self_
+
+name: apollo17_terminal_truth
+seed: 0
+env:
+  num_envs: 64
+  # All environments share the patch; their positions come from the surface slot, so the
+  # clone grid only has to stay inside the patch for the first spawn.
+  env_spacing_m: 1.0
+  physics_step_s: 0.005
+  physics_steps_per_control_step: 4
+  episode_length_s: 90.0
+
+plant:
+  spawn_height_m: 40.0   # first spawn, before the first reset: well above any ground in the patch

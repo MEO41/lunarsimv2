@@ -22,7 +22,8 @@ class PhysxSitePlant(PhysxRootBodyPlant):
 
     Parameters (all optional, defaults are the tuned values reported in M1A_REPORT.md):
     ``solver_position_iterations``, ``solver_velocity_iterations``, ``contact_offset_m``,
-    ``rest_offset_m``, ``max_depenetration_velocity_mps``, ``contact_force_threshold_n``.
+    ``rest_offset_m``, ``max_depenetration_velocity_mps``, ``contact_force_threshold_n``,
+    ``spawn_height_m`` (height of the first spawn above the ground, before the first reset).
     """
 
     def setup_scene(self, environment) -> None:
@@ -34,6 +35,7 @@ class PhysxSitePlant(PhysxRootBodyPlant):
 
         preset: LanderPreset = self.context.shared_data["lander_preset"]
         self.preset = preset
+        self.reference_height_above_ground_contact = preset.center_of_mass_height_above_footpad_plane
         usd_path = write_lander_usd(preset, Path(tempfile.gettempdir()) / "lunarsim_assets")
         parameters = self.parameters
         lander_configuration = ArticulationCfg(
@@ -65,7 +67,7 @@ class PhysxSitePlant(PhysxRootBodyPlant):
                 ),
             ),
             init_state=ArticulationCfg.InitialStateCfg(
-                pos=(0.0, 0.0, preset.center_of_mass_height_above_footpad_plane + 1.0),
+                pos=(0.0, 0.0, self.spawn_height()),
                 joint_pos={"strut_.*": 0.0},
             ),
             actuators={
@@ -84,6 +86,11 @@ class PhysxSitePlant(PhysxRootBodyPlant):
             ContactSensorCfg(prim_path="{ENV_REGEX_NS}/" + LANDER_PRIM_NAME + "/leg_.*", history_length=0)
         )
         environment.scene.sensors["leg_contact"] = self.contact_sensor
+        # The body link carries the descent- and ascent-stage shapes: any force on it is a strike.
+        self.body_contact_sensor = ContactSensor(
+            ContactSensorCfg(prim_path="{ENV_REGEX_NS}/" + LANDER_PRIM_NAME + "/body", history_length=0)
+        )
+        environment.scene.sensors["body_contact"] = self.body_contact_sensor
 
     def initialize(self, environment) -> None:
         """Resolve body, joint and sensor indices in leg order, then allocate the mass state."""
@@ -105,6 +112,10 @@ class PhysxSitePlant(PhysxRootBodyPlant):
         """Return the contact force magnitude on each footpad, (N, n_legs), in leg order."""
         net_forces = self.contact_sensor.data.net_forces_w.torch  # (N, n_sensor_bodies, 3)
         return net_forces[:, self.contact_body_ids, :].norm(dim=-1)
+
+    def _read_body_contact_force(self) -> Tensor:
+        """Return the contact force magnitude on the body link (descent and ascent stages), (N,)."""
+        return self.body_contact_sensor.data.net_forces_w.torch[:, 0, :].norm(dim=-1)
 
     def strut_compression(self) -> Tensor:
         """Return how far each strut is compressed, (N, n_legs), m. Used by tests and plots."""

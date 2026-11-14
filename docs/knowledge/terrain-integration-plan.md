@@ -2,15 +2,18 @@
 id: terrain-integration-plan
 title: Terrain integration plan
 type: plan
-status: waiting-for-user
-updated: 2026-11-14
-summary: The plan for real Apollo 17 terrain with craters and rocks, and LM-accurate footpads and body shapes; not started, waits for "Proceed".
+status: superseded
+updated: 2026-11-15
+summary: The plan (2026-11-14) for real Apollo 17 terrain and an LM-accurate lander; approved and built on 2026-11-15, kept as the record of what was agreed.
 ---
 
 # Terrain integration plan (planned 2026-11-14, not started)
 
-**Status:** written and explained to the user; **waiting for "Proceed"** and for the answer on
-the 15th observation value ([[pending-user-decisions]]). Nothing in the repo is changed yet.
+**Status (2026-11-15): approved ("proceed", and yes to the 15th value) and built.** What was
+built, and where it differs from this plan, is in [[measured-terrain-surface]] and
+[[decisions-log]]. Differences: the RCS arm error was found and fixed on the way; the
+c.g.-offset change exposed that forces were applied at the body's own c.g. (fixed); the
+download addresses are confirmed ([[apollo17-height-maps]]).
 The user's requirements behind it are in [[rules-from-the-user]].
 
 ## 1. Lander: our model, matched to the real LM (no NASA mesh)

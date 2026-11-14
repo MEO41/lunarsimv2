@@ -3,7 +3,7 @@ id: testing-and-commands
 title: Testing and commands
 type: environment
 status: current
-updated: 2026-11-14
+updated: 2026-11-15
 summary: How to run the tests, scenarios, evaluations, benchmarks, figures and the knowledge-graph check.
 ---
 
@@ -15,8 +15,8 @@ Activate the Isaac environment first ([[workstation-setup-and-machines]]).
 
 | Command | What | Needs GPU |
 | --- | --- | --- |
-| `python -m pytest tests/unit -q` | 89 CPU tests (core, preset, controllers, records, figures, knowledge graph) | no |
-| `python scripts/run_isaac_tests.py` | `tests/physics` + `tests/smoke`, one simulator process per file | yes |
+| `python -m pytest tests/unit -q` | 101 CPU tests (core, preset, controllers, records, figures, terrain, knowledge graph) | no |
+| `python scripts/run_isaac_tests.py` | `tests/physics` + `tests/smoke` (13 files), one simulator process per file; the terrain test is skipped without the height maps | yes |
 | `python scripts/run_isaac_tests.py physics` | one folder | yes |
 | `python scripts/run_isaac_tests.py tests/smoke/test_null_loop_environment.py` | one file | yes |
 | `python scripts/check_installation.py` | versions against `requirements-pinned.txt`, CUDA check | yes |
@@ -26,7 +26,9 @@ GPU tests carry the pytest marker `isaac`. GitHub Actions runs the CPU tests on 
 ## Running things
 
 ```bash
+python scripts/download_height_maps.py                                            # once per machine, 952 MB
 python scripts/run_scenario.py scenario=m0_null_loop num_envs=1024 steps=100      # add --viz kit for a window
+python scripts/evaluate_agent.py scenario=apollo17_terminal_truth num_envs=4096 run_name=terrain_seed0 seed=0
 python scripts/evaluate_agent.py scenario=s1_terminal_truth num_envs=4096 run_name=zem_zev_seed0 seed=0
 python scripts/benchmark_environment.py scenario=s1_terminal_truth num_envs=1024 steps=500
 python scripts/render_lander_image.py --enable_cameras output=docs/figures/lander_at_rest.png

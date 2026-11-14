@@ -66,6 +66,7 @@ def test_navigation_layout_covers_all_columns_once():
         layout.ORIENTATION_QUATERNION,
         layout.ANGULAR_VELOCITY,
         layout.MASS,
+        layout.HEIGHT_ABOVE_GROUND,
     ):
         columns += list(range(part.start, part.stop))
     assert columns == list(range(layout.DIMENSION))

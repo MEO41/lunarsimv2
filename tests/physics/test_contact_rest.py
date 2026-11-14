@@ -17,9 +17,12 @@ Tolerances and why:
   law; 0.5 % covers the force noise of the solver (its standard deviation is about 1.5 %
   per sample, averaged over 100 samples).
 - Each leg within 3 % of m g / 4 in the symmetric groups A and B: four spring legs on a flat
-  plane share the load equally; 3 % covers small differences left by the impact.
-- Strut compression at rest within 2 % of (body weight / 4) / stiffness (groups A and B).
-  The PGS solver with 16 iterations reproduces the spring to 0.2 %.
+  plane share the load equally, except for the 4 cm centre-of-mass offset of the Apollo 11 LM,
+  which moves about 2 % of the load toward the +x leg; 3 % covers that.
+- Strut compression at rest within 2 % of each leg's static share of the body weight divided
+  by the stiffness (groups A and B). The share follows from a rigid body on four equal springs:
+  W/4 + W (c . p) / (2 r^2), with c the body's centre of mass and p the leg position, both
+  measured from the vehicle axis. The PGS solver with 16 iterations reproduces the spring to 0.2 %.
 - At rest: the position changes by less than 1 mm over the last 4 s; the height standard
   deviation is below 0.1 mm; the reported speed is below 1 cm/s and the body rate below
   0.2 deg/s. The solver leaves a vibration of about 10 micrometres in the struts, which shows
@@ -114,9 +117,17 @@ def test_symmetric_landings_share_the_load_equally(touchdown):
 
 
 def test_strut_compression_matches_the_spring(touchdown):
-    """Groups A and B: rest compression is (body weight / 4) / stiffness within 2 %; no strut bottoms out."""
+    """Groups A and B: rest compression is each leg's static load / stiffness within 2 %; no strut bottoms out."""
     history, preset, _ = touchdown
-    expected = preset.body_mass * MOON_SURFACE_GRAVITY / preset.number_of_legs / preset.strut_stiffness
+    body_weight = preset.body_mass * MOON_SURFACE_GRAVITY
+    axis_x, axis_y = preset.vehicle_axis_position
+    body_x, body_y, _ = preset.body_center_of_mass
+    radius = preset.footpad_radius_from_thrust_axis
+    shares = [
+        0.25 + ((body_x - axis_x) * (leg_x - axis_x) + (body_y - axis_y) * (leg_y - axis_y)) / (2.0 * radius**2)
+        for leg_x, leg_y, _ in preset.leg_positions
+    ]
+    expected = torch.tensor(shares, device=history["strut"].device) * body_weight / preset.strut_stiffness
     rest_compression = history["strut"][-100:].mean(dim=0)
     for group in (GENTLE, HARD):
         assert float((rest_compression[group] / expected - 1.0).abs().max()) < 0.02

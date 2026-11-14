@@ -42,11 +42,18 @@ class LanderPreset:
     inertia_about_x: float
     inertia_about_y: float
     inertia_about_z: float
-    # geometry
+    # geometry (heights above the footpad plane are measured with the struts not stroked)
     center_of_mass_height_above_footpad_plane: float
-    body_collision_radius: float
-    body_collision_bottom_below_center_of_mass: float
-    body_collision_top_above_center_of_mass: float
+    center_of_mass_offset_x: float  # c.g. position relative to the vehicle axis, body x
+    center_of_mass_offset_y: float  # c.g. position relative to the vehicle axis, body y
+    descent_stage_width: float
+    descent_stage_height: float
+    descent_stage_bottom_above_footpad_plane: float
+    ascent_stage_width: float  # along body y
+    ascent_stage_depth: float  # along body x
+    ascent_stage_height: float
+    nozzle_exit_diameter: float
+    nozzle_exit_height_above_footpad_plane: float
     # descent engine
     engine_rated_thrust: float
     engine_minimum_throttle_fraction: float
@@ -60,12 +67,15 @@ class LanderPreset:
     jet_specific_impulse: float
     jet_minimum_pulse_duration: float
     jet_valve_delay: float
-    jet_cluster_arm_from_thrust_axis: float
+    jet_cluster_offset_along_body_axes: float
+    horizontal_jet_offset_across_firing_axis: float
+    horizontal_jet_offset_along_firing_axis: float
     jet_cluster_height_above_center_of_mass: float
     # landing gear
     number_of_legs: int
     footpad_radius_from_thrust_axis: float
     footpad_diameter: float
+    footpad_depth: float
     strut_stroke: float
     strut_stiffness: float
     strut_damping_ratio: float
@@ -121,24 +131,68 @@ class LanderPreset:
         return self.strut_damping_ratio * 2.0 * math.sqrt(self.strut_stiffness * mass_per_leg)
 
     @property
-    def leg_positions(self) -> list[tuple[float, float, float]]:
-        """Return the footpad centres in the body frame (unstroked), one per leg.
+    def vehicle_axis_position(self) -> tuple[float, float]:
+        """Return where the vehicle axis (thrust axis) crosses the body x-y plane, m.
 
-        Legs sit on the body +x, +y, -x, -y axes. The footpad is modelled as a sphere whose
-        lowest point lies in the footpad plane.
+        The body-frame origin is the centre of mass, which sits slightly off the vehicle axis,
+        so every part of the vehicle is shifted by minus the centre-of-mass offset.
         """
-        height = -self.center_of_mass_height_above_footpad_plane + self.footpad_radius
+        return (-self.center_of_mass_offset_x, -self.center_of_mass_offset_y)
+
+    def height_above_center_of_mass(self, height_above_footpad_plane: float) -> float:
+        """Convert a height above the footpad plane (struts not stroked) to a body-frame z, m."""
+        return height_above_footpad_plane - self.center_of_mass_height_above_footpad_plane
+
+    @property
+    def leg_positions(self) -> list[tuple[float, float, float]]:
+        """Return the leg-link origins in the body frame (struts not stroked), one per leg.
+
+        Legs sit on the vehicle's +x, +y, -x, -y axes. The footpad is a dish (spherical cap,
+        curved side down); the link origin is the centre of its flat top, ``footpad_depth``
+        above the footpad plane, so the lowest point of the dish lies in the footpad plane.
+        """
+        height = self.height_above_center_of_mass(self.footpad_depth)
+        axis_x, axis_y = self.vehicle_axis_position
         positions = []
         for leg_index in range(self.number_of_legs):
             azimuth = 2.0 * math.pi * leg_index / self.number_of_legs
             positions.append(
                 (
-                    self.footpad_radius_from_thrust_axis * math.cos(azimuth),
-                    self.footpad_radius_from_thrust_axis * math.sin(azimuth),
+                    axis_x + self.footpad_radius_from_thrust_axis * math.cos(azimuth),
+                    axis_y + self.footpad_radius_from_thrust_axis * math.sin(azimuth),
                     height,
                 )
             )
         return positions
+
+    @property
+    def footpad_sphere_radius(self) -> float:
+        """Return the radius of the sphere whose cap forms the dish footpad, m.
+
+        A cap of base radius a and depth h belongs to a sphere of radius (a^2 + h^2) / (2 h).
+        """
+        base_radius = self.footpad_radius
+        return (base_radius**2 + self.footpad_depth**2) / (2.0 * self.footpad_depth)
+
+    @property
+    def descent_stage_center(self) -> tuple[float, float, float]:
+        """Return the centre of the descent-stage cylinder in the body frame, m."""
+        axis_x, axis_y = self.vehicle_axis_position
+        middle = self.descent_stage_bottom_above_footpad_plane + 0.5 * self.descent_stage_height
+        return (axis_x, axis_y, self.height_above_center_of_mass(middle))
+
+    @property
+    def ascent_stage_center(self) -> tuple[float, float, float]:
+        """Return the centre of the ascent-stage box in the body frame, m. It sits on the descent stage."""
+        axis_x, axis_y = self.vehicle_axis_position
+        bottom = self.descent_stage_bottom_above_footpad_plane + self.descent_stage_height
+        return (axis_x, axis_y, self.height_above_center_of_mass(bottom + 0.5 * self.ascent_stage_height))
+
+    @property
+    def nozzle_exit_center(self) -> tuple[float, float, float]:
+        """Return the centre of the descent-engine nozzle exit in the body frame, m."""
+        axis_x, axis_y = self.vehicle_axis_position
+        return (axis_x, axis_y, self.height_above_center_of_mass(self.nozzle_exit_height_above_footpad_plane))
 
     @property
     def body_mass(self) -> float:
@@ -146,34 +200,36 @@ class LanderPreset:
         return self.mass_at_start - self.number_of_legs * self.leg_mass
 
     @property
-    def body_center_of_mass_height(self) -> float:
-        """Return where the root body's own centre of mass sits above the body-frame origin, m.
+    def body_center_of_mass(self) -> tuple[float, float, float]:
+        """Return where the root body's own centre of mass sits in the body frame, m.
 
         The origin of the body frame is the centre of mass of the whole vehicle (body plus
-        legs, struts extended). The legs hang below it, so the root body's centre of mass must
-        sit a little above it.
+        legs, struts extended). The legs hang below it (and follow the small offset of the
+        vehicle axis), so the root body's centre of mass sits a little above and beside it.
         """
-        legs_moment = sum(self.leg_mass * z for _, _, z in self.leg_positions)
-        return -legs_moment / self.body_mass
+        return tuple(
+            -sum(self.leg_mass * position[axis] for position in self.leg_positions) / self.body_mass for axis in range(3)
+        )
 
     @property
     def body_inertia(self) -> tuple[float, float, float]:
-        """Return the root-body inertia about its own centre of mass.
+        """Return the root-body inertia about its own centre of mass (body axes).
 
         It is chosen so that body plus legs give the preset's total inertia about the vehicle
-        centre of mass. Each leg is treated as a point mass at its footpad centre, and the
+        centre of mass. Each leg is treated as a point mass at its leg-link origin, and the
         body's offset from the vehicle centre of mass is removed with the parallel-axis rule.
+        Products of inertia are neglected.
         """
         legs_about_x = legs_about_y = legs_about_z = 0.0
         for x, y, z in self.leg_positions:
             legs_about_x += self.leg_mass * (y * y + z * z)
             legs_about_y += self.leg_mass * (x * x + z * z)
             legs_about_z += self.leg_mass * (x * x + y * y)
-        body_offset_term = self.body_mass * self.body_center_of_mass_height**2
+        body_x, body_y, body_z = self.body_center_of_mass
         inertia = (
-            self.inertia_about_x - legs_about_x - body_offset_term,
-            self.inertia_about_y - legs_about_y - body_offset_term,
-            self.inertia_about_z - legs_about_z,
+            self.inertia_about_x - legs_about_x - self.body_mass * (body_y**2 + body_z**2),
+            self.inertia_about_y - legs_about_y - self.body_mass * (body_x**2 + body_z**2),
+            self.inertia_about_z - legs_about_z - self.body_mass * (body_x**2 + body_y**2),
         )
         if min(inertia) <= 0.0:
             raise LanderPresetError("The legs alone have more inertia than the whole vehicle; lower the leg mass")
@@ -181,22 +237,32 @@ class LanderPreset:
 
     @property
     def jets(self) -> list[ReactionControlJet]:
-        """Return the reaction-control jets: four clusters of four, 45 degrees off the body axes.
+        """Return the reaction-control jets: four clusters of four, on the 45 degree diagonals.
 
-        In each cluster: one jet pushes up (+z), one down (-z), and two push horizontally along
-        the body x and y axes, toward the vehicle (their nozzles point away from it).
+        Each cluster sits ``jet_cluster_offset_along_body_axes`` from the vehicle axis along
+        both body x and y. In each cluster: one jet pushes up (+z), one down (-z), and two push
+        horizontally along the body x and y axes, toward the vehicle (their nozzles point away
+        from it). A horizontal jet sits ``horizontal_jet_offset_along_firing_axis`` out along
+        its firing axis and ``horizontal_jet_offset_across_firing_axis`` out across it.
         """
+        axis_x, axis_y = self.vehicle_axis_position
+        height = self.jet_cluster_height_above_center_of_mass
+        along = self.horizontal_jet_offset_along_firing_axis
+        across = self.horizontal_jet_offset_across_firing_axis
         jets = []
         for cluster_index in range(4):
             azimuth = math.pi / 4.0 + 0.5 * math.pi * cluster_index
-            x = self.jet_cluster_arm_from_thrust_axis * math.cos(azimuth)
-            y = self.jet_cluster_arm_from_thrust_axis * math.sin(azimuth)
-            position = (x, y, self.jet_cluster_height_above_center_of_mass)
+            sign_x = math.copysign(1.0, math.cos(azimuth))
+            sign_y = math.copysign(1.0, math.sin(azimuth))
+            offset = self.jet_cluster_offset_along_body_axes
+            cluster_position = (axis_x + sign_x * offset, axis_y + sign_y * offset, height)
+            x_jet_position = (axis_x + sign_x * along, axis_y + sign_y * across, height)
+            y_jet_position = (axis_x + sign_x * across, axis_y + sign_y * along, height)
             cluster = f"cluster_{cluster_index + 1}"
-            jets.append(ReactionControlJet(f"{cluster}_push_up", position, (0.0, 0.0, 1.0)))
-            jets.append(ReactionControlJet(f"{cluster}_push_down", position, (0.0, 0.0, -1.0)))
-            jets.append(ReactionControlJet(f"{cluster}_push_along_x", position, (-math.copysign(1.0, x), 0.0, 0.0)))
-            jets.append(ReactionControlJet(f"{cluster}_push_along_y", position, (0.0, -math.copysign(1.0, y), 0.0)))
+            jets.append(ReactionControlJet(f"{cluster}_push_up", cluster_position, (0.0, 0.0, 1.0)))
+            jets.append(ReactionControlJet(f"{cluster}_push_down", cluster_position, (0.0, 0.0, -1.0)))
+            jets.append(ReactionControlJet(f"{cluster}_push_along_x", x_jet_position, (-sign_x, 0.0, 0.0)))
+            jets.append(ReactionControlJet(f"{cluster}_push_along_y", y_jet_position, (0.0, -sign_y, 0.0)))
         return jets
 
     @property
@@ -227,9 +293,16 @@ _FIELD_MAP = (
     ("inertia", "about_y_kg_m2", "inertia_about_y", 1.0),
     ("inertia", "about_z_kg_m2", "inertia_about_z", 1.0),
     ("geometry", "center_of_mass_height_above_footpad_plane_m", "center_of_mass_height_above_footpad_plane", 1.0),
-    ("geometry", "body_collision_radius_m", "body_collision_radius", 1.0),
-    ("geometry", "body_collision_bottom_below_center_of_mass_m", "body_collision_bottom_below_center_of_mass", 1.0),
-    ("geometry", "body_collision_top_above_center_of_mass_m", "body_collision_top_above_center_of_mass", 1.0),
+    ("geometry", "center_of_mass_offset_x_m", "center_of_mass_offset_x", 1.0),
+    ("geometry", "center_of_mass_offset_y_m", "center_of_mass_offset_y", 1.0),
+    ("geometry", "descent_stage_width_m", "descent_stage_width", 1.0),
+    ("geometry", "descent_stage_height_m", "descent_stage_height", 1.0),
+    ("geometry", "descent_stage_bottom_above_footpad_plane_m", "descent_stage_bottom_above_footpad_plane", 1.0),
+    ("geometry", "ascent_stage_width_m", "ascent_stage_width", 1.0),
+    ("geometry", "ascent_stage_depth_m", "ascent_stage_depth", 1.0),
+    ("geometry", "ascent_stage_height_m", "ascent_stage_height", 1.0),
+    ("geometry", "nozzle_exit_diameter_m", "nozzle_exit_diameter", 1.0),
+    ("geometry", "nozzle_exit_height_above_footpad_plane_m", "nozzle_exit_height_above_footpad_plane", 1.0),
     ("descent_engine", "rated_thrust_n", "engine_rated_thrust", 1.0),
     ("descent_engine", "minimum_throttle_fraction", "engine_minimum_throttle_fraction", 1.0),
     ("descent_engine", "maximum_throttle_fraction", "engine_maximum_throttle_fraction", 1.0),
@@ -241,7 +314,19 @@ _FIELD_MAP = (
     ("reaction_control_system", "specific_impulse_s", "jet_specific_impulse", 1.0),
     ("reaction_control_system", "minimum_pulse_duration_s", "jet_minimum_pulse_duration", 1.0),
     ("reaction_control_system", "valve_delay_s", "jet_valve_delay", 1.0),
-    ("reaction_control_system", "cluster_arm_from_thrust_axis_m", "jet_cluster_arm_from_thrust_axis", 1.0),
+    ("reaction_control_system", "cluster_offset_along_body_axes_m", "jet_cluster_offset_along_body_axes", 1.0),
+    (
+        "reaction_control_system",
+        "horizontal_jet_offset_across_firing_axis_m",
+        "horizontal_jet_offset_across_firing_axis",
+        1.0,
+    ),
+    (
+        "reaction_control_system",
+        "horizontal_jet_offset_along_firing_axis_m",
+        "horizontal_jet_offset_along_firing_axis",
+        1.0,
+    ),
     (
         "reaction_control_system",
         "cluster_height_above_center_of_mass_m",
@@ -251,6 +336,7 @@ _FIELD_MAP = (
     ("landing_gear", "number_of_legs", "number_of_legs", 1),
     ("landing_gear", "footpad_radius_from_thrust_axis_m", "footpad_radius_from_thrust_axis", 1.0),
     ("landing_gear", "footpad_diameter_m", "footpad_diameter", 1.0),
+    ("landing_gear", "footpad_depth_m", "footpad_depth", 1.0),
     ("landing_gear", "strut_stroke_m", "strut_stroke", 1.0),
     ("landing_gear", "strut_stiffness_n_per_m", "strut_stiffness", 1.0),
     ("landing_gear", "strut_damping_ratio", "strut_damping_ratio", 1.0),

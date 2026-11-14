@@ -3,7 +3,7 @@ id: sources-bibliography
 title: Sources bibliography
 type: research
 status: current
-updated: 2026-11-14
+updated: 2026-11-15
 summary: Every public source used for numbers in the preset and the plans, with its short key and link.
 ---
 
@@ -37,7 +37,8 @@ Short keys match the lander preset file (`configs/landers/apollo_lunar_module.ya
 | BANDFIELD-2011 | Bandfield et al., JGR 116, E00H02 (2011), Diviner rock abundance | https://gemelli.spacescience.org/jbandfield/publications/bandfield_diviner_ra.pdf |
 | A17-PSR | Mitchell et al., Apollo 17 Preliminary Science Report, NASA SP-330, sec. 8 Soil Mechanics | https://www.nasa.gov/wp-content/uploads/static/history/alsj/WOTM//a17psr_Section8_SoilMechanics.pdf |
 | SOURCEBOOK | Carrier et al., Lunar Sourcebook, chapter 9 (1991) | https://www.lpi.usra.edu/publications/books/lunar_sourcebook/pdf/Chapter09.pdf |
-| NAC-DTM | LROC NAC DTM products NAC_DTM_APOLLO17_2M and NAC_DTM_APOLLO17, Arizona State University | Download addresses to be confirmed ([[apollo17-height-maps]]) |
+| NAC-DTM | LROC NAC DTM products NAC_DTM_APOLLO17_2M (v1.9) and NAC_DTM_APOLLO17, Arizona State University, PDS volume LROLRC_2001 | https://pds.lroc.im-ldi.com/data/LRO-L-LROC-5-RDR-V1.0/LROLRC_2001/DATA/SDP/NAC_DTM/ ([[apollo17-height-maps]]) |
+| HAASE-2019 | Haase, Wählisch, Gläser, Oberst, Robinson, "Coordinates and maps of the Apollo 17 landing site", Earth and Space Science 6 (2019), Table 3 | https://doi.org/10.1029/2018EA000408 |
 
 ## Constants
 

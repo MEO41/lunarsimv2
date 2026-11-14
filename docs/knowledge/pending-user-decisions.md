@@ -3,7 +3,7 @@ id: pending-user-decisions
 title: Pending user decisions
 type: plan
 status: waiting-for-user
-updated: 2026-11-14
+updated: 2026-11-15
 summary: Questions that wait for the user's answer; work that depends on them must not start before.
 ---
 
@@ -11,14 +11,14 @@ summary: Questions that wait for the user's answer; work that depends on them mu
 
 | # | Question | Default if the user agrees | Blocks |
 | --- | --- | --- | --- |
-| 1 | "Proceed" with [[terrain-integration-plan]]? | Start in this order: preset and builder, contact rerun, terrain reader, surface binding, scenario | All terrain work |
-| 2 | Add a **15th observation value**, footpad height above the ground below? | Yes, so agents can land on uneven ground | Agents on terrain; observation size |
-| 3 | Inertia about y: 13,667 or 13,867 slug ft²? | Re-read the Mission Report page; correct only with the page in hand | Preset change |
-| 4 | Keep the strut straight (not inclined 23°) for now? | Yes, listed as an open issue | Strut geometry |
-| 5 | Open milestone 1b (RL)? | No; only when the user says so | All RL work |
+| 1 | Keep the strut straight (not inclined 23°) for now? | Yes, listed as an open issue | Strut geometry |
+| 2 | Open milestone 1b (RL)? | No; only when the user says so | All RL work |
+| 3 | Should the nozzle clearance (recorded, not a failure) ever count as a failure? | No: the real skirt is crushable (28 in) | Outcome rules |
 
-Answered and closed: GitHub `workflow` token scope (done; CI runs), setup script (written),
-knowledge graph (this folder).
+Answered and closed (2026-11-15): "Proceed" with [[terrain-integration-plan]] (user said
+"proceed"); 15th observation value **yes** (user chose it); inertia about y is **13,867**
+slug ft² (page image of the Mission Report checked, preset corrected). Earlier: GitHub
+`workflow` token scope, setup script, knowledge graph.
 
 When an answer comes, move it to [[decisions-log]], update this table and
 [[milestone-roadmap-and-status]] in the same commit.

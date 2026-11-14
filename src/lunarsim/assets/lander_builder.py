@@ -5,11 +5,17 @@ The lander is one articulation: a root body, and per leg one link (the footpad) 
 spring-damper joint (the strut). The USD file is written as text, so this part needs no
 simulator and is covered by CPU tests.
 
+Collision shapes, all from the preset (see ``configs/landers``):
+- descent stage: a cylinder of the stage's width and height (the real stage is an octagon);
+- ascent stage: a box of the stage's envelope, on top of the descent stage;
+- footpads: a dish (spherical cap, curved side down) of the real diameter and depth, as a
+  convex mesh. The real pad swivels on a ball joint; this one is fixed to its leg.
+The descent-engine nozzle has no collision shape: the real skirt is crushable. The touchdown
+metric reports its clearance above the ground.
+
 Simplifications (also listed in M1A_REPORT.md):
 - The strut strokes along the body z axis. The real primary struts are inclined.
 - The strut is a linear spring-damper. The real strut crushes honeycomb (no spring-back).
-- Each footpad is a sphere, so every leg touches the ground in one point.
-- The body collision shape is one cylinder around the descent and ascent stages.
 """
 
 from __future__ import annotations
@@ -34,6 +40,69 @@ def strut_joint_name(leg_index: int) -> str:
     return f"strut_{leg_index + 1}"
 
 
+FOOTPAD_RING_COUNT = 4  # rings of the dish mesh between the lowest point and the rim
+FOOTPAD_POINTS_PER_RING = 24
+
+
+def footpad_dish_mesh(preset: LanderPreset) -> tuple[list[tuple[float, float, float]], list[int], list[int]]:
+    """Return (points, face vertex counts, face vertex indices) of one dish footpad.
+
+    The dish is a spherical cap with its curved side down. Coordinates are in the leg-link
+    frame: the flat top lies at z = 0 and the lowest point at z = -footpad_depth.
+    """
+    sphere_radius = preset.footpad_sphere_radius
+    rim_radius = preset.footpad_radius
+    depth = preset.footpad_depth
+    points: list[tuple[float, float, float]] = [(0.0, 0.0, -depth)]
+    for ring in range(1, FOOTPAD_RING_COUNT + 1):
+        ring_radius = rim_radius * ring / FOOTPAD_RING_COUNT
+        # Height of the sphere surface below the flat top at this radius.
+        height = -depth + (sphere_radius - math.sqrt(sphere_radius**2 - ring_radius**2))
+        for index in range(FOOTPAD_POINTS_PER_RING):
+            angle = 2.0 * math.pi * index / FOOTPAD_POINTS_PER_RING
+            points.append((ring_radius * math.cos(angle), ring_radius * math.sin(angle), height))
+    points.append((0.0, 0.0, 0.0))
+    counts: list[int] = []
+    indices: list[int] = []
+    count = FOOTPAD_POINTS_PER_RING
+
+    def ring_point(ring: int, index: int) -> int:
+        """Return the point index of point ``index`` on ring ``ring`` (rings start at 1)."""
+        return 1 + (ring - 1) * count + index % count
+
+    for index in range(count):  # fan around the lowest point
+        counts.append(3)
+        indices += [0, ring_point(1, index + 1), ring_point(1, index)]
+    for ring in range(1, FOOTPAD_RING_COUNT):
+        for index in range(count):
+            counts.append(4)
+            indices += [ring_point(ring, index), ring_point(ring, index + 1), ring_point(ring + 1, index + 1), ring_point(ring + 1, index)]
+    top = len(points) - 1
+    for index in range(count):  # flat top
+        counts.append(3)
+        indices += [top, ring_point(FOOTPAD_RING_COUNT, index), ring_point(FOOTPAD_RING_COUNT, index + 1)]
+    return points, counts, indices
+
+
+def _footpad_lines(preset: LanderPreset) -> list[str]:
+    """Return USD lines of the dish footpad collision mesh of one leg."""
+    points, counts, indices = footpad_dish_mesh(preset)
+    point_text = ", ".join(f"({x:.6f}, {y:.6f}, {z:.6f})" for x, y, z in points)
+    return [
+        '        def Mesh "footpad" (',
+        '            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]',
+        "        )",
+        "        {",
+        '            uniform token physics:approximation = "convexHull"',
+        f"            point3f[] points = [{point_text}]",
+        f"            int[] faceVertexCounts = [{', '.join(str(value) for value in counts)}]",
+        f"            int[] faceVertexIndices = [{', '.join(str(value) for value in indices)}]",
+        '            uniform token subdivisionScheme = "none"',
+        "            color3f[] primvars:displayColor = [(0.5, 0.5, 0.55)]",
+        "        }",
+    ]
+
+
 def _strut_visual_lines(preset: LanderPreset, leg_position: tuple[float, float, float]) -> list[str]:
     """Return USD lines of a thin cylinder from the footpad to the descent stage.
 
@@ -42,9 +111,14 @@ def _strut_visual_lines(preset: LanderPreset, leg_position: tuple[float, float, 
     compresses.
     """
     x, y, z = leg_position
-    radial = math.hypot(x, y)
-    attach_height = -0.6 * preset.body_collision_bottom_below_center_of_mass
-    attach = (preset.body_collision_radius * x / radial, preset.body_collision_radius * y / radial, attach_height)
+    axis_x, axis_y = preset.vehicle_axis_position
+    radial_x, radial_y = x - axis_x, y - axis_y
+    radial = math.hypot(radial_x, radial_y)
+    stage_radius = 0.5 * preset.descent_stage_width
+    attach_height = preset.height_above_center_of_mass(
+        preset.descent_stage_bottom_above_footpad_plane + 0.7 * preset.descent_stage_height
+    )
+    attach = (axis_x + stage_radius * radial_x / radial, axis_y + stage_radius * radial_y / radial, attach_height)
     direction = (attach[0] - x, attach[1] - y, attach[2] - z)
     length = math.sqrt(sum(component * component for component in direction))
     unit = tuple(component / length for component in direction)
@@ -70,11 +144,10 @@ def _strut_visual_lines(preset: LanderPreset, leg_position: tuple[float, float, 
 def build_lander_usda(preset: LanderPreset) -> str:
     """Return the USD (text format) of the lander articulation for ``preset``."""
     body_inertia = preset.body_inertia
-    cylinder_height = preset.body_collision_top_above_center_of_mass + preset.body_collision_bottom_below_center_of_mass
-    cylinder_centre = 0.5 * (
-        preset.body_collision_top_above_center_of_mass - preset.body_collision_bottom_below_center_of_mass
-    )
-    leg_inertia = 0.4 * preset.leg_mass * preset.footpad_radius**2  # solid sphere
+    body_centre_of_mass = preset.body_center_of_mass
+    descent_x, descent_y, descent_z = preset.descent_stage_center
+    ascent_x, ascent_y, ascent_z = preset.ascent_stage_center
+    leg_inertia = 0.4 * preset.leg_mass * preset.footpad_radius**2  # solid sphere of the footpad radius
     lines = [
         "#usda 1.0",
         "(",
@@ -91,20 +164,33 @@ def build_lander_usda(preset: LanderPreset) -> str:
         "    )",
         "    {",
         f"        float physics:mass = {preset.body_mass:.6f}",
-        f"        point3f physics:centerOfMass = (0, 0, {preset.body_center_of_mass_height:.6f})",
+        "        point3f physics:centerOfMass = ("
+        f"{body_centre_of_mass[0]:.6f}, {body_centre_of_mass[1]:.6f}, {body_centre_of_mass[2]:.6f})",
         f"        float3 physics:diagonalInertia = ({body_inertia[0]:.6f}, {body_inertia[1]:.6f}, {body_inertia[2]:.6f})",
         "        quatf physics:principalAxes = (1, 0, 0, 0)",
         "",
-        '        def Cylinder "collision" (',
+        '        def Cylinder "descent_stage" (',
         '            prepend apiSchemas = ["PhysicsCollisionAPI"]',
         "        )",
         "        {",
         '            uniform token axis = "Z"',
-        f"            double height = {cylinder_height:.6f}",
-        f"            double radius = {preset.body_collision_radius:.6f}",
-        f"            double3 xformOp:translate = (0, 0, {cylinder_centre:.6f})",
+        f"            double height = {preset.descent_stage_height:.6f}",
+        f"            double radius = {0.5 * preset.descent_stage_width:.6f}",
+        f"            double3 xformOp:translate = ({descent_x:.6f}, {descent_y:.6f}, {descent_z:.6f})",
         '            uniform token[] xformOpOrder = ["xformOp:translate"]',
         "            color3f[] primvars:displayColor = [(0.75, 0.65, 0.3)]",
+        "        }",
+        "",
+        '        def Cube "ascent_stage" (',
+        '            prepend apiSchemas = ["PhysicsCollisionAPI"]',
+        "        )",
+        "        {",
+        "            double size = 1",
+        f"            double3 xformOp:translate = ({ascent_x:.6f}, {ascent_y:.6f}, {ascent_z:.6f})",
+        "            float3 xformOp:scale = ("
+        f"{preset.ascent_stage_depth:.6f}, {preset.ascent_stage_width:.6f}, {preset.ascent_stage_height:.6f})",
+        '            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]',
+        "            color3f[] primvars:displayColor = [(0.7, 0.7, 0.72)]",
         "        }",
         "    }",
     ]
@@ -121,13 +207,7 @@ def build_lander_usda(preset: LanderPreset) -> str:
             "        point3f physics:centerOfMass = (0, 0, 0)",
             f"        float3 physics:diagonalInertia = ({leg_inertia:.6f}, {leg_inertia:.6f}, {leg_inertia:.6f})",
             "",
-            '        def Sphere "footpad" (',
-            '            prepend apiSchemas = ["PhysicsCollisionAPI"]',
-            "        )",
-            "        {",
-            f"            double radius = {preset.footpad_radius:.6f}",
-            "            color3f[] primvars:displayColor = [(0.5, 0.5, 0.55)]",
-            "        }",
+            *_footpad_lines(preset),
             *_strut_visual_lines(preset, (x, y, z)),
             "    }",
             "",

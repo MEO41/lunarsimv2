@@ -4,7 +4,8 @@
 The plant has three jobs:
 
 1. ``step``: read the body state from PhysX and write it to the bus as ``TruthState`` in the
-   SITE frame (position relative to the environment origin, quaternion as w, x, y, z).
+   SITE frame (position relative to the site origin that the surface slot gives for each
+   environment, quaternion as w, x, y, z), with the footpad height above the ground below.
 2. ``apply_wrench``: every PhysX substep, add up the actuator and surface wrenches and hand
    them to PhysX; integrate the vehicle mass from the propellant flow.
 3. ``reset``: put the body at the state that the start slot sampled.
@@ -19,7 +20,7 @@ import torch
 from torch import Tensor
 
 from lunarsim.core.binding import BindingBase
-from lunarsim.core.message_types import Frame, MessageKey, TruthState, Wrench
+from lunarsim.core.message_types import Frame, MessageKey, SurfaceGeometry, TruthState, Wrench
 from lunarsim.core.rotation_math import (
     quaternion_wxyz_to_xyzw,
     quaternion_xyzw_to_wxyz,
@@ -31,15 +32,27 @@ from lunarsim.core.rotation_math import (
 class PhysxRootBodyPlant(BindingBase):
     """Base class. Subclasses create the asset in ``setup_scene`` and store it in ``self.asset``."""
 
-    requires = frozenset({MessageKey.START_STATE, MessageKey.ACTUATOR_WRENCH, MessageKey.SURFACE_WRENCH})
+    requires = frozenset(
+        {MessageKey.START_STATE, MessageKey.ACTUATOR_WRENCH, MessageKey.SURFACE_WRENCH, MessageKey.SURFACE_GEOMETRY}
+    )
     provides = frozenset({MessageKey.TRUTH_STATE})
 
     asset = None  # isaaclab RigidObject or Articulation, set by the subclass in setup_scene
     root_body_index: int = 0
+    # Height of the body-frame origin above the lowest point of the vehicle when it stands on
+    # flat ground (the centre-of-mass height above the footpad plane for a lander).
+    reference_height_above_ground_contact: float = 0.0
+
+    def spawn_height(self) -> float:
+        """Return the height above its environment origin at which the asset is first spawned, m.
+
+        Resets move it to the sampled start state; this only has to keep the first spawn clear
+        of the ground (``spawn_height_m`` parameter, default 1 m above the ground contact).
+        """
+        return self.reference_height_above_ground_contact + float(self.parameters.get("spawn_height_m", 1.0))
 
     def initialize(self, environment) -> None:
         """Allocate the mass state once the simulation is running."""
-        self.environment_origins = environment.scene.env_origins
         self.default_body_masses = self.asset.data.body_mass.torch.clone()  # (N, n_bodies)
         self.default_root_inertia = self.asset.data.body_inertia.torch[:, self.root_body_index].clone()  # (N, 9)
         self.default_total_mass = self.default_body_masses.sum(dim=1)
@@ -50,18 +63,23 @@ class PhysxRootBodyPlant(BindingBase):
             self.number_of_environments, dtype=torch.bool, device=self.device
         )
         self._root_body_ids = [self.root_body_index]
-        self._force_application_offset = torch.zeros(self.number_of_environments, 1, 3, device=self.device)
+        # Isaac Lab applies a body-frame force at an offset from the body's own centre of mass.
+        # The actuators give the wrench about the vehicle centre of mass, which is the origin of
+        # the root link, so the offset is minus the root body's centre-of-mass position.
+        root_center_of_mass = self.asset.data.body_com_pos_b.torch[:, self.root_body_index]  # (N, 3)
+        self._force_application_offset = (-root_center_of_mass).unsqueeze(1).clone()
         self._all_environment_ids = torch.arange(self.number_of_environments, device=self.device)
 
     def reset(self, env_ids: Tensor, gen: torch.Generator) -> None:
         """Move the given environments to the state sampled by the start slot."""
         start: TruthState = self.context.bus.read(MessageKey.START_STATE, self)
+        geometry: SurfaceGeometry = self.context.bus.read(MessageKey.SURFACE_GEOMETRY, self)
         if start.frame is not Frame.SITE:
             raise ValueError("The PhysX plant needs a start state in the SITE frame")
         orientation = start.orientation_quaternion[env_ids].to(torch.float32)
         root_pose = torch.cat(
             (
-                start.position[env_ids].to(torch.float32) + self.environment_origins[env_ids],
+                start.position[env_ids].to(torch.float32) + geometry.site_origin[env_ids],
                 quaternion_wxyz_to_xyzw(orientation),
             ),
             dim=1,
@@ -127,19 +145,28 @@ class PhysxRootBodyPlant(BindingBase):
         """Return leg contact force magnitudes (N, n_legs). A body without legs returns (N, 0)."""
         return torch.zeros(self.number_of_environments, 0, device=self.device)
 
+    def _read_body_contact_force(self) -> Tensor:
+        """Return the contact force magnitude on the vehicle body (N,). The base reports zero."""
+        return torch.zeros(self.number_of_environments, device=self.device)
+
     def step(self, bus, dt: float) -> None:
         """Read the state from PhysX and write TruthState in the SITE frame."""
         self._write_mass_to_simulation()
+        geometry: SurfaceGeometry = bus.read(MessageKey.SURFACE_GEOMETRY, self)
         data = self.asset.data
+        world_position = data.root_link_pos_w.torch
+        ground_height = geometry.ground_height_at(world_position[:, 0], world_position[:, 1])
         orientation = quaternion_xyzw_to_wxyz(data.root_link_quat_w.torch)
         state = TruthState(
             frame=Frame.SITE,
             time=self.context.clock.time,
-            position=data.root_link_pos_w.torch - self.environment_origins,
+            position=world_position - geometry.site_origin,
             velocity=data.root_link_lin_vel_w.torch.clone(),
             orientation_quaternion=orientation,
             angular_velocity=rotate_vector_parent_to_body(orientation, data.root_link_ang_vel_w.torch),
             mass=self.total_mass.clone(),
             contact=self._read_contact_forces(),
+            footpad_height_above_ground=world_position[:, 2] - self.reference_height_above_ground_contact - ground_height,
+            body_contact=self._read_body_contact_force(),
         )
         bus.write(MessageKey.TRUTH_STATE, state, self)

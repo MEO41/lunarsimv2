@@ -20,11 +20,18 @@
 #              R-695 (1971). https://www.ibiblio.org/apollo/Documents/Apollo%20Lunar%20Descent%20Guidance.pdf
 #   [LM-STRUCT] Grumman, "LM Structures Study Guide", Course 30915.
 #              https://www.ibiblio.org/apollo/Documents/lm_structures_study_guide.pdf
+#   [AOH-LM3]  Apollo Operations Handbook LMA790-3-LM 3, Vol. I (1 Jan 1968), Fig. 1-3 "LM 3
+#              Overall Dimensions" and Table 2.3-1.
+#              https://www.ibiblio.org/apollo/Documents/LM-3_Apollo_Operations_Handbook_Vol_I.pdf
+#   [R-567]    MIT Instrumentation Laboratory R-567, GSOP Luminary, Section 6 "Control Data"
+#              (Nov 1968), sec. 6.4.1.4, RCS jet positions (data set for LM-6).
+#              https://www.ibiblio.org/apollo/NARA-SW/R-567-sec6.pdf
 #
 # Body frame of this preset: origin at the centre of mass at lunar landing; +z up along the
 # thrust axis (LM +X), +x forward (LM +Z, the ladder leg), +y to the left (LM -Y).
-# Simplifications: the small centre-of-mass offsets (LM Y = 0.4 in, Z = 1.6 in) and the
-# products of inertia (below 4.5 % of the moments) from [A11-MR] are set to zero.
+# The body-frame origin is the centre of mass. The vehicle axis (thrust axis, legs, stages)
+# is shifted from it by the small centre-of-mass offsets below. Simplification: the products
+# of inertia (below 4.5 % of the moments) from [A11-MR] are set to zero.
 
 name: apollo_lunar_module
 
@@ -44,8 +51,8 @@ inertia:   # about the centre of mass, at 'Lunar landing'
     value: 21970.0
     source: "[A11-MR] Table A-I: Izz = 16,204 slug ft^2 (LM Z is the body x axis)"
   about_y_kg_m2:
-    value: 18530.0
-    source: "[A11-MR] Table A-I: Iyy = 13,667 slug ft^2"
+    value: 18801.0
+    source: "[A11-MR] Table A-I (page A-11, read from the page image): Iyy = 13,867 slug ft^2. Earlier 13,667 was a text-extraction error"
   about_z_kg_m2:
     value: 17059.0
     source: "[A11-MR] Table A-I: Ixx = 12,582 slug ft^2 (LM X, the thrust axis, is the body z axis)"
@@ -54,15 +61,36 @@ geometry:
   center_of_mass_height_above_footpad_plane_m:
     value: 3.62
     source: "derived: c.g. station X = 213.5 in [A11-MR] minus footpad plane at X = 70.84 in [LM-STRUCT] = 142.7 in"
-  body_collision_radius_m:
-    value: 2.108
-    source: "[LM-NEWS] p. LV-1: descent stage diameter 13 ft 10 in (4.216 m), halved"
-  body_collision_bottom_below_center_of_mass_m:
-    value: 2.092
-    source: "derived: c.g. X = 213.5 in [A11-MR] minus descent stage lower deck X = 131.14 in [LM-STRUCT]"
-  body_collision_top_above_center_of_mass_m:
-    value: 3.365
-    source: "derived: overall height 22 ft 11 in = 6.985 m [LM-NEWS] p. LV-1, minus c.g. height 3.62 m"
+  center_of_mass_offset_x_m:
+    value: 0.0406
+    source: "[A11-MR] Table A-I 'Lunar landing': c.g. Z = 1.6 in off the vehicle axis (LM +Z is body +x)"
+  center_of_mass_offset_y_m:
+    value: -0.0102
+    source: "[A11-MR] Table A-I 'Lunar landing': c.g. Y = 0.4 in off the vehicle axis (LM +Y is body -y)"
+  descent_stage_width_m:
+    value: 4.216
+    source: "[AOH-LM3] Fig. 1-3: descent stage 13 ft 10 in across; modelled as a cylinder of this diameter (the real stage is an octagon)"
+  descent_stage_height_m:
+    value: 1.749
+    source: "[AOH-LM3] Fig. 1-3: descent stage height 5 ft 8.86 in"
+  descent_stage_bottom_above_footpad_plane_m:
+    value: 1.430
+    source: "[AOH-LM3] Fig. 1-3: 4 ft 8.295 in from the footpad bottoms to the descent stage underside, struts not stroked"
+  ascent_stage_width_m:
+    value: 4.293
+    source: "[AOH-LM3] Fig. 1-3: ascent stage envelope 14 ft 1 in across (LM Y, body y); modelled as a box"
+  ascent_stage_depth_m:
+    value: 4.039
+    source: "[AOH-LM3] Fig. 1-3: ascent stage envelope 13 ft 3 in fore-aft (LM Z, body x)"
+  ascent_stage_height_m:
+    value: 2.832
+    source: "[AOH-LM3] Fig. 1-3: ascent stage height 9 ft 3.495 in; it sits on the descent stage, so its top is 6.011 m above the footpads (19 ft 8.65 in in the same figure)"
+  nozzle_exit_diameter_m:
+    value: 1.499
+    source: "[AOH-LM3] Table 2.3-1: descent engine nozzle exit diameter 59 inches"
+  nozzle_exit_height_above_footpad_plane_m:
+    value: 0.483
+    source: "[D-6850] p. 20: skirt clearance on a flat surface with no struts stroked is 19 inches. The skirt is crushable (28 in, [AOH-LM3] sec. 2.3), so it is not a collision shape; the touchdown metric reports its clearance"
 
 descent_engine:
   rated_thrust_n:
@@ -100,12 +128,18 @@ reaction_control_system:
   valve_delay_s:
     value: 0.007
     source: "[LM-NEWS] Reaction Control: valves fully open 7 ms after the on-command"
-  cluster_arm_from_thrust_axis_m:
-    value: 1.676
-    source: "[COX] Table I: arm length 5.5 ft; clusters sit 45 deg off the LM Y and Z axes"
+  cluster_offset_along_body_axes_m:
+    value: 1.679
+    source: "[R-567] 6.4.1.4: up and down jets at LM Y = Z = +-1.67894 m, so each cluster sits 1.679 m from the vehicle axis along both body x and y (on the 45 deg diagonals); agrees with [COX] Table I arm length 5.5 ft (1.676 m)"
+  horizontal_jet_offset_across_firing_axis_m:
+    value: 1.562
+    source: "[R-567] 6.4.1.4: a horizontal jet sits 1.5621 m from the vehicle axis across its firing direction (this is its turning arm about the thrust axis)"
+  horizontal_jet_offset_along_firing_axis_m:
+    value: 1.685
+    source: "[R-567] 6.4.1.4: a horizontal jet sits 1.68529 m from the vehicle axis along its firing direction"
   cluster_height_above_center_of_mass_m:
-    value: 1.03
-    source: "ASSUMPTION, not verified: cluster station about X = 254 in minus c.g. X = 213.5 in. No fetched primary source gives the station. It only changes cross-coupling of the horizontal jets"
+    value: 1.029
+    source: "derived: horizontal jets at station X = 254 in (6.4516 m, the RCS reference plane, [R-567] 6.4.1) minus c.g. X = 213.5 in [A11-MR] = 40.5 in. Up and down jets (X = 258.8 and 248.7 in) are put in the same plane: their height does not change any torque"
   # Each cluster has four jets [LM-NEWS p. RC-1]: one pushes the vehicle up (+z), one down (-z),
   # and two horizontal jets, 90 deg apart, parallel to the body x and y axes. The horizontal
   # nozzles point away from the vehicle, so their forces point inward. The loader builds the
@@ -120,7 +154,10 @@ landing_gear:
     source: "[D-6850] p. 6: footpad centre 167.57 in from the X axis"
   footpad_diameter_m:
     value: 0.940
-    source: "[D-6850] App. C: footpad diameter 37 in"
+    source: "[D-6850] App. C p. 50: dish-shaped footpad, 37 in in diameter"
+  footpad_depth_m:
+    value: 0.178
+    source: "[D-6850] App. C p. 50: footpad approximately 7 in deep; modelled as a spherical cap with its curved side down, fixed to the leg (the real pad swivels on a ball joint)"
   strut_stroke_m:
     value: 0.813
     source: "[D-6850] Fig. 7: primary strut stroke 32 in"

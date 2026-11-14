@@ -5,30 +5,28 @@ from __future__ import annotations
 
 import math
 
-from lunarsim.core.binding import BindingBase, SlotName
+from lunarsim.core.binding import SlotName
 from lunarsim.core.message_types import MessageKey, Wrench
 from lunarsim.core.registry import register_binding
-from lunarsim.slots.surface.flat import GROUND_PRIM_PATH
+from lunarsim.slots.surface.flat import GROUND_PRIM_PATH, FlatSurface
 
 MAXIMUM_HEIGHT_FIELD_CELLS = 16_000_000
 
 
 @register_binding(SlotName.SURFACE, "procedural")
-class ProceduralSurface(BindingBase):
+class ProceduralSurface(FlatSurface):
     """One rough height-field patch under all environments. Rigid contact, no plume.
 
     The site frame of each environment keeps z = 0 at the mean ground level; the ground under
-    a lander differs from it by up to ``roughness_m``. Agents in milestone 1a assume the ground
-    at z = 0, so this surface is smoke-tested only; terrain-relative altitude comes with the
-    altimeter sensor (milestone 2).
+    a lander differs from it by up to ``roughness_m``. Its ``SurfaceGeometry`` has no height
+    field, so the height above ground is measured from the mean level (z = 0). This surface is
+    smoke-tested only; real terrain is ``measured_terrain``.
 
     Parameters: ``roughness_m`` (heights are uniform in +-roughness), ``height_step_m``
     (height quantisation), ``horizontal_scale_m`` (cell size), ``feature_size_m`` (spacing of
     the random height samples; heights are interpolated in between), ``static_friction``,
     ``dynamic_friction``, ``restitution``, ``seed_offset``.
     """
-
-    provides = frozenset({MessageKey.SURFACE_WRENCH})
 
     def setup_scene(self, environment) -> None:
         """Generate the height field and import it as the ground of all environments."""

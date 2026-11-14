@@ -3,7 +3,7 @@ id: decisions-log
 title: Decisions log
 type: decision
 status: current
-updated: 2026-11-14
+updated: 2026-11-15
 summary: Every decision taken so far, with date and reason; the place to add new ones.
 ---
 
@@ -40,5 +40,18 @@ Newest at the bottom. "User" means the user decided; the others were proposed, e
 | 2026-11-14 | **Height maps are not committed**; users download them into `assets/terrain/apollo17/` | User |
 | 2026-11-14 | Keep existing preset numbers; change lander values only with a public source | User |
 | 2026-11-14 | Project memory in `docs/knowledge/` (this graph), checked in CI | User asked for context that survives machine changes ([[knowledge-graph-tooling]]) |
+| 2026-11-15 | User said "proceed" to [[terrain-integration-plan]] | User |
+| 2026-11-15 | **Observation grows to 15 values**: footpad height above the ground straight below the c.g. | User chose it; agents need it on uneven ground |
+| 2026-11-15 | Iyy = 13,867 slug ft² (18,801 kg m²), not 13,667 | Page image of Mission Report Table A-I |
+| 2026-11-15 | RCS clusters at 1.679 m along each body axis, horizontal jets at R-567 offsets | MIT R-567; the M1a reading of Cox gave 29 % too little torque |
+| 2026-11-15 | Lander gets c.g. offset, dish footpads (0.940 × 0.178 m), descent and ascent stage shapes; nozzle without collision (crushable), clearance recorded | User: match the real LM; sources in the preset |
+| 2026-11-15 | Plant applies actuator forces at the vehicle c.g. (offset = minus the root body's c.g.) | Isaac Lab's composer measures offsets from the body c.g.; with the c.g. offset the old zero offset tilted the hover |
+| 2026-11-15 | New message `SurfaceGeometry`: per-env site origin and ground lookup; surface resets before the plant | Site moves per reset on real terrain; the plant needs the ground for the height |
+| 2026-11-15 | Terrain = measured 2 m Apollo 17 map (±600 m) + 0.25 m detail patch (±80 m) with craters (Minton 2019 law) and rocks (Surveyor 1 law); targets uniform ±50 m | [[measured-terrain-surface]] |
+| 2026-11-15 | Height maps read with numpy from the raw `.TIF`; downloaded by `scripts/download_height_maps.py` into git-ignored `assets/terrain/apollo17/` | No new package in the Isaac environment; user: not in git |
+| 2026-11-15 | Site centre = Apollo 17 LM position 20.19091° N, 30.77168° E | Haase et al. 2019, Table 3 |
+| 2026-11-15 | New outcome `body_contact`; records nozzle clearance, footprint slope and relief | Real terrain needs strike and site metrics |
+| 2026-11-15 | Hover-hold tilt tolerance 0.6° → 1.0° | Longer R-567 jet arms make the minimum-pulse cycle larger (measured 0.65°) |
+| 2026-11-15 | GPU test runner cleans dead-process `/dev/shm` files and restarts a silent launch (unbuffered child output) | Intermittent launch stalls ([[isaac-lab-quirks]]) |
 
 Decisions still open: [[pending-user-decisions]].

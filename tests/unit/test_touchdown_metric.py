@@ -8,7 +8,7 @@ import torch
 from helpers import make_binding_context, make_truth_state
 
 from lunarsim.assets.lander_preset import load_lander_preset
-from lunarsim.core.message_types import MessageKey
+from lunarsim.core.message_types import MessageKey, SurfaceGeometry
 from lunarsim.core.rotation_math import quaternion_from_axis_angle
 from lunarsim.env.scenario_loader import default_config_directory
 from lunarsim.slots.metrics.touchdown import OUTCOME_CODE, OUTCOME_NAMES, TouchdownMetrics
@@ -18,7 +18,7 @@ CONTROL_STEP = 0.02
 
 
 class _World:
-    provides = frozenset({MessageKey.TRUTH_STATE, MessageKey.START_STATE})
+    provides = frozenset({MessageKey.TRUTH_STATE, MessageKey.START_STATE, MessageKey.SURFACE_GEOMETRY})
     requires = frozenset({MessageKey.EPISODE_EVENTS})
     reads_truth = False
 
@@ -32,15 +32,20 @@ def make_metrics(count=1, episode_length=60.0):
     preset = load_lander_preset(default_config_directory() / "landers" / "apollo_lunar_module.yaml")
     context.shared_data.update({"lander_preset": preset, "episode_length_seconds": episode_length})
     metrics = TouchdownMetrics({}, context)
+    context.bus.write(MessageKey.SURFACE_GEOMETRY, SurfaceGeometry(site_origin=torch.zeros(count, 3)), WORLD)
     start = state(count, preset, altitude=20.0)
     context.bus.write(MessageKey.START_STATE, start, WORLD)
     metrics.reset(torch.arange(count), torch.Generator())
     return metrics, context, preset
 
 
-def state(count, preset, altitude, vertical_speed=0.0, horizontal_speed=0.0, tilt_deg=0.0, leg_force=0.0, time=0.0, mass=7327.0):
-    """Build a TruthState with the given simple values for all environments."""
+def state(
+    count, preset, altitude, vertical_speed=0.0, horizontal_speed=0.0, tilt_deg=0.0, leg_force=0.0, time=0.0, mass=7327.0, body_force=0.0
+):
+    """Build a TruthState with the given simple values for all environments (flat ground at z = 0)."""
     truth = make_truth_state(count)
+    truth.footpad_height_above_ground[:] = altitude
+    truth.body_contact[:] = body_force
     truth.position[:] = torch.tensor([0.0, 0.0, altitude + preset.center_of_mass_height_above_footpad_plane])
     truth.velocity[:] = torch.tensor([horizontal_speed, 0.0, vertical_speed])
     axis = torch.tensor([[1.0, 0.0, 0.0]]).repeat(count, 1)
@@ -153,3 +158,24 @@ def test_episode_numbers_count_up_and_reset_clears_contact():
     record = land(metrics, context, preset, vertical_speed=-3.5)
     assert int(record["episode_number"]) == 1 and record["outcome"] == "hard_vertical"
     assert OUTCOME_CODE["success"] == 0
+
+
+def test_body_contact_after_a_soft_touchdown_is_a_failure():
+    """A stage that touches the ground (for example on a rock) fails a landing that is inside every limit."""
+    metrics, context, preset = make_metrics()
+    states = [state(1, preset, 0.1, -1.0, time=1.0)]
+    states.append(state(1, preset, 0.0, -0.3, leg_force=5000.0, body_force=800.0, time=1.02))
+    states += [state(1, preset, 0.0, 0.0, leg_force=3000.0, time=1.04 + 0.02 * k) for k in range(60)]
+    run(metrics, context, states)
+    record = records_to_frame(metrics.drain_episode_records(), OUTCOME_NAMES).iloc[0]
+    assert record["outcome"] == "body_contact"
+    assert record["peak_body_contact_force_n"] == pytest.approx(800.0)
+
+
+def test_nozzle_clearance_and_flat_footprint_on_flat_ground():
+    """On flat ground the nozzle rim clears by its height above the pads; slope and relief are zero."""
+    metrics, context, preset = make_metrics()
+    record = land(metrics, context, preset, vertical_speed=-1.0)
+    assert record["minimum_nozzle_clearance_m"] == pytest.approx(preset.nozzle_exit_height_above_footpad_plane, abs=1e-4)
+    assert record["touchdown_ground_slope_deg"] == pytest.approx(0.0, abs=1e-4)
+    assert record["touchdown_ground_relief_m"] == pytest.approx(0.0, abs=1e-6)

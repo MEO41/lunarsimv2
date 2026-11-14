@@ -3,7 +3,7 @@ id: session-history
 title: Session history
 type: history
 status: current
-updated: 2026-11-14
+updated: 2026-11-15
 summary: Timeline of the work so far with commit hashes, so a new session knows how the project got here.
 ---
 
@@ -32,6 +32,17 @@ summary: Timeline of the work so far with commit hashes, so a new session knows 
 | 23:12 | `2769e96` | Workstation setup script, pinned requirements, installation check (for the RTX 5090 move) |
 | 23:14 | `7e35240` | CPU-test workflow pushed after the user added the `workflow` token scope; first GitHub run passed (1 min 10 s) |
 | late | this commit | Knowledge graph in `docs/knowledge/` ([[knowledge-graph-tooling]]) |
+
+## 2026-11-15 (RTX 5060 machine)
+
+| Commit | What happened |
+| --- | --- |
+| — | User: "proceed"; yes to the 15th observation value |
+| — | Iyy checked on the page image (13,867); RCS arm error found (R-567); download addresses and the LM coordinates (Haase et al. 2019) confirmed |
+| — | First GPU run showed hover drift: Isaac Lab applies forces at the body's own c.g.; fixed in the plant |
+| — | Terrain package, `measured_terrain` surface, 15th value, terrain metrics, tests; one terrain test fixed (drop height) |
+| — | GPU runner: shm clean-up, launch watchdog, unbuffered child output |
+| this commit | All of the above ([[measured-terrain-surface]]); evaluations follow ([[terrain-results]]) |
 
 ## Next
 

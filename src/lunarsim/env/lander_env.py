@@ -54,9 +54,11 @@ class LanderEnv(DirectRLEnv):
     cfg: LanderEnvCfg
 
     # Slots that reset after the start slot, in this order.
+    # The surface comes first: it may move the site of an environment, and the plant places the
+    # lander relative to that site.
     RESET_ORDER = (
-        SlotName.PLANT,
         SlotName.SURFACE,
+        SlotName.PLANT,
         SlotName.SENSORS,
         SlotName.FAULTS,
         SlotName.NAVIGATION,

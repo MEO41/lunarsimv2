@@ -10,9 +10,9 @@ from torch import Tensor
 
 from lunarsim.assets.lander_preset import LanderPreset
 from lunarsim.core.binding import BindingBase, SlotName
-from lunarsim.core.message_types import EpisodeEvents, MessageKey, TruthState
+from lunarsim.core.message_types import EpisodeEvents, MessageKey, SurfaceGeometry, TruthState
 from lunarsim.core.registry import register_binding
-from lunarsim.core.rotation_math import tilt_angle_from_vertical
+from lunarsim.core.rotation_math import rotate_vector_body_to_parent, tilt_angle_from_vertical
 
 # Outcome of an episode. The first matching cause, in this order, is the outcome.
 OUTCOME_NAMES = (
@@ -26,7 +26,13 @@ OUTCOME_NAMES = (
     "tilt_rate_at_contact",  # body rate at contact above the limit
     "tip_over",  # inside all limits at contact, but tipped over afterwards
     "not_settled",  # inside all limits at contact, but still moving when the settle time ran out
+    "body_contact",  # inside all limits at contact, but a stage of the vehicle hit the ground or a rock
 )
+# Number of points on the nozzle rim used for the clearance check.
+NOZZLE_RIM_POINTS = 12
+# Footprint sampling for the ground slope and relief under the lander at touchdown.
+FOOTPRINT_RING_FRACTIONS = (0.0, 0.5, 1.0)
+FOOTPRINT_POINTS_PER_RING = 12
 OUTCOME_CODE = {name: code for code, name in enumerate(OUTCOME_NAMES)}
 
 
@@ -40,12 +46,17 @@ class TouchdownMetrics(BindingBase):
     An episode ends (terminated) when the lander has settled, tipped over, failed to settle in
     time, or left the site; it is truncated at the time limit.
 
+    A force on the vehicle body (descent or ascent stage) above the contact threshold is a
+    ``body_contact``. The descent-engine nozzle has no collision shape (its skirt is crushable),
+    so the metric records the lowest clearance of the nozzle rim above the ground instead, and the
+    ground slope and relief under the footprint at the moment of first contact.
+
     Parameters (all optional): ``contact_force_threshold_n``, ``settle_speed_mps``,
     ``settle_rate_deg_per_s``, ``settle_hold_s``, ``settle_timeout_s``, ``tip_over_tilt_deg``,
     ``maximum_horizontal_distance_m``, ``maximum_altitude_m``.
     """
 
-    requires = frozenset({MessageKey.TRUTH_STATE, MessageKey.START_STATE})
+    requires = frozenset({MessageKey.TRUTH_STATE, MessageKey.START_STATE, MessageKey.SURFACE_GEOMETRY})
     provides = frozenset({MessageKey.EPISODE_EVENTS})
     reads_truth = True
 
@@ -75,6 +86,31 @@ class TouchdownMetrics(BindingBase):
         self.contact_time = zeros()
         self.settled_duration = zeros()
         self.peak_leg_force = zeros()
+        self.peak_body_force = zeros()
+        self.minimum_nozzle_clearance = zeros()
+        self.touchdown_ground_slope = zeros()
+        self.touchdown_ground_relief = zeros()
+        # Nozzle rim points and footprint sample points in the body frame.
+        rim_angles = torch.arange(NOZZLE_RIM_POINTS, dtype=torch.float32) * (2.0 * math.pi / NOZZLE_RIM_POINTS)
+        nozzle_x, nozzle_y, nozzle_z = preset.nozzle_exit_center
+        rim_radius = 0.5 * preset.nozzle_exit_diameter
+        self.nozzle_rim_points = torch.stack(
+            (
+                nozzle_x + rim_radius * torch.cos(rim_angles),
+                nozzle_y + rim_radius * torch.sin(rim_angles),
+                torch.full_like(rim_angles, nozzle_z),
+            ),
+            dim=1,
+        ).to(device)
+        axis_x, axis_y = preset.vehicle_axis_position
+        footprint_points = []
+        for fraction in FOOTPRINT_RING_FRACTIONS:
+            count_on_ring = 1 if fraction == 0.0 else FOOTPRINT_POINTS_PER_RING
+            for index in range(count_on_ring):
+                angle = 2.0 * math.pi * index / count_on_ring
+                radius = fraction * preset.footpad_radius_from_thrust_axis
+                footprint_points.append((axis_x + radius * math.cos(angle), axis_y + radius * math.sin(angle)))
+        self.footprint_offsets = torch.tensor(footprint_points, dtype=torch.float32, device=device)  # (K, 2)
         self.episode_number = zeros(dtype=torch.long)
         # State one control step ago (the approach state when contact is first seen).
         self.previous = {name: zeros() for name in ("vertical_speed", "horizontal_speed", "tilt", "tilt_rate")}
@@ -124,20 +160,68 @@ class TouchdownMetrics(BindingBase):
         self.contact_time[env_ids] = 0.0
         self.settled_duration[env_ids] = 0.0
         self.peak_leg_force[env_ids] = 0.0
+        self.peak_body_force[env_ids] = 0.0
+        self.minimum_nozzle_clearance[env_ids] = float("inf")
+        self.touchdown_ground_slope[env_ids] = 0.0
+        self.touchdown_ground_relief[env_ids] = 0.0
         for values in self.touchdown.values():
             values[env_ids] = 0.0
         self.touchdown_position[env_ids] = 0.0
 
+    def nozzle_clearance(self, truth: TruthState, geometry: SurfaceGeometry) -> Tensor:
+        """Return the lowest height of the nozzle rim above the ground below it, (N,), m."""
+        count = truth.position.shape[0]
+        points = self.nozzle_rim_points.unsqueeze(0).expand(count, -1, -1)
+        orientation = truth.orientation_quaternion.unsqueeze(1).expand(-1, points.shape[1], -1)
+        world = rotate_vector_body_to_parent(orientation, points) + (truth.position + geometry.site_origin).unsqueeze(1)
+        ground = geometry.ground_height_at(world[..., 0], world[..., 1])
+        return (world[..., 2] - ground).min(dim=1).values
+
+    def footprint_slope_and_relief(self, truth: TruthState, geometry: SurfaceGeometry) -> tuple[Tensor, Tensor]:
+        """Return the ground slope (rad) of a plane fitted under the footprint, and the relief (m).
+
+        The footprint is sampled on rings out to the footpad radius around the vehicle axis,
+        using the lander's heading but not its tilt. Relief is the height range of the samples,
+        the quantity limited by the LM design surface (24 in within the footprint, NASA TN D-6850).
+        """
+        quaternion = truth.orientation_quaternion
+        heading = torch.atan2(
+            2.0 * (quaternion[:, 0] * quaternion[:, 3] + quaternion[:, 1] * quaternion[:, 2]),
+            1.0 - 2.0 * (quaternion[:, 2] ** 2 + quaternion[:, 3] ** 2),
+        )
+        cosine, sine = torch.cos(heading).unsqueeze(1), torch.sin(heading).unsqueeze(1)
+        offset_x, offset_y = self.footprint_offsets[:, 0].unsqueeze(0), self.footprint_offsets[:, 1].unsqueeze(0)
+        centre = truth.position + geometry.site_origin
+        x = centre[:, 0:1] + cosine * offset_x - sine * offset_y
+        y = centre[:, 1:2] + sine * offset_x + cosine * offset_y
+        heights = geometry.ground_height_at(x, y)  # (N, K)
+        # Least-squares plane z = a + b x + c y through the samples, solved for all envs at once.
+        relative_x, relative_y = x - centre[:, 0:1], y - centre[:, 1:2]
+        design = torch.stack((torch.ones_like(relative_x), relative_x, relative_y), dim=2)  # (N, K, 3)
+        normal_matrix = design.transpose(1, 2) @ design
+        right_side = design.transpose(1, 2) @ heights.unsqueeze(2)
+        coefficients = torch.linalg.solve(normal_matrix, right_side).squeeze(2)
+        slope = torch.atan(torch.hypot(coefficients[:, 1], coefficients[:, 2]))
+        relief = heights.max(dim=1).values - heights.min(dim=1).values
+        return slope, relief
+
     def step(self, bus, dt: float) -> None:
         """Update touchdown detection, decide which episodes end, and store their records."""
         truth: TruthState = bus.read(MessageKey.TRUTH_STATE, self)
+        geometry: SurfaceGeometry = bus.read(MessageKey.SURFACE_GEOMETRY, self)
         tilt = tilt_angle_from_vertical(truth.orientation_quaternion)
         tilt_rate = truth.angular_velocity.norm(dim=1)
         speed = truth.velocity.norm(dim=1)
         leg_force = truth.contact.max(dim=1).values if truth.contact.shape[1] > 0 else torch.zeros_like(speed)
         self.peak_leg_force = torch.maximum(self.peak_leg_force, leg_force)
+        self.peak_body_force = torch.maximum(self.peak_body_force, truth.body_contact)
+        self.minimum_nozzle_clearance = torch.minimum(self.minimum_nozzle_clearance, self.nozzle_clearance(truth, geometry))
 
-        first_contact = (leg_force > self.contact_force_threshold) & ~self.has_contact
+        first_contact = ((leg_force > self.contact_force_threshold) | (truth.body_contact > self.contact_force_threshold)) & ~self.has_contact
+        if bool(first_contact.any()):
+            slope, relief = self.footprint_slope_and_relief(truth, geometry)
+            self.touchdown_ground_slope = torch.where(first_contact, slope, self.touchdown_ground_slope)
+            self.touchdown_ground_relief = torch.where(first_contact, relief, self.touchdown_ground_relief)
         for name in self.touchdown:
             self.touchdown[name] = torch.where(first_contact, self.previous[name], self.touchdown[name])
         self.touchdown_position = torch.where(first_contact.unsqueeze(1), self.previous_position, self.touchdown_position)
@@ -149,7 +233,7 @@ class TouchdownMetrics(BindingBase):
         settled = self.settled_duration >= self.settle_hold
         tipped_over = tilt > self.tip_over_tilt
         settle_timed_out = self.has_contact & (truth.time - self.contact_time > self.settle_timeout)
-        altitude = truth.position[:, 2] - self.preset.center_of_mass_height_above_footpad_plane
+        altitude = truth.footpad_height_above_ground
         out_of_bounds = (truth.position[:, :2].norm(dim=1) > self.maximum_horizontal_distance) | (
             altitude > self.maximum_altitude
         )
@@ -183,6 +267,7 @@ class TouchdownMetrics(BindingBase):
         outcome = torch.full_like(self.episode_number, OUTCOME_CODE["not_settled"])
         outcome[settled] = OUTCOME_CODE["success"]
         # Later lines have higher priority.
+        outcome[self.peak_body_force > self.contact_force_threshold] = OUTCOME_CODE["body_contact"]
         outcome[tipped_over] = OUTCOME_CODE["tip_over"]
         outcome[too_fast_turning] = OUTCOME_CODE["tilt_rate_at_contact"]
         outcome[too_tilted] = OUTCOME_CODE["tilt_at_contact"]
@@ -222,6 +307,10 @@ class TouchdownMetrics(BindingBase):
             "tipped_over": tipped_over,
             "settled": settled,
             "peak_leg_force_n": self.peak_leg_force,
+            "peak_body_contact_force_n": self.peak_body_force,
+            "minimum_nozzle_clearance_m": self.minimum_nozzle_clearance,
+            "touchdown_ground_slope_deg": self.touchdown_ground_slope * degrees,
+            "touchdown_ground_relief_m": self.touchdown_ground_relief,
             "propellant_used_kg": propellant_used,
             "episode_duration_s": truth.time,
             "outcome_code": outcome,

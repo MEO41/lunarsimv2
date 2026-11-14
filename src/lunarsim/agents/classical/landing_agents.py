@@ -49,6 +49,11 @@ class ClassicalLandingAgentBase(AgentBase):
             state[:, layout.MASS].squeeze(1),
         )
 
+    @staticmethod
+    def height_above_ground(observation: Observation) -> Tensor:
+        """Return the footpad height above the ground straight below the lander, from the observation."""
+        return observation.policy[:, NavigationStateLayout.HEIGHT_ABOVE_GROUND].squeeze(1)
+
     def assemble_command(
         self,
         throttle: Tensor,
@@ -84,7 +89,7 @@ class HoverHoldAgent(ClassicalLandingAgentBase):
         """Return the command of the altitude hold."""
         position, velocity, orientation, angular_velocity, mass = self.split_state(observation)
         controller = self.vertical_controller
-        altitude = controller.footpad_altitude(position)
+        altitude = self.height_above_ground(observation)
         target = torch.full_like(altitude, float(self.parameters.get("target_altitude_m", 30.0)))
         acceleration = controller.acceleration_to_hold_altitude(altitude, velocity[:, 2], target)
         throttle = controller.throttle_for_vertical_acceleration(acceleration, mass, orientation)
@@ -99,7 +104,7 @@ class VerticalDescentAgent(ClassicalLandingAgentBase):
         """Return the command of the vertical descent."""
         position, velocity, orientation, angular_velocity, mass = self.split_state(observation)
         controller = self.vertical_controller
-        altitude = controller.footpad_altitude(position)
+        altitude = self.height_above_ground(observation)
         acceleration = controller.acceleration_to_follow_descent_profile(altitude, velocity[:, 2])
         throttle = controller.throttle_for_vertical_acceleration(acceleration, mass, orientation)
         return self.assemble_command(throttle, orientation, angular_velocity, self.upright, altitude, control_step_duration)

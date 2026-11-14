@@ -3,8 +3,8 @@ id: classical-agents
 title: Classical agents
 type: component
 status: current
-updated: 2026-11-14
-summary: The four-step classical controller chain ending in ZEM/ZEV guidance, its parameters and its assumption of flat ground at z = 0.
+updated: 2026-11-15
+summary: The four-step classical controller chain ending in ZEM/ZEV guidance, its parameters, and how it uses the observed height above ground.
 ---
 
 # Classical agents (`src/lunarsim/agents/classical/`)
@@ -31,11 +31,13 @@ Built and tested in four steps; each step uses the previous one.
 - It has **no glide-slope constraint**: 2 of 16 logged landings leave a 30° cone
   (`docs/figures/glide_slope_constraint_3d.png`).
 
-## Assumption that the terrain work breaks
+## Height above ground (since 2026-11-15)
 
-Every agent computes altitude as `position z − 3.62 m`, i.e. **ground at z = 0 under the
-lander**. On real terrain this is wrong; the fix (a 15th observation value, height above the
-ground below) is proposed in [[terrain-integration-plan]] and waits in [[pending-user-decisions]].
+The agents read the 15th observation value (footpad height above the ground straight below)
+for the descent profile, the gate switch, "upright below 2 m" and the engine cut-off at 0.25 m.
+They no longer assume ground at z = 0. ZEM/ZEV still steers to a gate 3 m above the target in
+the SITE frame (z = 0 at the target's ground). The vertical speed is inertial, not the rate of
+change of the height above a sloped ground.
 
 - flies on: [[slot-loop-architecture]]
 - judged by: [[metrics-and-run-records]]

@@ -47,6 +47,7 @@ def test_truth_navigation_copies_the_state_in_layout_order():
     binding, context = _build(SlotName.NAVIGATION, "truth")
     truth = make_truth_state()
     truth.velocity[:, 2] = -3.0
+    truth.footpad_height_above_ground[:] = torch.tensor([1.0, 2.0, 3.0, 4.0])
     context.bus.write(MessageKey.TRUTH_STATE, truth, _AnyWriter())
     binding.step(context.bus, 0.02)
     estimate = context.bus.read(MessageKey.NAVIGATION_ESTIMATE, _AnyReader())
@@ -55,6 +56,7 @@ def test_truth_navigation_copies_the_state_in_layout_order():
     assert torch.equal(estimate.mean[:, layout.VELOCITY], truth.velocity)
     assert torch.equal(estimate.mean[:, layout.ORIENTATION_QUATERNION], truth.orientation_quaternion)
     assert torch.equal(estimate.mean[:, layout.MASS].squeeze(1), truth.mass)
+    assert torch.equal(estimate.mean[:, layout.HEIGHT_ABOVE_GROUND].squeeze(1), truth.footpad_height_above_ground)
     assert float(estimate.covariance.abs().sum()) == 0.0
 
 

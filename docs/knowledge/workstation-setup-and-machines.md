@@ -3,7 +3,7 @@ id: workstation-setup-and-machines
 title: Workstation setup and machines
 type: environment
 status: current
-updated: 2026-11-14
+updated: 2026-11-15
 summary: The two machines, where the Python environment lives on each, how to set up a new one, and what does not travel with git.
 ---
 
@@ -35,7 +35,8 @@ scripts/setup_workstation.sh                    # default root ~/lunarsim-workst
 source ~/lunarsim-workstation/env_isaaclab/bin/activate
 python scripts/check_installation.py            # 20 checks against the pinned setup
 python -m pytest tests/unit -q                  # 89 CPU tests
-python scripts/run_isaac_tests.py               # 12 GPU test files
+python scripts/download_height_maps.py          # Apollo 17 height maps, 952 MB, not in git
+python scripts/run_isaac_tests.py               # 13 GPU test files
 ```
 
 Then rerun the speed table ([[speed-benchmarks]]) and one full evaluation (seed 0, 4,096 envs;

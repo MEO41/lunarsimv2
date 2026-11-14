@@ -3,7 +3,7 @@ id: milestone-roadmap-and-status
 title: Milestone roadmap and status
 type: milestone
 status: current
-updated: 2026-11-14
+updated: 2026-11-15
 summary: The eight milestones of the design, which gates have passed, and what comes next.
 ---
 
@@ -16,7 +16,7 @@ summary: The eight milestones of the design, which gates have passed, and what c
 | M1b RL on S1 | `ppo_mlp` with rsl_rl, 5 seeds, against ZEM/ZEV | **Not started.** Closed until the user opens it ([[rules-from-the-user]]). Task list: `M1A_REPORT.md` section 9 |
 | M2 Sensors and EKF | IMU, altimeter, Doppler, LiDAR; EKF; S2 | Not started |
 | M3 Faults and history agents | Fault schedules, fault-detecting EKF, GRU and attention agents; S3, S4; paper 1 | Not started |
-| M4 Real terrain, hazards and agents | `dem_tile` surface from LROC NAC DTMs, hazard maps, site pick; SAC, Dreamer, TD-MPC2; S6, S9; paper 2 | Not started; its terrain part is being pulled forward, see below |
+| M4 Real terrain, hazards and agents | `dem_tile` surface from LROC NAC DTMs, hazard maps, site pick; SAC, Dreamer, TD-MPC2; S6, S9; paper 2 | Terrain part pulled forward and **built** 2026-11-15 ([[measured-terrain-surface]]); hazard maps, site pick and agent adapters not started |
 | M5 Plume and footpads | Plume forces, Bekker footpad sinkage, dust; S8 | Not started |
 | M6 Orbit, phases and TRN | float64 orbit, frame handoff, camera TRN; S5, S7 | Not started |
 | M7 ROS 2 bridge | S10 | Not started |
@@ -24,15 +24,15 @@ summary: The eight milestones of the design, which gates have passed, and what c
 Each gate must pass before the next milestone builds on it. Every new binding needs its unit
 test, the scenario smoke test, the truth-leak check and a speed log.
 
-## What happens next (as of 2026-11-14)
+## What happens next (as of 2026-11-15)
 
-1. The user moves to an RTX 5090 workstation ([[workstation-setup-and-machines]]).
-2. Real terrain and LM-accurate footpads: planned in [[terrain-integration-plan]], **waiting for
-   "Proceed"** ([[pending-user-decisions]]). In the design this is milestone 4 work (the
-   `dem_tile` surface), done before M1b at the user's request. The plan keeps the slot
-   interface unchanged except for the proposed 15th observation value.
-3. M1b afterwards, only when the user says so.
+1. Done 2026-11-15: real Apollo 17 terrain with craters and rocks, LM-accurate lander, 15th
+   observation value ([[measured-terrain-surface]], [[terrain-results]]). Milestone 4 work done
+   before M1b at the user's request; the slot interface is unchanged apart from the new
+   `surface_geometry` message and the 15th value.
+2. The user moves to an RTX 5090 workstation ([[workstation-setup-and-machines]]).
+3. M1b only when the user says so ([[pending-user-decisions]]).
 
 - follows: [[project-goal-and-design-documents]]
-- next step: [[terrain-integration-plan]]
+- built: [[measured-terrain-surface]]
 - history: [[session-history]]

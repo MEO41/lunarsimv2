@@ -10,7 +10,7 @@ this folder does.
 2. [[pending-user-decisions]]: what is waiting for the user's answer. Do not start this work without it.
 3. [[milestone-roadmap-and-status]]: where the project stands.
 4. [[workstation-setup-and-machines]]: which machine, which Python environment, how to run things.
-5. Then the notes the task needs: [[slot-loop-architecture]], [[terrain-integration-plan]], ...
+5. Then the notes the task needs: [[slot-loop-architecture]], [[measured-terrain-surface]], ...
 
 [[project-goal-and-design-documents]] links to the design documents, which are the authority.
 `PROGRESS.md` and `M1A_REPORT.md` at the repository root keep the detailed records; these
@@ -23,11 +23,11 @@ notes summarise them and point to them.
 | rule | [[rules-from-the-user]] |
 | design | [[project-goal-and-design-documents]] |
 | milestone | [[milestone-roadmap-and-status]] |
-| component | [[slot-loop-architecture]], [[bindings-catalogue]], [[lander-preset-apollo-lm]], [[lander-articulation-model]], [[physx-contact-settings]], [[classical-agents]], [[metrics-and-run-records]], [[knowledge-graph-tooling]] |
+| component | [[slot-loop-architecture]], [[bindings-catalogue]], [[measured-terrain-surface]], [[lander-preset-apollo-lm]], [[lander-articulation-model]], [[physx-contact-settings]], [[classical-agents]], [[metrics-and-run-records]], [[knowledge-graph-tooling]] |
 | decision | [[decisions-log]] |
-| result | [[milestone-1a-results]], [[speed-benchmarks]] |
+| result | [[milestone-1a-results]], [[terrain-results]], [[speed-benchmarks]] |
 | issue | [[open-issues]] |
-| plan | [[terrain-integration-plan]], [[pending-user-decisions]] |
+| plan | [[terrain-integration-plan]] (done), [[pending-user-decisions]] |
 | research | [[apollo-lm-geometry-research]], [[lunar-surface-statistics-research]], [[apollo17-height-maps]], [[apollo-lander-modeling-folder]], [[sources-bibliography]] |
 | environment | [[workstation-setup-and-machines]], [[isaac-lab-quirks]], [[testing-and-commands]] |
 | history | [[session-history]] |

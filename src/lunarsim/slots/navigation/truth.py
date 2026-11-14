@@ -20,7 +20,7 @@ class TruthNavigation(BindingBase):
     reads_truth = True
 
     def step(self, bus, dt: float) -> None:
-        """Write the estimate: position, velocity, quaternion, body rates, mass."""
+        """Write the estimate: position, velocity, quaternion, body rates, mass, height above ground."""
         truth: TruthState = bus.read(MessageKey.TRUTH_STATE, self)
         mean = torch.cat(
             (
@@ -29,6 +29,7 @@ class TruthNavigation(BindingBase):
                 truth.orientation_quaternion,
                 truth.angular_velocity,
                 truth.mass.unsqueeze(1),
+                truth.footpad_height_above_ground.unsqueeze(1),
             ),
             dim=1,
         ).to(torch.float32)

@@ -8,6 +8,7 @@ import pytest
 import torch
 from isaac_test_support import build_agent, make_environment
 
+from lunarsim.core.message_types import NavigationStateLayout
 from lunarsim.tools.episode_runner import run_agent_in_environment
 
 ALLOWED_TRUTH_READERS = {"TruthNavigation", "TouchdownMetrics"}
@@ -26,7 +27,7 @@ def test_s1_runs_100_steps_with_64_environments(environment):
     agent = build_agent(environment)
     run_agent_in_environment(environment, agent, number_of_steps=100)
     observations = environment._get_observations()["policy"]
-    assert observations.shape == (64, 14)
+    assert observations.shape == (64, NavigationStateLayout.DIMENSION)
     assert torch.isfinite(observations).all()
     assert environment.cfg.action_space == 19
 
