@@ -1,0 +1,14 @@
+binding: zem_zev
+target_position_m: [0.0, 0.0]   # horizontal landing target in the site frame
+gate_altitude_m: 3.0            # footpad height where ZEM/ZEV hands over to the final descent
+guided_tilt_limit_deg: 15.0
+planning_tilt_limit_deg: 10.0
+planning_thrust_margin: 0.9
+final_tilt_limit_deg: 8.0
+upright_below_altitude_m: 2.0
+final_horizontal_velocity_gain_per_s: 0.8
+minimum_time_to_go_s: 1.0
+time_to_go_stretch_factor: 1.25   # plan lasts at least factor * shortest possible time + extra
+time_to_go_extra_s: 2.0
+descend_below_horizontal_speed_mps: 0.3   # final descent at full rate below this horizontal speed
+hold_above_horizontal_speed_mps: 1.0      # final descent waits above this horizontal speed

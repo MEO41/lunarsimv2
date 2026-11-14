@@ -4,3 +4,6 @@
 from lunarsim.agents.classical import attitude_hold_agent as _attitude_hold_agent  # noqa: F401
 from lunarsim.agents.classical import landing_agents as _landing_agents  # noqa: F401
 from lunarsim.agents.classical import zero_command_agent as _zero_command_agent  # noqa: F401
+from lunarsim.agents.classical import (  # noqa: F401
+    zero_effort_miss_zero_effort_velocity_agent as _zero_effort_miss_zero_effort_velocity_agent,
+)

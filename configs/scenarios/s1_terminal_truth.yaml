@@ -8,7 +8,7 @@ defaults:
   - /sensors: none
   - /faults: none
   - /nav: truth
-  - /agent: zero
+  - /agent: zem_zev
   - /actuators: engine_rcs_pulse
   - /metrics: touchdown
   - /landers@lander: apollo_lunar_module
