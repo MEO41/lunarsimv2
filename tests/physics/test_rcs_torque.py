@@ -31,7 +31,7 @@ COAST_TIME = 0.1
 @pytest.fixture(scope="module")
 def spin_result():
     """Fire the six couples and return the final truth, the couple table and the preset."""
-    environment = make_environment("s1_terminal_truth", ["num_envs=6", "actuators.initial_throttle=0.0"])
+    environment = make_environment("s1_terminal_truth", ["num_envs=6", "actuators.initial_throttle=0.0", "metrics=none"])
     preset = environment.bindings[SlotName.PLANT].preset
     table = JetCoupleTable(preset, device=environment.device)
     axis_commands = torch.zeros(6, 3, device=environment.device)

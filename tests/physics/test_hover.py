@@ -29,7 +29,7 @@ HOVER_TIME = 20.0
 @pytest.fixture(scope="module")
 def hover_result():
     """Run the hover and the control case for 20 s."""
-    environment = make_environment("s1_terminal_truth", ["num_envs=2"])
+    environment = make_environment("s1_terminal_truth", ["num_envs=2", "metrics=none"])
     preset = environment.bindings[SlotName.PLANT].preset
     observations = set_start_states(environment, altitude=30.0)
     start = read_truth(environment)

@@ -1,0 +1,9 @@
+binding: procedural
+roughness_m: 0.15          # heights are uniform in +-roughness around the mean ground level
+height_step_m: 0.01
+horizontal_scale_m: 0.5    # size of one height cell
+feature_size_m: 4.0        # spacing of the random height samples
+# Friction: same source as the flat surface (NASA TN D-6850).
+static_friction: 0.4
+dynamic_friction: 0.4
+restitution: 0.0

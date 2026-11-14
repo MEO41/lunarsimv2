@@ -50,7 +50,7 @@ SETTLE_TIME = 12.0
 def touchdown():
     """Drop the four groups, record 12 s, and return the histories and the preset."""
     count = 4 * GROUP_SIZE
-    environment = make_environment("s1_terminal_truth", [f"num_envs={count}", "actuators.initial_throttle=0.0"])
+    environment = make_environment("s1_terminal_truth", [f"num_envs={count}", "actuators.initial_throttle=0.0", "metrics=none"])
     device = environment.device
     plant = environment.bindings[SlotName.PLANT]
     preset = plant.preset

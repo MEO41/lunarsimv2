@@ -28,7 +28,7 @@ FALL_TIME = 2.0
 @pytest.fixture(scope="module")
 def fallen_state():
     """Drop 16 landers from rest with the engine off for 2 s and return the start and end truth."""
-    environment = make_environment("s1_terminal_truth", ["num_envs=16", "actuators.initial_throttle=0.0"])
+    environment = make_environment("s1_terminal_truth", ["num_envs=16", "actuators.initial_throttle=0.0", "metrics=none"])
     set_start_states(environment, altitude=START_ALTITUDE)
     start = read_truth(environment)
     start_height = start.position[:, 2].clone()

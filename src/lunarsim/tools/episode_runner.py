@@ -42,8 +42,11 @@ def run_agent_in_environment(
     """
     agent_generator = environment.random_generators.generator_for(SlotName.AGENT)
     all_environment_ids = torch.arange(environment.num_envs, device=environment.device)
-    observations, _ = environment.reset()
-    agent.reset(all_environment_ids, agent_generator)
+    # The reset runs in inference mode like the steps: tensors made in inference mode cannot
+    # be changed in place outside of it, and a second call of this function resets again.
+    with torch.inference_mode():
+        observations, _ = environment.reset()
+        agent.reset(all_environment_ids, agent_generator)
     control_step_duration = environment.clock.control_step_duration
     for step_index in range(number_of_steps):
         with torch.inference_mode():
@@ -78,8 +81,9 @@ def collect_episodes(
     metrics = environment.bindings[SlotName.METRICS]
     agent_generator = environment.random_generators.generator_for(SlotName.AGENT)
     all_environment_ids = torch.arange(environment.num_envs, device=environment.device)
-    observations, _ = environment.reset()
-    agent.reset(all_environment_ids, agent_generator)
+    with torch.inference_mode():
+        observations, _ = environment.reset()
+        agent.reset(all_environment_ids, agent_generator)
     metrics.drain_episode_records()
     control_step_duration = environment.clock.control_step_duration
     wanted_rows = environment.num_envs * episodes_per_environment

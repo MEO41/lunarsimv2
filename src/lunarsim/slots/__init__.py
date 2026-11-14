@@ -18,3 +18,4 @@ from lunarsim.slots.sensors import none as _sensors_none  # noqa: F401
 from lunarsim.slots.start import fixed as _start_fixed  # noqa: F401
 from lunarsim.slots.start import terminal_box as _start_terminal_box  # noqa: F401
 from lunarsim.slots.surface import flat as _surface_flat  # noqa: F401
+from lunarsim.slots.surface import procedural as _surface_procedural  # noqa: F401

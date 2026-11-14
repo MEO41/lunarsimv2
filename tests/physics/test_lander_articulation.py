@@ -11,7 +11,7 @@ from lunarsim.core.binding import SlotName
 @pytest.fixture(scope="module")
 def environment():
     """Build S1 with four environments."""
-    environment = make_environment("s1_terminal_truth", ["num_envs=4"])
+    environment = make_environment("s1_terminal_truth", ["num_envs=4", "metrics=none"])
     environment.reset()
     yield environment
     environment.close()
