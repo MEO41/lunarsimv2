@@ -54,3 +54,51 @@ def run_agent_in_environment(
                 agent.reset(all_environment_ids[finished], agent_generator)
         if after_step is not None:
             after_step(step_index)
+
+
+def collect_episodes(
+    environment: Any,
+    agent: Any,
+    episodes_per_environment: int = 1,
+    maximum_steps: int = 100_000,
+    after_step: Callable[[int, Any], None] | None = None,
+):
+    """Run the closed loop until every environment has finished its first episodes; return their records.
+
+    Every environment contributes exactly ``episodes_per_environment`` rows. Without this rule,
+    environments with short episodes would finish more episodes and bias the statistics.
+    The scenario must use a metrics binding with ``drain_episode_records`` (``metrics: touchdown``).
+    ``after_step(step_index, command)`` is called after every control step.
+    """
+    import pandas
+
+    from lunarsim.slots.metrics.touchdown import OUTCOME_NAMES
+    from lunarsim.tools.episode_records import records_to_frame
+
+    metrics = environment.bindings[SlotName.METRICS]
+    agent_generator = environment.random_generators.generator_for(SlotName.AGENT)
+    all_environment_ids = torch.arange(environment.num_envs, device=environment.device)
+    observations, _ = environment.reset()
+    agent.reset(all_environment_ids, agent_generator)
+    metrics.drain_episode_records()
+    control_step_duration = environment.clock.control_step_duration
+    wanted_rows = environment.num_envs * episodes_per_environment
+    frames, collected_rows = [], 0
+    for step_index in range(maximum_steps):
+        with torch.inference_mode():
+            command = agent.compute_command(Observation(policy=observations["policy"]), control_step_duration)
+            observations, _, terminated, truncated, _ = environment.step(command.to_action_tensor())
+            finished = terminated | truncated
+            if bool(finished.any()):
+                agent.reset(all_environment_ids[finished], agent_generator)
+        if after_step is not None:
+            after_step(step_index, command)
+        records = metrics.drain_episode_records()
+        if records:
+            frame = records_to_frame(records, OUTCOME_NAMES)
+            frame = frame[frame["episode_number"] < episodes_per_environment]
+            frames.append(frame)
+            collected_rows += len(frame)
+            if collected_rows >= wanted_rows:
+                break
+    return pandas.concat(frames, ignore_index=True) if frames else pandas.DataFrame()

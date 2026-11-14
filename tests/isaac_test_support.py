@@ -17,7 +17,7 @@ from lunarsim.core.message_types import MessageKey, Observation  # noqa: E402
 from lunarsim.env.lander_env import LanderEnv  # noqa: E402
 from lunarsim.env.lander_env_cfg import build_lander_env_cfg  # noqa: E402
 from lunarsim.env.scenario_loader import load_scenario  # noqa: E402
-from lunarsim.tools.episode_runner import build_agent  # noqa: E402
+from lunarsim.tools.episode_runner import build_agent, collect_episodes  # noqa: E402
 
 
 class _TruthProbe:
@@ -94,5 +94,6 @@ def make_actions(environment: LanderEnv, throttle=0.0, jets=None) -> torch.Tenso
 
 
 __all__ = [
+    "collect_episodes",
     "set_start_states",
     "make_actions","simulation_app", "make_environment", "read_truth", "step_with_agent", "build_agent", "TRUTH_PROBE"]

@@ -1,0 +1,2 @@
+binding: hover_hold
+target_altitude_m: 30.0   # height of the footpad plane above the ground
