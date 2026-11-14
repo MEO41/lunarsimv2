@@ -70,7 +70,7 @@ cat <<DONE
 Setup finished. Next:
   source "$ENVIRONMENT_DIRECTORY/bin/activate"
   cd "$REPOSITORY_ROOT"
-  python -m pytest tests/unit -q                 # 84 CPU tests
+  python -m pytest tests/unit -q                 # 89 CPU tests
   python scripts/run_isaac_tests.py              # GPU tests, one simulator process per file
   python scripts/benchmark_environment.py --help # speed on this GPU
 DONE

@@ -1,6 +1,6 @@
 # PROGRESS
 
-Last update: 2026-11-14
+Last update: 2026-11-14 (late)
 
 ## Done
 - Read the design docs and all diagrams; checked the machine; settled the open decisions (see PLAN.md).
@@ -16,14 +16,21 @@ Last update: 2026-11-14
   - Speed baseline: 69,646 env steps/s at 1,024 envs, 203,702 at 16,384 (RTX 5060).
 - Overview figure and lander render in the README.
 
+- Workstation setup script, pinned requirements and installation check (for the move to an RTX 5090).
+- CPU tests run on GitHub Actions on every push.
+- Project knowledge graph in `docs/knowledge/` (start at `docs/knowledge/README.md`); it holds
+  the rules, decisions, results, plans and open questions so context survives machine changes.
+
 ## In progress
-- Nothing. The session stops at the M1a gate; M1b (RL on S1) is not started.
+- Nothing. M1b (RL on S1) is not started.
+
+## Waiting for the user
+- Terrain integration (real Apollo 17 terrain with craters and rocks, LM-accurate footpads):
+  planned in `docs/knowledge/terrain-integration-plan.md`, waits for "Proceed" and for the
+  answer on a 15th observation value. All open questions: `docs/knowledge/pending-user-decisions.md`.
 
 ## Blocked
-- **CI workflow cannot be pushed.** The GitHub token of `gh` has no `workflow` scope, so GitHub
-  rejects `.github/workflows/cpu_tests.yml`. The file is written and waits untracked in the
-  working tree. To unblock, run `gh auth refresh -h github.com -s workflow`, then commit and
-  push that file.
+- Nothing.
 
 ## Decisions
 | Date | Decision | Why |
@@ -44,3 +51,4 @@ Last update: 2026-11-14
 | 2026-11-14 | `zem_zev` flies to a gate 3 m above the target, then uses the vertical-descent controller; it waits above the ground until the horizontal speed is small | Raised full-range success from 81 % to 97 % |
 | 2026-11-14 | `surface: procedural` is smoke-tested only | Agents assume the ground at z = 0 until the altimeter exists (M2) |
 | 2026-11-14 | The lander USD has thin visual struts (no collision, no mass) | For pictures; physics tests rerun after the change |
+| 2026-11-14 | Project memory lives in `docs/knowledge/`, checked by a CPU test | Context must survive moves between machines and sessions |

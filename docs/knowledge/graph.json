@@ -1,0 +1,905 @@
+{
+  "nodes": [
+    {
+      "id": "apollo-lander-modeling-folder",
+      "title": "The apollo_lander_modeling folder",
+      "type": "research",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "The user's sibling working folder with the Apollo 17 terrain scene and the NASA LM mesh - what it has, what we take from it, and what we do not.",
+      "path": "apollo-lander-modeling-folder.md"
+    },
+    {
+      "id": "apollo-lm-geometry-research",
+      "title": "Apollo LM geometry research",
+      "type": "research",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "Apollo LM landing-gear, body, nozzle and RCS geometry from primary NASA and Grumman documents, with page references; input for the lander changes.",
+      "path": "apollo-lm-geometry-research.md"
+    },
+    {
+      "id": "apollo17-height-maps",
+      "title": "Apollo 17 height maps (LROC NAC DTM)",
+      "type": "research",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "The two NASA height maps of the Apollo 17 site, their file layout, projection and local-frame formula, and where they live (not in git).",
+      "path": "apollo17-height-maps.md"
+    },
+    {
+      "id": "bindings-catalogue",
+      "title": "Bindings catalogue",
+      "type": "component",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "Every binding that exists, per slot, with its file and what it does; the two scenario files.",
+      "path": "bindings-catalogue.md"
+    },
+    {
+      "id": "classical-agents",
+      "title": "Classical agents",
+      "type": "component",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "The four-step classical controller chain ending in ZEM/ZEV guidance, its parameters and its assumption of flat ground at z = 0.",
+      "path": "classical-agents.md"
+    },
+    {
+      "id": "decisions-log",
+      "title": "Decisions log",
+      "type": "decision",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "Every decision taken so far, with date and reason; the place to add new ones.",
+      "path": "decisions-log.md"
+    },
+    {
+      "id": "isaac-lab-quirks",
+      "title": "Isaac Lab quirks",
+      "type": "environment",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "Behaviours of this Isaac Sim 6.0.1 / Isaac Lab 3.0 develop build that cost time to find, and how the code handles each.",
+      "path": "isaac-lab-quirks.md"
+    },
+    {
+      "id": "knowledge-graph-tooling",
+      "title": "Knowledge graph tooling",
+      "type": "component",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "How this knowledge graph is stored, checked and regenerated, and the rule to update it in the same commit as the work.",
+      "path": "knowledge-graph-tooling.md"
+    },
+    {
+      "id": "lander-articulation-model",
+      "title": "Lander articulation model",
+      "type": "component",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "How the lander is built in USD from the preset - body, four leg links on prismatic spring struts, sphere footpads - and its simplifications.",
+      "path": "lander-articulation-model.md"
+    },
+    {
+      "id": "lander-preset-apollo-lm",
+      "title": "Lander preset, Apollo LM",
+      "type": "component",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "The Apollo LM-5 preset with its sourced numbers, the body frame, and the values that are model choices or assumptions.",
+      "path": "lander-preset-apollo-lm.md"
+    },
+    {
+      "id": "lunar-surface-statistics-research",
+      "title": "Lunar surface statistics research",
+      "type": "research",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "Published laws for small craters, crater depth, rocks, slopes and regolith strength, with sources; input for the terrain detail.",
+      "path": "lunar-surface-statistics-research.md"
+    },
+    {
+      "id": "metrics-and-run-records",
+      "title": "Touchdown metric and run records",
+      "type": "component",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "How a landing is judged (outcome codes, detection settings) and what every run writes to disk, plus the figure and summary tools.",
+      "path": "metrics-and-run-records.md"
+    },
+    {
+      "id": "milestone-1a-results",
+      "title": "Milestone 1a results",
+      "type": "result",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "Test counts, physics validation, controller results and the ZEM/ZEV full-box success rate with its failure breakdown (RTX 5060, flat ground).",
+      "path": "milestone-1a-results.md"
+    },
+    {
+      "id": "milestone-roadmap-and-status",
+      "title": "Milestone roadmap and status",
+      "type": "milestone",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "The eight milestones of the design, which gates have passed, and what comes next.",
+      "path": "milestone-roadmap-and-status.md"
+    },
+    {
+      "id": "open-issues",
+      "title": "Open issues",
+      "type": "issue",
+      "status": "open",
+      "updated": "2026-11-14",
+      "summary": "Known weak points of the model and the code, with what each one affects.",
+      "path": "open-issues.md"
+    },
+    {
+      "id": "pending-user-decisions",
+      "title": "Pending user decisions",
+      "type": "plan",
+      "status": "waiting-for-user",
+      "updated": "2026-11-14",
+      "summary": "Questions that wait for the user's answer; work that depends on them must not start before.",
+      "path": "pending-user-decisions.md"
+    },
+    {
+      "id": "physx-contact-settings",
+      "title": "PhysX contact settings",
+      "type": "component",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "Solver and contact settings from the contact-rest study, why PGS and not TGS, and the measured residuals.",
+      "path": "physx-contact-settings.md"
+    },
+    {
+      "id": "project-goal-and-design-documents",
+      "title": "Project goal and design documents",
+      "type": "design",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "What LunarSim v2 is for, which documents are the authority, the ten scenarios and the six goals.",
+      "path": "project-goal-and-design-documents.md"
+    },
+    {
+      "id": "rules-from-the-user",
+      "title": "Rules from the user",
+      "type": "rule",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "Standing instructions for all work in this repository; read first in every session.",
+      "path": "rules-from-the-user.md"
+    },
+    {
+      "id": "session-history",
+      "title": "Session history",
+      "type": "history",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "Timeline of the work so far with commit hashes, so a new session knows how the project got here.",
+      "path": "session-history.md"
+    },
+    {
+      "id": "slot-loop-architecture",
+      "title": "Slot loop architecture",
+      "type": "component",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "The nine slots, the message bus with its truth guard, the hook order of one control step, timing and message fields.",
+      "path": "slot-loop-architecture.md"
+    },
+    {
+      "id": "sources-bibliography",
+      "title": "Sources bibliography",
+      "type": "research",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "Every public source used for numbers in the preset and the plans, with its short key and link.",
+      "path": "sources-bibliography.md"
+    },
+    {
+      "id": "speed-benchmarks",
+      "title": "Speed benchmarks",
+      "type": "result",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "Environment steps per second and GPU memory against environment count, per GPU (goal G4).",
+      "path": "speed-benchmarks.md"
+    },
+    {
+      "id": "terrain-integration-plan",
+      "title": "Terrain integration plan",
+      "type": "plan",
+      "status": "waiting-for-user",
+      "updated": "2026-11-14",
+      "summary": "The plan for real Apollo 17 terrain with craters and rocks, and LM-accurate footpads and body shapes; not started, waits for \"Proceed\".",
+      "path": "terrain-integration-plan.md"
+    },
+    {
+      "id": "testing-and-commands",
+      "title": "Testing and commands",
+      "type": "environment",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "How to run the tests, scenarios, evaluations, benchmarks, figures and the knowledge-graph check.",
+      "path": "testing-and-commands.md"
+    },
+    {
+      "id": "workstation-setup-and-machines",
+      "title": "Workstation setup and machines",
+      "type": "environment",
+      "status": "current",
+      "updated": "2026-11-14",
+      "summary": "The two machines, where the Python environment lives on each, how to set up a new one, and what does not travel with git.",
+      "path": "workstation-setup-and-machines.md"
+    }
+  ],
+  "edges": [
+    {
+      "source": "apollo-lander-modeling-folder",
+      "target": "apollo17-height-maps",
+      "relation": "mentions"
+    },
+    {
+      "source": "apollo-lander-modeling-folder",
+      "target": "lander-preset-apollo-lm",
+      "relation": "mentions"
+    },
+    {
+      "source": "apollo-lander-modeling-folder",
+      "target": "terrain-integration-plan",
+      "relation": "source for"
+    },
+    {
+      "source": "apollo-lm-geometry-research",
+      "target": "sources-bibliography",
+      "relation": "mentions"
+    },
+    {
+      "source": "apollo-lm-geometry-research",
+      "target": "pending-user-decisions",
+      "relation": "mentions"
+    },
+    {
+      "source": "apollo-lm-geometry-research",
+      "target": "terrain-integration-plan",
+      "relation": "feeds"
+    },
+    {
+      "source": "apollo-lm-geometry-research",
+      "target": "lander-preset-apollo-lm",
+      "relation": "refines"
+    },
+    {
+      "source": "apollo17-height-maps",
+      "target": "terrain-integration-plan",
+      "relation": "used by"
+    },
+    {
+      "source": "apollo17-height-maps",
+      "target": "apollo-lander-modeling-folder",
+      "relation": "first worked with in"
+    },
+    {
+      "source": "bindings-catalogue",
+      "target": "lander-articulation-model",
+      "relation": "mentions"
+    },
+    {
+      "source": "bindings-catalogue",
+      "target": "metrics-and-run-records",
+      "relation": "mentions"
+    },
+    {
+      "source": "bindings-catalogue",
+      "target": "classical-agents",
+      "relation": "mentions"
+    },
+    {
+      "source": "bindings-catalogue",
+      "target": "terrain-integration-plan",
+      "relation": "mentions"
+    },
+    {
+      "source": "bindings-catalogue",
+      "target": "slot-loop-architecture",
+      "relation": "part of"
+    },
+    {
+      "source": "bindings-catalogue",
+      "target": "lander-preset-apollo-lm",
+      "relation": "uses"
+    },
+    {
+      "source": "classical-agents",
+      "target": "milestone-1a-results",
+      "relation": "mentions"
+    },
+    {
+      "source": "classical-agents",
+      "target": "terrain-integration-plan",
+      "relation": "mentions"
+    },
+    {
+      "source": "classical-agents",
+      "target": "pending-user-decisions",
+      "relation": "mentions"
+    },
+    {
+      "source": "classical-agents",
+      "target": "slot-loop-architecture",
+      "relation": "flies on"
+    },
+    {
+      "source": "classical-agents",
+      "target": "metrics-and-run-records",
+      "relation": "judged by"
+    },
+    {
+      "source": "decisions-log",
+      "target": "rules-from-the-user",
+      "relation": "mentions"
+    },
+    {
+      "source": "decisions-log",
+      "target": "physx-contact-settings",
+      "relation": "mentions"
+    },
+    {
+      "source": "decisions-log",
+      "target": "classical-agents",
+      "relation": "mentions"
+    },
+    {
+      "source": "decisions-log",
+      "target": "knowledge-graph-tooling",
+      "relation": "mentions"
+    },
+    {
+      "source": "decisions-log",
+      "target": "pending-user-decisions",
+      "relation": "mentions"
+    },
+    {
+      "source": "isaac-lab-quirks",
+      "target": "physx-contact-settings",
+      "relation": "mentions"
+    },
+    {
+      "source": "isaac-lab-quirks",
+      "target": "apollo-lander-modeling-folder",
+      "relation": "mentions"
+    },
+    {
+      "source": "isaac-lab-quirks",
+      "target": "workstation-setup-and-machines",
+      "relation": "applies to"
+    },
+    {
+      "source": "knowledge-graph-tooling",
+      "target": "decisions-log",
+      "relation": "mentions"
+    },
+    {
+      "source": "knowledge-graph-tooling",
+      "target": "pending-user-decisions",
+      "relation": "mentions"
+    },
+    {
+      "source": "knowledge-graph-tooling",
+      "target": "milestone-roadmap-and-status",
+      "relation": "mentions"
+    },
+    {
+      "source": "knowledge-graph-tooling",
+      "target": "session-history",
+      "relation": "mentions"
+    },
+    {
+      "source": "knowledge-graph-tooling",
+      "target": "rules-from-the-user",
+      "relation": "required by"
+    },
+    {
+      "source": "lander-articulation-model",
+      "target": "apollo-lm-geometry-research",
+      "relation": "mentions"
+    },
+    {
+      "source": "lander-articulation-model",
+      "target": "terrain-integration-plan",
+      "relation": "mentions"
+    },
+    {
+      "source": "lander-articulation-model",
+      "target": "lander-preset-apollo-lm",
+      "relation": "built from"
+    },
+    {
+      "source": "lander-articulation-model",
+      "target": "physx-contact-settings",
+      "relation": "simulated with"
+    },
+    {
+      "source": "lander-preset-apollo-lm",
+      "target": "lander-articulation-model",
+      "relation": "mentions"
+    },
+    {
+      "source": "lander-preset-apollo-lm",
+      "target": "apollo-lm-geometry-research",
+      "relation": "mentions"
+    },
+    {
+      "source": "lander-preset-apollo-lm",
+      "target": "terrain-integration-plan",
+      "relation": "mentions"
+    },
+    {
+      "source": "lander-preset-apollo-lm",
+      "target": "pending-user-decisions",
+      "relation": "mentions"
+    },
+    {
+      "source": "lander-preset-apollo-lm",
+      "target": "sources-bibliography",
+      "relation": "sources"
+    },
+    {
+      "source": "lander-preset-apollo-lm",
+      "target": "open-issues",
+      "relation": "weak points"
+    },
+    {
+      "source": "lunar-surface-statistics-research",
+      "target": "sources-bibliography",
+      "relation": "mentions"
+    },
+    {
+      "source": "lunar-surface-statistics-research",
+      "target": "terrain-integration-plan",
+      "relation": "feeds"
+    },
+    {
+      "source": "metrics-and-run-records",
+      "target": "lander-preset-apollo-lm",
+      "relation": "mentions"
+    },
+    {
+      "source": "metrics-and-run-records",
+      "target": "terrain-integration-plan",
+      "relation": "mentions"
+    },
+    {
+      "source": "metrics-and-run-records",
+      "target": "milestone-1a-results",
+      "relation": "produces"
+    },
+    {
+      "source": "metrics-and-run-records",
+      "target": "testing-and-commands",
+      "relation": "commands"
+    },
+    {
+      "source": "milestone-1a-results",
+      "target": "physx-contact-settings",
+      "relation": "mentions"
+    },
+    {
+      "source": "milestone-1a-results",
+      "target": "open-issues",
+      "relation": "mentions"
+    },
+    {
+      "source": "milestone-1a-results",
+      "target": "terrain-integration-plan",
+      "relation": "mentions"
+    },
+    {
+      "source": "milestone-1a-results",
+      "target": "classical-agents",
+      "relation": "measured with"
+    },
+    {
+      "source": "milestone-1a-results",
+      "target": "metrics-and-run-records",
+      "relation": "judged by"
+    },
+    {
+      "source": "milestone-1a-results",
+      "target": "speed-benchmarks",
+      "relation": "speed"
+    },
+    {
+      "source": "milestone-roadmap-and-status",
+      "target": "milestone-1a-results",
+      "relation": "mentions"
+    },
+    {
+      "source": "milestone-roadmap-and-status",
+      "target": "rules-from-the-user",
+      "relation": "mentions"
+    },
+    {
+      "source": "milestone-roadmap-and-status",
+      "target": "workstation-setup-and-machines",
+      "relation": "mentions"
+    },
+    {
+      "source": "milestone-roadmap-and-status",
+      "target": "terrain-integration-plan",
+      "relation": "mentions"
+    },
+    {
+      "source": "milestone-roadmap-and-status",
+      "target": "pending-user-decisions",
+      "relation": "mentions"
+    },
+    {
+      "source": "milestone-roadmap-and-status",
+      "target": "project-goal-and-design-documents",
+      "relation": "follows"
+    },
+    {
+      "source": "milestone-roadmap-and-status",
+      "target": "terrain-integration-plan",
+      "relation": "next step"
+    },
+    {
+      "source": "milestone-roadmap-and-status",
+      "target": "session-history",
+      "relation": "history"
+    },
+    {
+      "source": "open-issues",
+      "target": "lander-articulation-model",
+      "relation": "mentions"
+    },
+    {
+      "source": "open-issues",
+      "target": "terrain-integration-plan",
+      "relation": "mentions"
+    },
+    {
+      "source": "open-issues",
+      "target": "apollo-lm-geometry-research",
+      "relation": "mentions"
+    },
+    {
+      "source": "open-issues",
+      "target": "pending-user-decisions",
+      "relation": "mentions"
+    },
+    {
+      "source": "open-issues",
+      "target": "isaac-lab-quirks",
+      "relation": "mentions"
+    },
+    {
+      "source": "open-issues",
+      "target": "workstation-setup-and-machines",
+      "relation": "mentions"
+    },
+    {
+      "source": "open-issues",
+      "target": "milestone-1a-results",
+      "relation": "mentions"
+    },
+    {
+      "source": "pending-user-decisions",
+      "target": "terrain-integration-plan",
+      "relation": "mentions"
+    },
+    {
+      "source": "pending-user-decisions",
+      "target": "decisions-log",
+      "relation": "mentions"
+    },
+    {
+      "source": "pending-user-decisions",
+      "target": "milestone-roadmap-and-status",
+      "relation": "mentions"
+    },
+    {
+      "source": "physx-contact-settings",
+      "target": "terrain-integration-plan",
+      "relation": "mentions"
+    },
+    {
+      "source": "physx-contact-settings",
+      "target": "lander-articulation-model",
+      "relation": "used by"
+    },
+    {
+      "source": "physx-contact-settings",
+      "target": "decisions-log",
+      "relation": "recorded in"
+    },
+    {
+      "source": "project-goal-and-design-documents",
+      "target": "decisions-log",
+      "relation": "mentions"
+    },
+    {
+      "source": "project-goal-and-design-documents",
+      "target": "slot-loop-architecture",
+      "relation": "mentions"
+    },
+    {
+      "source": "project-goal-and-design-documents",
+      "target": "lander-preset-apollo-lm",
+      "relation": "mentions"
+    },
+    {
+      "source": "project-goal-and-design-documents",
+      "target": "terrain-integration-plan",
+      "relation": "mentions"
+    },
+    {
+      "source": "project-goal-and-design-documents",
+      "target": "speed-benchmarks",
+      "relation": "mentions"
+    },
+    {
+      "source": "project-goal-and-design-documents",
+      "target": "milestone-roadmap-and-status",
+      "relation": "governs"
+    },
+    {
+      "source": "project-goal-and-design-documents",
+      "target": "slot-loop-architecture",
+      "relation": "governs"
+    },
+    {
+      "source": "rules-from-the-user",
+      "target": "milestone-roadmap-and-status",
+      "relation": "mentions"
+    },
+    {
+      "source": "rules-from-the-user",
+      "target": "knowledge-graph-tooling",
+      "relation": "mentions"
+    },
+    {
+      "source": "rules-from-the-user",
+      "target": "terrain-integration-plan",
+      "relation": "mentions"
+    },
+    {
+      "source": "rules-from-the-user",
+      "target": "project-goal-and-design-documents",
+      "relation": "design authority"
+    },
+    {
+      "source": "rules-from-the-user",
+      "target": "decisions-log",
+      "relation": "design authority"
+    },
+    {
+      "source": "session-history",
+      "target": "rules-from-the-user",
+      "relation": "mentions"
+    },
+    {
+      "source": "session-history",
+      "target": "physx-contact-settings",
+      "relation": "mentions"
+    },
+    {
+      "source": "session-history",
+      "target": "milestone-1a-results",
+      "relation": "mentions"
+    },
+    {
+      "source": "session-history",
+      "target": "apollo-lander-modeling-folder",
+      "relation": "mentions"
+    },
+    {
+      "source": "session-history",
+      "target": "apollo-lm-geometry-research",
+      "relation": "mentions"
+    },
+    {
+      "source": "session-history",
+      "target": "lunar-surface-statistics-research",
+      "relation": "mentions"
+    },
+    {
+      "source": "session-history",
+      "target": "terrain-integration-plan",
+      "relation": "mentions"
+    },
+    {
+      "source": "session-history",
+      "target": "knowledge-graph-tooling",
+      "relation": "mentions"
+    },
+    {
+      "source": "session-history",
+      "target": "workstation-setup-and-machines",
+      "relation": "mentions"
+    },
+    {
+      "source": "session-history",
+      "target": "pending-user-decisions",
+      "relation": "mentions"
+    },
+    {
+      "source": "session-history",
+      "target": "milestone-roadmap-and-status",
+      "relation": "leads to"
+    },
+    {
+      "source": "slot-loop-architecture",
+      "target": "bindings-catalogue",
+      "relation": "mentions"
+    },
+    {
+      "source": "slot-loop-architecture",
+      "target": "decisions-log",
+      "relation": "mentions"
+    },
+    {
+      "source": "slot-loop-architecture",
+      "target": "terrain-integration-plan",
+      "relation": "mentions"
+    },
+    {
+      "source": "slot-loop-architecture",
+      "target": "project-goal-and-design-documents",
+      "relation": "implements"
+    },
+    {
+      "source": "slot-loop-architecture",
+      "target": "physx-contact-settings",
+      "relation": "runs on"
+    },
+    {
+      "source": "slot-loop-architecture",
+      "target": "bindings-catalogue",
+      "relation": "details in"
+    },
+    {
+      "source": "sources-bibliography",
+      "target": "apollo17-height-maps",
+      "relation": "mentions"
+    },
+    {
+      "source": "sources-bibliography",
+      "target": "lander-preset-apollo-lm",
+      "relation": "cited by"
+    },
+    {
+      "source": "sources-bibliography",
+      "target": "apollo-lm-geometry-research",
+      "relation": "cited by"
+    },
+    {
+      "source": "sources-bibliography",
+      "target": "lunar-surface-statistics-research",
+      "relation": "cited by"
+    },
+    {
+      "source": "speed-benchmarks",
+      "target": "workstation-setup-and-machines",
+      "relation": "mentions"
+    },
+    {
+      "source": "speed-benchmarks",
+      "target": "milestone-1a-results",
+      "relation": "part of"
+    },
+    {
+      "source": "terrain-integration-plan",
+      "target": "pending-user-decisions",
+      "relation": "mentions"
+    },
+    {
+      "source": "terrain-integration-plan",
+      "target": "rules-from-the-user",
+      "relation": "mentions"
+    },
+    {
+      "source": "terrain-integration-plan",
+      "target": "apollo-lm-geometry-research",
+      "relation": "mentions"
+    },
+    {
+      "source": "terrain-integration-plan",
+      "target": "apollo17-height-maps",
+      "relation": "mentions"
+    },
+    {
+      "source": "terrain-integration-plan",
+      "target": "apollo-lander-modeling-folder",
+      "relation": "mentions"
+    },
+    {
+      "source": "terrain-integration-plan",
+      "target": "lunar-surface-statistics-research",
+      "relation": "mentions"
+    },
+    {
+      "source": "terrain-integration-plan",
+      "target": "classical-agents",
+      "relation": "mentions"
+    },
+    {
+      "source": "terrain-integration-plan",
+      "target": "physx-contact-settings",
+      "relation": "mentions"
+    },
+    {
+      "source": "terrain-integration-plan",
+      "target": "milestone-1a-results",
+      "relation": "mentions"
+    },
+    {
+      "source": "terrain-integration-plan",
+      "target": "lander-preset-apollo-lm",
+      "relation": "changes"
+    },
+    {
+      "source": "terrain-integration-plan",
+      "target": "lander-articulation-model",
+      "relation": "changes"
+    },
+    {
+      "source": "terrain-integration-plan",
+      "target": "bindings-catalogue",
+      "relation": "changes"
+    },
+    {
+      "source": "terrain-integration-plan",
+      "target": "pending-user-decisions",
+      "relation": "depends on"
+    },
+    {
+      "source": "testing-and-commands",
+      "target": "workstation-setup-and-machines",
+      "relation": "mentions"
+    },
+    {
+      "source": "testing-and-commands",
+      "target": "metrics-and-run-records",
+      "relation": "runs"
+    },
+    {
+      "source": "testing-and-commands",
+      "target": "knowledge-graph-tooling",
+      "relation": "checks"
+    },
+    {
+      "source": "workstation-setup-and-machines",
+      "target": "speed-benchmarks",
+      "relation": "mentions"
+    },
+    {
+      "source": "workstation-setup-and-machines",
+      "target": "milestone-1a-results",
+      "relation": "mentions"
+    },
+    {
+      "source": "workstation-setup-and-machines",
+      "target": "apollo-lander-modeling-folder",
+      "relation": "mentions"
+    },
+    {
+      "source": "workstation-setup-and-machines",
+      "target": "apollo17-height-maps",
+      "relation": "mentions"
+    },
+    {
+      "source": "workstation-setup-and-machines",
+      "target": "isaac-lab-quirks",
+      "relation": "quirks"
+    },
+    {
+      "source": "workstation-setup-and-machines",
+      "target": "testing-and-commands",
+      "relation": "commands"
+    }
+  ]
+}

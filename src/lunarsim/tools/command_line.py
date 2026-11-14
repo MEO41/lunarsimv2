@@ -3,6 +3,8 @@
 
 ``lunarsim figures <run_dir>``   make all figures of a run from its files
 ``lunarsim summary <run_dir>``   print the outcome table of a run
+``lunarsim knowledge-graph``     rebuild docs/knowledge/graph.json and graph_overview.md
+``lunarsim knowledge-graph --check``  report broken links and out-of-date graph files
 """
 
 from __future__ import annotations
@@ -17,8 +19,21 @@ def main(arguments: list[str] | None = None) -> int:
     for name, help_text in (("figures", "make the figures of a run"), ("summary", "print the outcome table of a run")):
         command = commands.add_parser(name, help=help_text)
         command.add_argument("run_directory", help="directory with manifest.yaml and episodes.parquet")
+    knowledge = commands.add_parser("knowledge-graph", help="rebuild or check the project knowledge graph")
+    knowledge.add_argument("--check", action="store_true", help="only check; exit 1 on any problem")
     options = parser.parse_args(arguments)
 
+    if options.command == "knowledge-graph":
+        from lunarsim.tools.knowledge_graph import check_knowledge_graph, write_knowledge_graph
+
+        if not options.check:
+            for path in write_knowledge_graph():
+                print(path)
+        problems = check_knowledge_graph()
+        for problem in problems:
+            print(f"problem: {problem}")
+        print(f"knowledge graph: {len(problems)} problem(s)")
+        return 1 if problems else 0
     if options.command == "figures":
         from lunarsim.tools.figures import make_figures
 

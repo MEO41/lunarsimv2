@@ -107,7 +107,10 @@ configs/scenarios       one Hydra file per scenario
 configs/landers         lander presets, every number with its public source
 tests/unit              CPU tests (run on every push)
 tests/physics, smoke    GPU tests (need Isaac Lab)
+docs/knowledge          project knowledge graph: rules, decisions, results, plans, open questions
 ```
+
+New to the project, or on a new machine? Start at [docs/knowledge/README.md](docs/knowledge/README.md).
 
 ## License
 
