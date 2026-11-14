@@ -63,6 +63,12 @@ glide-slope constraint.*
 
 ## Install
 
+On a new machine, `scripts/setup_workstation.sh` builds the whole environment (Isaac Sim, Isaac Lab at the
+pinned commit, torch, this package) and `python scripts/check_installation.py` compares it with the pinned
+versions. It has been tested only as a check on the development machine, not yet on a clean one.
+
+To install only this package into an existing Isaac Lab environment:
+
 ```bash
 # inside the Python environment that has Isaac Sim and Isaac Lab
 pip install -e ".[dev]"

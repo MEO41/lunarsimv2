@@ -1,0 +1,16 @@
+# Versions of the development workstation (RTX 5060) on which all milestone 1a results were made.
+# Installed by scripts/setup_workstation.sh; checked by scripts/check_installation.py.
+# Isaac Sim and Isaac Lab are installed by that script (Isaac Lab from git, commit e86463d).
+isaacsim[all,extscache]==6.0.1.0
+torch==2.11.0
+torchvision==0.26.0
+numpy==2.3.1
+scipy==1.17.0
+pandas==3.0.5
+pyarrow==26.0.1
+matplotlib==3.10.8
+pyyaml==6.0.3
+omegaconf==2.3.1
+hydra-core==1.3.7
+trimesh==4.11.1
+pytest==9.2.0
