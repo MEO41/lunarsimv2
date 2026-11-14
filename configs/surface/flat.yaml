@@ -1,0 +1,4 @@
+binding: flat
+static_friction: 0.8    # placeholder until the lander preset sets the footpad-soil value
+dynamic_friction: 0.7
+restitution: 0.0

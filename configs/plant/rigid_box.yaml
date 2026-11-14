@@ -1,0 +1,3 @@
+binding: rigid_box
+size_m: [1.0, 1.0, 1.0]
+mass_kg: 100.0

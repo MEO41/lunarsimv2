@@ -1,0 +1,22 @@
+# @package _global_
+# Milestone 0: an empty slot loop. A box falls onto flat ground in N environments.
+defaults:
+  - /start: fixed
+  - /plant: rigid_box
+  - /surface: flat
+  - /sensors: none
+  - /faults: none
+  - /nav: truth
+  - /agent: zero
+  - /actuators: none
+  - /metrics: none
+  - _self_
+
+name: m0_null_loop
+seed: 0
+env:
+  num_envs: 1024
+  env_spacing_m: 4.0
+  physics_step_s: 0.005              # 200 Hz PhysX
+  physics_steps_per_control_step: 4  # 50 Hz control
+  episode_length_s: 5.0
