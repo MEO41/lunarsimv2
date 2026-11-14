@@ -1,0 +1,10 @@
+binding: touchdown
+# Touchdown limits come from the lander preset. These values control detection only.
+contact_force_threshold_n: 100.0   # a footpad force above this counts as contact (0.8 % of the lunar weight)
+settle_speed_mps: 0.02             # "at rest" means slower than this ...
+settle_rate_deg_per_s: 0.5         # ... and turning slower than this ...
+settle_hold_s: 1.0                 # ... for this long
+settle_timeout_s: 10.0             # give up waiting for rest this long after contact
+tip_over_tilt_deg: 45.0
+maximum_horizontal_distance_m: 300.0
+maximum_altitude_m: 200.0
