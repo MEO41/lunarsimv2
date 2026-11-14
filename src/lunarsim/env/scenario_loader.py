@@ -79,7 +79,9 @@ class ScenarioConfig:
         """Return the number of reaction-control jets of the lander (0 without a lander)."""
         if not self.lander:
             return 0
-        return len(self.lander["reaction_control_system"]["jets"])
+        from lunarsim.assets.lander_preset import lander_preset_from_dictionary
+
+        return lander_preset_from_dictionary(self.lander).number_of_jets
 
     def binding_classes(self) -> dict[str, type]:
         """Return the registered binding class of every slot."""

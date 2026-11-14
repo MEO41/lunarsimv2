@@ -1,0 +1,152 @@
+# Lander preset: Apollo Lunar Module (LM-5, Apollo 11) in the terminal landing phase.
+#
+# Every number has its public source next to it. "derived" means computed here from sourced
+# numbers (the formula is given). "model choice" means the real hardware has no such number and
+# the simulator needs one; these are listed again in M1A_REPORT.md.
+#
+# Source short names:
+#   [A11-MR]   Apollo 11 Mission Report, NASA MSC-00171 (1969), Table A-I "Mass properties",
+#              row "Lunar landing", and section 9.13.1.
+#              https://www.nasa.gov/wp-content/uploads/static/apollo50th/pdf/A11_MissionReport.pdf
+#   [D-7143]   Hammock, Currie, Fisher, "Apollo Experience Report - Descent Propulsion System",
+#              NASA TN D-7143 (1973). https://ntrs.nasa.gov/citations/19730011150
+#   [D-6850]   Rogers, "Apollo Experience Report - Lunar Module Landing Gear Subsystem",
+#              NASA TN D-6850 (1972). https://ntrs.nasa.gov/citations/19720018253
+#   [LM-NEWS]  Grumman, "Apollo Lunar Module News Reference" (1969), sections "Reaction Control",
+#              "Main Propulsion", "Lunar Module" (pages RC-1..10, MP-1, LV-1).
+#   [COX]      Cox, "Design Development of the Apollo Lunar Module Digital Autopilot",
+#              NASA (1978), Table I. https://ntrs.nasa.gov/citations/19780015068
+#   [KLUMPP]   Klumpp, "Apollo Lunar-Descent Guidance", MIT Charles Stark Draper Laboratory
+#              R-695 (1971). https://www.ibiblio.org/apollo/Documents/Apollo%20Lunar%20Descent%20Guidance.pdf
+#   [LM-STRUCT] Grumman, "LM Structures Study Guide", Course 30915.
+#              https://www.ibiblio.org/apollo/Documents/lm_structures_study_guide.pdf
+#
+# Body frame of this preset: origin at the centre of mass at lunar landing; +z up along the
+# thrust axis (LM +X), +x forward (LM +Z, the ladder leg), +y to the left (LM -Y).
+# Simplifications: the small centre-of-mass offsets (LM Y = 0.4 in, Z = 1.6 in) and the
+# products of inertia (below 4.5 % of the moments) from [A11-MR] are set to zero.
+
+name: apollo_lunar_module
+
+mass:
+  mass_at_start_kg:
+    value: 7327.0
+    source: "[A11-MR] Table A-I, 'Lunar landing': 16,153.2 lb"
+  descent_propellant_at_start_kg:
+    value: 349.3
+    source: "[A11-MR] sec. 9.13.1: 770 lb of descent propellant remained at engine cutoff"
+  unusable_descent_propellant_kg:
+    value: 43.5
+    source: "[A11-MR] sec. 9.13.1: the 770 lb include 96 lb trapped in the manifolds"
+
+inertia:   # about the centre of mass, at 'Lunar landing'
+  about_x_kg_m2:
+    value: 21970.0
+    source: "[A11-MR] Table A-I: Izz = 16,204 slug ft^2 (LM Z is the body x axis)"
+  about_y_kg_m2:
+    value: 18530.0
+    source: "[A11-MR] Table A-I: Iyy = 13,667 slug ft^2"
+  about_z_kg_m2:
+    value: 17059.0
+    source: "[A11-MR] Table A-I: Ixx = 12,582 slug ft^2 (LM X, the thrust axis, is the body z axis)"
+
+geometry:
+  center_of_mass_height_above_footpad_plane_m:
+    value: 3.62
+    source: "derived: c.g. station X = 213.5 in [A11-MR] minus footpad plane at X = 70.84 in [LM-STRUCT] = 142.7 in"
+  body_collision_radius_m:
+    value: 2.108
+    source: "[LM-NEWS] p. LV-1: descent stage diameter 13 ft 10 in (4.216 m), halved"
+  body_collision_bottom_below_center_of_mass_m:
+    value: 2.092
+    source: "derived: c.g. X = 213.5 in [A11-MR] minus descent stage lower deck X = 131.14 in [LM-STRUCT]"
+  body_collision_top_above_center_of_mass_m:
+    value: 3.365
+    source: "derived: overall height 22 ft 11 in = 6.985 m [LM-NEWS] p. LV-1, minus c.g. height 3.62 m"
+
+descent_engine:
+  rated_thrust_n:
+    value: 46706.0
+    source: "[D-7143] p. 6: maximum rated thrust 10,500 lbf"
+  minimum_throttle_fraction:
+    value: 0.10
+    source: "[D-7143] p. 6-8: 10:1 throttle ratio, minimum 10 % of rated thrust"
+  maximum_throttle_fraction:
+    value: 0.65
+    source: "[D-7143] p. 6-8: 65 % to 92.5 % is a non-operating region; the fixed throttle point (92.5 %) is not modelled"
+  specific_impulse_s:
+    value: 305.0
+    source: "[D-7143] p. 6: design requirement, 305 lbf s/lbm at the end of the duty cycle"
+  thrust_lag_time_constant_s:
+    value: 0.08
+    source: "[KLUMPP] throttle routine: 'estimated DPS time constant of 0.08 second'"
+  maximum_throttle_rate_per_s:
+    value: 0.85
+    source: "[KLUMPP] throttle command pulse train: 85 % thrust change per second"
+  engine_off_below_fraction:
+    value: 0.05
+    source: "model choice: a throttle command below half of the minimum throttle shuts the engine down"
+
+reaction_control_system:
+  jet_thrust_n:
+    value: 444.8
+    source: "[LM-NEWS] p. RC-1: 100 lbf per thruster, 16 thrusters in 4 clusters"
+  specific_impulse_s:
+    value: 281.0
+    source: "[LM-NEWS] Reaction Control: steady-state specific impulse 281 s"
+  minimum_pulse_duration_s:
+    value: 0.014
+    source: "[LM-NEWS] Reaction Control: pulses 'as short as 14 milliseconds'"
+  valve_delay_s:
+    value: 0.007
+    source: "[LM-NEWS] Reaction Control: valves fully open 7 ms after the on-command"
+  cluster_arm_from_thrust_axis_m:
+    value: 1.676
+    source: "[COX] Table I: arm length 5.5 ft; clusters sit 45 deg off the LM Y and Z axes"
+  cluster_height_above_center_of_mass_m:
+    value: 1.03
+    source: "ASSUMPTION, not verified: cluster station about X = 254 in minus c.g. X = 213.5 in. No fetched primary source gives the station. It only changes cross-coupling of the horizontal jets"
+  # Each cluster has four jets [LM-NEWS p. RC-1]: one pushes the vehicle up (+z), one down (-z),
+  # and two horizontal jets, 90 deg apart, parallel to the body x and y axes. The horizontal
+  # nozzles point away from the vehicle, so their forces point inward. The loader builds the
+  # 16 jets from these rules.
+
+landing_gear:
+  number_of_legs:
+    value: 4
+    source: "[D-6850]: four cantilever legs, on the LM +-Y and +-Z axes"
+  footpad_radius_from_thrust_axis_m:
+    value: 4.256
+    source: "[D-6850] p. 6: footpad centre 167.57 in from the X axis"
+  footpad_diameter_m:
+    value: 0.940
+    source: "[D-6850] App. C: footpad diameter 37 in"
+  strut_stroke_m:
+    value: 0.813
+    source: "[D-6850] Fig. 7: primary strut stroke 32 in"
+  strut_stiffness_n_per_m:
+    value: 78800.0
+    source: "derived, model choice: a linear spring that reaches the first honeycomb crush load (4,500 lbf = 20.0 kN, [D-6850] Fig. 7) at the end of the first crush stage (10 in = 0.254 m)"
+  strut_damping_ratio:
+    value: 1.0
+    source: "model choice: critical damping against (vehicle mass / 4), because crushed honeycomb does not spring back"
+  leg_mass_kg:
+    value: 55.2
+    source: "[D-6850] Table III: landing gear total 486.5 lb (220.7 kg) on Apollo 11, divided by four legs"
+
+touchdown_limits:   # the landing-gear design envelope
+  maximum_vertical_speed_mps:
+    value: 3.048
+    source: "[D-6850] p. 3: 10 ft/s vertical at zero horizontal speed"
+  maximum_horizontal_speed_mps:
+    value: 1.219
+    source: "[D-6850] p. 3: 4 ft/s horizontal for vertical speed up to 7 ft/s"
+  vertical_speed_where_horizontal_limit_starts_to_drop_mps:
+    value: 2.134
+    source: "[D-6850] p. 3: above 7 ft/s vertical the horizontal limit falls linearly to 0 at 10 ft/s"
+  maximum_tilt_deg:
+    value: 6.0
+    source: "[D-6850] p. 3: thrust axis within 6 deg of the local vertical"
+  maximum_tilt_rate_deg_per_s:
+    value: 2.0
+    source: "[D-6850] p. 3: attitude rate below 2 deg/s"
