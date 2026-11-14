@@ -21,6 +21,10 @@ summary: Behaviours of this Isaac Sim 6.0.1 / Isaac Lab 3.0 develop build that c
 - **Contact sensors** report one force per rigid body, not per collision shape; a separate
   sensor on `body` catches stage strikes. They warn "PhysX does not return a total contact
   force ... Returning net_normal_forces_w" (normal forces only).
+- **Material combine modes:** a body without a material gets `sim.physics_material` (default
+  friction 0.5, combine "average"). PhysX uses the mode of higher priority (average < min <
+  multiply < max), so against a "multiply" ground the friction is the product. LunarSim sets
+  the default to 1.0 with "multiply" in `lander_env_cfg.py`.
 - **Resets must run in torch inference mode**, or Isaac Lab raises "Inplace update to inference
   tensor outside InferenceMode".
 - **TGS solver softens light articulation joints** (strut at 0.78 k); use PGS ([[physx-contact-settings]]).

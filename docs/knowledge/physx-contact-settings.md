@@ -3,7 +3,7 @@ id: physx-contact-settings
 title: PhysX contact settings
 type: component
 status: current
-updated: 2026-11-14
+updated: 2026-11-15
 summary: Solver and contact settings from the contact-rest study, why PGS and not TGS, and the measured residuals.
 ---
 
@@ -20,7 +20,7 @@ the plant's `physx_scene` block plus `env.physx`).
 | Contact offset / rest offset | 0.02 m / 0 |
 | Max depenetration velocity | 1 m/s |
 | Body damping | zero |
-| Friction / restitution | 0.4 / 0 (surface binding) |
+| Friction / restitution | 0.4 / 0 (surface binding); the lander's default material has 1.0 and "multiply", so 0.4 is what acts (before 2026-11-15 it was 0.2) |
 | Bounce threshold | 0.5 m/s |
 
 ## Why PGS

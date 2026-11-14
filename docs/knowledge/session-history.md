@@ -42,7 +42,11 @@ summary: Timeline of the work so far with commit hashes, so a new session knows 
 | — | First GPU run showed hover drift: Isaac Lab applies forces at the body's own c.g.; fixed in the plant |
 | — | Terrain package, `measured_terrain` surface, 15th value, terrain metrics, tests; one terrain test fixed (drop height) |
 | — | GPU runner: shm clean-up, launch watchdog, unbuffered child output |
-| this commit | All of the above ([[measured-terrain-surface]]); evaluations follow ([[terrain-results]]) |
+| `d26d7a4` | All of the above ([[measured-terrain-surface]]) |
+| — | Evaluations, 3 seeds × 4,096 on flat ground and on Apollo 17 ([[terrain-results]]) |
+| — | User asked for a video of 5 successes and 5 failures (body contacts first) and for 1,000 drop tests from 5 m |
+| — | First drop trial showed long slides from 10°: footpad friction was 0.2 (material combine mode); fixed and tested; evaluations rerun |
+| — | Drop test on a steep part of the map ([[drop-test-results]]); landing video script |
 
 ## Next
 

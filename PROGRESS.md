@@ -1,6 +1,6 @@
 # PROGRESS
 
-Last update: 2026-11-14 (late)
+Last update: 2026-11-15
 
 ## Done
 - Read the design docs and all diagrams; checked the machine; settled the open decisions (see PLAN.md).
@@ -21,13 +21,17 @@ Last update: 2026-11-14 (late)
 - Project knowledge graph in `docs/knowledge/` (start at `docs/knowledge/README.md`); it holds
   the rules, decisions, results, plans and open questions so context survives machine changes.
 
+- **Real terrain (2026-11-15).** `surface: measured_terrain` with the Apollo 17 height map,
+  craters and rocks; LM-accurate lander; 15th observation value (height above ground); four
+  milestone 1a errors found and fixed (M1A_REPORT.md section 10). ZEM/ZEV: 97.53 % on flat
+  ground, 96.78 % on Apollo 17. Drop test: 1,000 drops from 5 m on steep ground.
+- Landing video of chosen successes and failures: `scripts/record_landing_videos.py`.
+
 ## In progress
 - Nothing. M1b (RL on S1) is not started.
 
 ## Waiting for the user
-- Terrain integration (real Apollo 17 terrain with craters and rocks, LM-accurate footpads):
-  planned in `docs/knowledge/terrain-integration-plan.md`, waits for "Proceed" and for the
-  answer on a 15th observation value. All open questions: `docs/knowledge/pending-user-decisions.md`.
+- Open questions: `docs/knowledge/pending-user-decisions.md`.
 
 ## Blocked
 - Nothing.
@@ -52,3 +56,6 @@ Last update: 2026-11-14 (late)
 | 2026-11-14 | `surface: procedural` is smoke-tested only | Agents assume the ground at z = 0 until the altimeter exists (M2) |
 | 2026-11-14 | The lander USD has thin visual struts (no collision, no mass) | For pictures; physics tests rerun after the change |
 | 2026-11-14 | Project memory lives in `docs/knowledge/`, checked by a CPU test | Context must survive moves between machines and sessions |
+| 2026-11-15 | Observation has 15 values (height above the ground below) | User decision; agents land on uneven ground |
+| 2026-11-15 | Real terrain from public height maps that are downloaded, not committed | User; see docs/knowledge/apollo17-height-maps.md |
+| 2026-11-15 | Lander default material friction 1.0 ("multiply"), so the surface's 0.4 acts | The default 0.5 halved the friction |

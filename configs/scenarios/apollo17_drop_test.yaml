@@ -1,0 +1,44 @@
+# @package _global_
+# Drop test on real terrain: the lander falls from 5 m with the engine off, upright, at many
+# sites with different slopes. Run with scripts/run_drop_test.py, which picks the sites and the
+# headings. The terrain is a massif flank of the Apollo 17 2 m height map, 10.2 km west and
+# 0.6 km south of the lunar module, chosen because it has ground from flat to about 40 degrees
+# (median 14 degrees, 10 % above 25 degrees at a 4 m baseline) and full data coverage.
+defaults:
+  - /start: terminal_box
+  - /plant: physx_site
+  - /surface: apollo17_taurus_littrow
+  - /sensors: none
+  - /faults: none
+  - /nav: truth
+  - /agent: zero
+  - /actuators: none
+  - /metrics: touchdown
+  - /landers@lander: apollo_lunar_module
+  - _self_
+
+name: apollo17_drop_test
+seed: 0
+env:
+  num_envs: 1000
+  env_spacing_m: 1.0
+  physics_step_s: 0.005
+  physics_steps_per_control_step: 4
+  episode_length_s: 30.0
+
+surface:
+  site:
+    east_offset_m: -10160.0
+    north_offset_m: -620.0
+
+start:
+  altitude_m: [5.0, 5.0]
+  v_vertical_mps: [0.0, 0.0]
+  v_horizontal_mps: [0.0, 0.0]
+  tilt_deg: [0.0, 0.0]
+
+plant:
+  spawn_height_m: 60.0   # the clone grid sits at the window centre; keep the first spawn clear
+
+metrics:
+  settle_timeout_s: 15.0   # a lander sliding down a slope gets time to stop

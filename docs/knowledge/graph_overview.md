@@ -29,6 +29,7 @@ flowchart LR
     decisions_log["Decisions log"]
   end
   subgraph result
+    drop_test_results["Drop test on steep terrain"]
     milestone_1a_results["Milestone 1a results"]
     speed_benchmarks["Speed benchmarks"]
     terrain_results["Results with the LM-accurate lander and real terrain"]
@@ -64,6 +65,8 @@ flowchart LR
   bindings_catalogue -- "uses" --> lander_preset_apollo_lm
   classical_agents -- "flies on" --> slot_loop_architecture
   classical_agents -- "judged by" --> metrics_and_run_records
+  drop_test_results -- "measured on" --> measured_terrain_surface
+  drop_test_results -- "compares with" --> terrain_results
   isaac_lab_quirks -- "applies to" --> workstation_setup_and_machines
   knowledge_graph_tooling -- "required by" --> rules_from_the_user
   lander_articulation_model -- "built from" --> lander_preset_apollo_lm
@@ -102,6 +105,7 @@ flowchart LR
   terrain_integration_plan -- "depends on" --> pending_user_decisions
   terrain_results -- "compares with" --> milestone_1a_results
   terrain_results -- "measured on" --> measured_terrain_surface
+  terrain_results -- "see also" --> drop_test_results
   testing_and_commands -- "runs" --> metrics_and_run_records
   testing_and_commands -- "checks" --> knowledge_graph_tooling
   workstation_setup_and_machines -- "quirks" --> isaac_lab_quirks
@@ -125,9 +129,10 @@ flowchart LR
 | [PhysX contact settings](physx-contact-settings.md) | component | current | Solver and contact settings from the contact-rest study, why PGS and not TGS, and the measured residuals. |
 | [Slot loop architecture](slot-loop-architecture.md) | component | current | The nine slots, the message bus with its truth guard, the hook order of one control step, timing and message fields. |
 | [Decisions log](decisions-log.md) | decision | current | Every decision taken so far, with date and reason; the place to add new ones. |
+| [Drop test on steep terrain](drop-test-results.md) | result | current | 1,000 engine-off drops from 5 m on a massif flank of the Apollo 17 map - where the lander stands, slides and tips over. |
 | [Milestone 1a results](milestone-1a-results.md) | result | current | Test counts, physics validation, controller results and the ZEM/ZEV full-box success rate with its failure breakdown (RTX 5060, flat ground). |
 | [Speed benchmarks](speed-benchmarks.md) | result | current | Environment steps per second and GPU memory against environment count, per GPU (goal G4). |
-| [Results with the LM-accurate lander and real terrain](terrain-results.md) | result | open | ZEM/ZEV success on flat ground with the corrected lander, and on the Apollo 17 terrain; evaluations in progress. |
+| [Results with the LM-accurate lander and real terrain](terrain-results.md) | result | current | ZEM/ZEV success on flat ground with the corrected lander (97.53 %) and on the Apollo 17 terrain with craters and rocks (96.78 %), with failure causes and ground statistics. |
 | [Open issues](open-issues.md) | issue | open | Known weak points of the model and the code, with what each one affects. |
 | [Pending user decisions](pending-user-decisions.md) | plan | waiting-for-user | Questions that wait for the user's answer; work that depends on them must not start before. |
 | [Terrain integration plan](terrain-integration-plan.md) | plan | superseded | The plan (2026-11-14) for real Apollo 17 terrain and an LM-accurate lander; approved and built on 2026-11-15, kept as the record of what was agreed. |

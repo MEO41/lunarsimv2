@@ -53,5 +53,9 @@ Newest at the bottom. "User" means the user decided; the others were proposed, e
 | 2026-11-15 | New outcome `body_contact`; records nozzle clearance, footprint slope and relief | Real terrain needs strike and site metrics |
 | 2026-11-15 | Hover-hold tilt tolerance 0.6° → 1.0° | Longer R-567 jet arms make the minimum-pulse cycle larger (measured 0.65°) |
 | 2026-11-15 | GPU test runner cleans dead-process `/dev/shm` files and restarts a silent launch (unbuffered child output) | Intermittent launch stalls ([[isaac-lab-quirks]]) |
+| 2026-11-15 | Lander default material: friction 1.0 with "multiply" (in `lander_env_cfg.py`) | The effective footpad friction was 0.2 (Isaac Lab default 0.5 × ground 0.4); now the surface's 0.4 acts. Test `test_footpad_friction.py` |
+| 2026-11-15 | Contact-rest slide bound 0.1 → 0.02 m; procedural test averages the leg forces over 1 s with 3 % | Bounds were tuned under the wrong friction; single samples have 1.5 % solver noise |
+| 2026-11-15 | Drop test on a massif flank 10.16 km W, 0.62 km S of the LM; sites even over 2.5° slope bins | User asked for 1,000 drops from 5 m to see tip-overs on steep slopes ([[drop-test-results]]) |
+| 2026-11-15 | Landing videos by recording poses, then replaying them on camera in a second process | User asked for 5 successes and 5 failures, body contacts first; a rerun would not reproduce the same episodes |
 
 Decisions still open: [[pending-user-decisions]].

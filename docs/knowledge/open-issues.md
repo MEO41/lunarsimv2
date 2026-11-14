@@ -20,7 +20,8 @@ summary: Known weak points of the model and the code, with what each one affects
 | Fixed throttle point (92.5 %) and gimbal not modelled; engine off below 5 % is a model choice | Engine realism | Later actuator bindings |
 | RCS propellant not limited | Long hovers | Add a budget |
 | Mass in PhysX updated once per control step; inertia scaled with mass | Small dynamics error | Accept for now |
-| 48 unexplained failures (0.39 %) outside the low-and-fast group | Agent quality | Look at their trajectories |
+| Landers slide on slopes above about 15° after an impact (friction 0.4 cannot hold above 21.8°); real footpads dig in | Drop tests and landings on steep ground | Regolith/footpad model (milestone 5) ([[drop-test-results]]) |
+| 27 body strikes on rocks in 12,288 terrain landings; ZEM/ZEV does not look for a safe spot | Terrain success | Hazard maps and site selection (milestone 4) |
 | Landing miss up to 43 m when the guided phase is cut short | Precision landing | Agent work |
 | No glide-slope constraint in `zem_zev` | Safety on terrain | Optional metric offered; not requested |
 | Start mass = Apollo 11 touchdown mass with remaining propellant | Starts with more propellant need a sourced number | Find a source when needed |
@@ -29,6 +30,6 @@ summary: Known weak points of the model and the code, with what each one affects
 | Isaac Lab 3.0 is a development branch; `isaaclab.sh` is deprecated | Upgrades, setup script | Pinned commit; [[isaac-lab-quirks]] |
 | `setup_workstation.sh` never run on a clean machine; it uses `--install core`, a guess | First setup on the RTX 5090 | Fix when it fails ([[workstation-setup-and-machines]]) |
 | Simulator process sometimes does not exit after tests, or stalls at launch | Test runs | Handled by `scripts/run_isaac_tests.py` (kill, shm clean-up, restart) |
-| Fixed 2026-11-15: RCS torque arms 29 % too short; forces applied 0.1 m above the vehicle c.g.; Iyy text error | M1a numbers were made with these | M1a evaluation rerun ([[terrain-results]]) |
+| Fixed 2026-11-15: RCS torque arms 29 % too short; forces applied 0.1 m above the vehicle c.g.; Iyy text error; footpad friction 0.2 instead of 0.4 | M1a numbers were made with these | Evaluation rerun: the 48 unexplained M1a failures are gone ([[terrain-results]]) |
 
 Results these issues belong to: [[milestone-1a-results]].

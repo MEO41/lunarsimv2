@@ -55,6 +55,15 @@
       "path": "decisions-log.md"
     },
     {
+      "id": "drop-test-results",
+      "title": "Drop test on steep terrain",
+      "type": "result",
+      "status": "current",
+      "updated": "2026-11-15",
+      "summary": "1,000 engine-off drops from 5 m on a massif flank of the Apollo 17 map - where the lander stands, slides and tips over.",
+      "path": "drop-test-results.md"
+    },
+    {
       "id": "isaac-lab-quirks",
       "title": "Isaac Lab quirks",
       "type": "environment",
@@ -122,7 +131,7 @@
       "title": "Milestone 1a results",
       "type": "result",
       "status": "current",
-      "updated": "2026-11-14",
+      "updated": "2026-11-15",
       "summary": "Test counts, physics validation, controller results and the ZEM/ZEV full-box success rate with its failure breakdown (RTX 5060, flat ground).",
       "path": "milestone-1a-results.md"
     },
@@ -158,7 +167,7 @@
       "title": "PhysX contact settings",
       "type": "component",
       "status": "current",
-      "updated": "2026-11-14",
+      "updated": "2026-11-15",
       "summary": "Solver and contact settings from the contact-rest study, why PGS and not TGS, and the measured residuals.",
       "path": "physx-contact-settings.md"
     },
@@ -229,9 +238,9 @@
       "id": "terrain-results",
       "title": "Results with the LM-accurate lander and real terrain",
       "type": "result",
-      "status": "open",
+      "status": "current",
       "updated": "2026-11-15",
-      "summary": "ZEM/ZEV success on flat ground with the corrected lander, and on the Apollo 17 terrain; evaluations in progress.",
+      "summary": "ZEM/ZEV success on flat ground with the corrected lander (97.53 %) and on the Apollo 17 terrain with craters and rocks (96.78 %), with failure causes and ground statistics.",
       "path": "terrain-results.md"
     },
     {
@@ -381,8 +390,33 @@
     },
     {
       "source": "decisions-log",
+      "target": "drop-test-results",
+      "relation": "mentions"
+    },
+    {
+      "source": "decisions-log",
       "target": "pending-user-decisions",
       "relation": "mentions"
+    },
+    {
+      "source": "drop-test-results",
+      "target": "open-issues",
+      "relation": "mentions"
+    },
+    {
+      "source": "drop-test-results",
+      "target": "decisions-log",
+      "relation": "mentions"
+    },
+    {
+      "source": "drop-test-results",
+      "target": "measured-terrain-surface",
+      "relation": "measured on"
+    },
+    {
+      "source": "drop-test-results",
+      "target": "terrain-results",
+      "relation": "compares with"
     },
     {
       "source": "isaac-lab-quirks",
@@ -531,6 +565,11 @@
     },
     {
       "source": "milestone-1a-results",
+      "target": "terrain-results",
+      "relation": "mentions"
+    },
+    {
+      "source": "milestone-1a-results",
       "target": "terrain-integration-plan",
       "relation": "mentions"
     },
@@ -597,6 +636,11 @@
     {
       "source": "open-issues",
       "target": "lander-articulation-model",
+      "relation": "mentions"
+    },
+    {
+      "source": "open-issues",
+      "target": "drop-test-results",
       "relation": "mentions"
     },
     {
@@ -761,6 +805,11 @@
     },
     {
       "source": "session-history",
+      "target": "drop-test-results",
+      "relation": "mentions"
+    },
+    {
+      "source": "session-history",
       "target": "workstation-setup-and-machines",
       "relation": "mentions"
     },
@@ -901,7 +950,7 @@
     },
     {
       "source": "terrain-results",
-      "target": "measured-terrain-surface",
+      "target": "metrics-and-run-records",
       "relation": "mentions"
     },
     {
@@ -913,6 +962,11 @@
       "source": "terrain-results",
       "target": "measured-terrain-surface",
       "relation": "measured on"
+    },
+    {
+      "source": "terrain-results",
+      "target": "drop-test-results",
+      "relation": "see also"
     },
     {
       "source": "testing-and-commands",

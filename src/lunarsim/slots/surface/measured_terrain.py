@@ -154,9 +154,32 @@ class MeasuredTerrainSurface(FlatSurface):
         site_origin[:, 2] = self.height_field.height_at(site_origin[:, 0], site_origin[:, 1])
         self.geometry = SurfaceGeometry(site_origin=site_origin, height_field=self.height_field)
         self.context.bus.write(MessageKey.SURFACE_GEOMETRY, self.geometry, self)
+        self.fixed_targets: Tensor | None = None
+        self.outer_half_size = float(self.parameters.get("outer_half_size_m", 600.0))
+
+    def set_fixed_targets(self, target_xy: Tensor | None) -> None:
+        """Use the given (N, 2) horizontal targets at every reset instead of drawing them; None draws again.
+
+        Fixed targets may lie anywhere on the outer grid (for example drop tests on steep ground),
+        at least 20 m inside its edge, so a footprint and a short slide stay on the mesh.
+        """
+        if target_xy is None:
+            self.fixed_targets = None
+            return
+        target_xy = torch.as_tensor(target_xy, dtype=torch.float32, device=self.device)
+        if tuple(target_xy.shape) != (self.number_of_environments, 2):
+            raise ValueError(f"fixed targets need shape ({self.number_of_environments}, 2)")
+        if float(target_xy.abs().max()) > self.outer_half_size - 20.0:
+            raise ValueError("fixed targets must lie at least 20 m inside the outer grid")
+        self.fixed_targets = target_xy.clone()
 
     def reset(self, env_ids: Tensor, gen: torch.Generator) -> None:
-        """Draw a new landing target for each given environment, uniform in the target square."""
+        """Draw a new landing target for each given environment (uniform in the target square), or use the fixed ones."""
+        if self.fixed_targets is not None:
+            target = self.fixed_targets[env_ids]
+            height = self.height_field.height_at(target[:, 0], target[:, 1])
+            self.geometry.site_origin[env_ids] = torch.cat((target, height.unsqueeze(1)), dim=1)
+            return
         count = len(env_ids)
         half = self.target_half_size
         target_x = (2.0 * torch.rand(count, generator=gen, device=self.device) - 1.0) * half

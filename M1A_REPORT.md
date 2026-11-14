@@ -187,3 +187,23 @@ The null loop of milestone 0 (a box, 1,024 envs) runs at about 151,000 env steps
 6. PPO against `zem_zev` on the same held-out starts, reported with `lunarsim summary` and the same figures. Report the low-and-fast region separately.
 7. Truth-leak check and smoke test for the new binding; speed log with the policy in the loop.
 8. Before training: fix the CI token scope so CPU tests run on every push.
+
+## 10. Addendum, 2026-11-15: corrections found after the gate
+
+Work on the real terrain found four errors in the milestone 1a lander and environment. All are
+fixed, with tests, and the full-range evaluation was repeated (details in
+`docs/knowledge/terrain-results.md` and `docs/knowledge/decisions-log.md`):
+
+1. **RCS torque arms 29 % too short.** Cox's "arm 5.5 ft" was read as the distance from the axis
+   on the diagonal; MIT R-567 gives 1.679 m along each body axis.
+2. **Forces applied 0.1 m above the vehicle c.g.** Isaac Lab's wrench composer measures the
+   application point from the body's own centre of mass, not from the link origin.
+3. **Iyy** 13,667 slug ft² was a text-extraction error; the page says 13,867.
+4. **Footpad friction 0.2, not 0.4.** The lander had no material; PhysX combined Isaac Lab's
+   default 0.5 with the ground's 0.4 by multiplying.
+
+With the corrected lander (and dish footpads, c.g. offset and stage shapes added) ZEM/ZEV lands
+**97.53 % ± 0.12** of the full range on flat ground (was 96.77 %), and every failure now starts
+low and fast: the 48 unexplained failures of section 5 are gone. On the Apollo 17 terrain with
+craters and rocks it lands 96.78 % ± 0.25. The observation has 15 values since this change.
+

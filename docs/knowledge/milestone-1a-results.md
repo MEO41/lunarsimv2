@@ -3,7 +3,7 @@ id: milestone-1a-results
 title: Milestone 1a results
 type: result
 status: current
-updated: 2026-11-14
+updated: 2026-11-15
 summary: Test counts, physics validation, controller results and the ZEM/ZEV full-box success rate with its failure breakdown (RTX 5060, flat ground).
 ---
 
@@ -39,6 +39,12 @@ Run directories (git-ignored): `runs/m1a_zem_zev_full_box_seed{0,1,2}`, only on 
 - Region A (start at 20 m or higher, or slower than 3 m/s): 99.53 %. Region B: 83.6 %.
 - Landing miss: median 0.26 m, worst 42.6 m (when the guided phase is cut short).
 - Nominal starts: 256 of 256; miss 0.22 m mean, 1.05 m max.
+
+## Superseded numbers
+
+These M1a numbers were made before four errors were fixed on 2026-11-15 (jet arms, force point,
+Iyy, friction). The current numbers are in [[terrain-results]]: 97.53 % on flat ground, with no
+failure outside the low-and-fast group.
 
 ## Reference value for the new machine
 

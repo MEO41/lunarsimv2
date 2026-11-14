@@ -21,10 +21,48 @@ manifest and one record per episode, and figures are made from these files alone
 
 *The Apollo LM preset at rest on flat ground (collision shapes of the simulator).*
 
+## Real terrain: Apollo 17 with craters and rocks
+
+The surface `measured_terrain` puts every environment on its own landing target at the Apollo 17
+site: the measured 2 m LROC NAC height map (1.2 km), plus a 160 m patch with small craters and
+rocks drawn from published statistics. The lander matches the Apollo LM: dish footpads
+(0.94 m × 0.18 m), centre-of-mass offset, descent and ascent stage shapes, nozzle clearance
+and the RCS jet positions of MIT R-567. Details: [docs/knowledge/measured-terrain-surface.md](docs/knowledge/measured-terrain-surface.md).
+
+The height maps are public and **not in git**. Get them once per machine (952 MB):
+
+```bash
+python scripts/download_height_maps.py
+python scripts/evaluate_agent.py scenario=apollo17_terminal_truth num_envs=4096 run_name=apollo17_seed0
+```
+
+![Apollo 17 terrain](docs/figures/apollo17_terrain.png)
+
+*(a) The measured site around the Apollo 17 lunar module (+), with 5 m contours; red: the
+detail patch. (b) The detail patch with the drawn craters and rocks (seed 0); dashed: landing
+targets are drawn in this square; yellow: the 4.26 m LM footprint.*
+
+| ZEM/ZEV, 3 seeds × 4,096 episodes | Success |
+| --- | --- |
+| Flat ground, milestone 1a lander | 96.77 % ± 0.23 |
+| Flat ground, LM-accurate lander | 97.53 % ± 0.12 |
+| Apollo 17 terrain with craters and rocks | 96.78 % ± 0.25 |
+
+On terrain, 27 of 12,288 landings fail because a stage hits a rock. Full numbers:
+[docs/knowledge/terrain-results.md](docs/knowledge/terrain-results.md).
+
+![Drop test](docs/drop_test/drop_test_5m.png)
+
+*1,000 drops from 5 m with the engine off, on a steep part of the same height map. (a) Final tilt
+against the slope under the footprint; tipped-over landers stop at the 45° limit of the metric.
+(b) Share of tip-overs per slope bin. Below 20° no lander tips; above 22° (friction 0.4) most
+slide, and from 30° on many tip over. Details: [docs/knowledge/drop-test-results.md](docs/knowledge/drop-test-results.md).*
+
 ## Results of milestone 1a
 
 The classical ZEM/ZEV agent on scenario S1 (true state, flat ground, Apollo LM preset). Full
-numbers, tolerances and open issues are in [M1A_REPORT.md](M1A_REPORT.md).
+numbers, tolerances and open issues are in [M1A_REPORT.md](M1A_REPORT.md). These figures were
+made with the milestone 1a lander, before the corrections of 2026-11-15 (see above).
 
 ![Success rate by start state](docs/m1a/success_by_start.png)
 

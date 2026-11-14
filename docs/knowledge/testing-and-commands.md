@@ -16,7 +16,7 @@ Activate the Isaac environment first ([[workstation-setup-and-machines]]).
 | Command | What | Needs GPU |
 | --- | --- | --- |
 | `python -m pytest tests/unit -q` | 101 CPU tests (core, preset, controllers, records, figures, terrain, knowledge graph) | no |
-| `python scripts/run_isaac_tests.py` | `tests/physics` + `tests/smoke` (13 files), one simulator process per file; the terrain test is skipped without the height maps | yes |
+| `python scripts/run_isaac_tests.py` | `tests/physics` + `tests/smoke` (14 files), one simulator process per file; the terrain test is skipped without the height maps | yes |
 | `python scripts/run_isaac_tests.py physics` | one folder | yes |
 | `python scripts/run_isaac_tests.py tests/smoke/test_null_loop_environment.py` | one file | yes |
 | `python scripts/check_installation.py` | versions against `requirements-pinned.txt`, CUDA check | yes |
@@ -32,6 +32,9 @@ python scripts/evaluate_agent.py scenario=apollo17_terminal_truth num_envs=4096 
 python scripts/evaluate_agent.py scenario=s1_terminal_truth num_envs=4096 run_name=zem_zev_seed0 seed=0
 python scripts/benchmark_environment.py scenario=s1_terminal_truth num_envs=1024 steps=500
 python scripts/render_lander_image.py --enable_cameras output=docs/figures/lander_at_rest.png
+python scripts/run_drop_test.py drops=1000 drop_height_m=5 run_name=drop_test_5m
+python scripts/record_landing_videos.py record landings=3072                      # then:
+python scripts/record_landing_videos.py render                                   # runs/landing_videos/landings.mp4
 lunarsim figures runs/<run_name>
 lunarsim summary runs/<run_name>
 lunarsim knowledge-graph            # rebuild graph.json and graph_overview.md

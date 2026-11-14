@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from isaaclab_physx.physics import PhysxCfg
 
+import isaaclab.sim as sim_utils
 from isaaclab.envs import DirectRLEnvCfg
 from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sim import SimulationCfg
@@ -52,6 +53,17 @@ def build_lander_env_cfg(scenario: ScenarioConfig, device: str = "cuda:0") -> La
     configuration.sim.device = device
     configuration.sim.dt = scenario.physics_step_duration
     configuration.sim.render_interval = scenario.physics_steps_per_control_step
+    # Bodies without their own material (the lander) get this default material. PhysX combines
+    # two materials with the mode of higher priority (multiply beats average), so a default of
+    # 0.5 would halve the ground's friction. With 1.0 and "multiply", the coefficient that the
+    # surface binding sets (from its source) is the one that acts at the footpads.
+    configuration.sim.physics_material = sim_utils.RigidBodyMaterialCfg(
+        static_friction=1.0,
+        dynamic_friction=1.0,
+        restitution=0.0,
+        friction_combine_mode="multiply",
+        restitution_combine_mode="min",
+    )
     configuration.scene.num_envs = scenario.number_of_environments
     configuration.scene.env_spacing = scenario.environment_spacing
     # Scene-level PhysX settings come from the plant binding; ``env.physx`` can override them.
