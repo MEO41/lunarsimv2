@@ -51,3 +51,18 @@ def test_strut_gains_and_limits_match_the_preset(environment):
     limits = data.joint_pos_limits.torch
     assert torch.allclose(limits[..., 0], torch.zeros(4, 4, device=environment.device), atol=1e-6)
     assert torch.allclose(limits[..., 1], torch.full((4, 4), preset.strut_stroke, device=environment.device), rtol=1e-5)
+
+
+def test_solver_and_contact_settings_from_the_scenario_reach_physx(environment):
+    """The chosen solver settings are really applied to the stage, not silently dropped."""
+    import isaaclab.sim as sim_utils
+
+    stage = sim_utils.get_current_stage()
+    parameters = environment.scenario.slots[SlotName.PLANT].parameters
+    footpad = stage.GetPrimAtPath("/World/envs/env_0/Lander/leg_1/footpad")
+    assert footpad.GetAttribute("physxCollision:contactOffset").Get() == pytest.approx(parameters["contact_offset_m"])
+    body = stage.GetPrimAtPath("/World/envs/env_0/Lander/body")
+    assert body.GetAttribute("physxArticulation:solverPositionIterationCount").Get() == parameters["solver_position_iterations"]
+    assert body.GetAttribute("physxRigidBody:linearDamping").Get() == 0.0
+    scene = stage.GetPrimAtPath("/physicsScene")
+    assert scene.GetAttribute("physxScene:solverType").Get() == "PGS"

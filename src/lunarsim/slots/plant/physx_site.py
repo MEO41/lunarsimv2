@@ -49,17 +49,19 @@ class PhysxSitePlant(PhysxRootBodyPlant):
                     max_angular_velocity=1000.0,
                     max_depenetration_velocity=float(parameters.get("max_depenetration_velocity_mps", 1.0)),
                     enable_gyroscopic_forces=True,
-                    sleep_threshold=0.0,
                 ),
                 articulation_props=sim_utils.ArticulationRootPropertiesCfg(
                     enabled_self_collisions=False,
                     solver_position_iteration_count=int(parameters.get("solver_position_iterations", 8)),
                     solver_velocity_iteration_count=int(parameters.get("solver_velocity_iterations", 1)),
-                    sleep_threshold=0.0,
+                    sleep_threshold=float(parameters.get("sleep_threshold", 0.0)),
+                    stabilization_threshold=float(parameters.get("stabilization_threshold", 0.0)),
                 ),
                 collision_props=sim_utils.CollisionPropertiesCfg(
                     contact_offset=float(parameters.get("contact_offset_m", 0.02)),
                     rest_offset=float(parameters.get("rest_offset_m", 0.0)),
+                    torsional_patch_radius=float(parameters.get("torsional_patch_radius_m", 0.0)),
+                    min_torsional_patch_radius=float(parameters.get("torsional_patch_radius_m", 0.0)),
                 ),
             ),
             init_state=ArticulationCfg.InitialStateCfg(

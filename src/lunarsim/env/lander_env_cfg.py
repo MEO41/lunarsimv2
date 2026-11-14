@@ -54,7 +54,9 @@ def build_lander_env_cfg(scenario: ScenarioConfig, device: str = "cuda:0") -> La
     configuration.sim.render_interval = scenario.physics_steps_per_control_step
     configuration.scene.num_envs = scenario.number_of_environments
     configuration.scene.env_spacing = scenario.environment_spacing
-    physics_overrides = scenario.resolved.get("env", {}).get("physx", {}) or {}
+    # Scene-level PhysX settings come from the plant binding; ``env.physx`` can override them.
+    physics_overrides = dict(scenario.slots["plant"].parameters.get("physx_scene", {}) or {})
+    physics_overrides.update(scenario.resolved.get("env", {}).get("physx", {}) or {})
     for key, value in physics_overrides.items():
         if not hasattr(configuration.sim.physics, key):
             raise ValueError(f"Unknown PhysX setting '{key}' in the scenario file")

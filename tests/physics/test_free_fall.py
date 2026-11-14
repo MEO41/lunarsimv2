@@ -5,11 +5,13 @@ Known answer: z(t) = z0 - 1/2 g t^2 with g = GM / R^2 = 1.6242 m/s^2 (the design
 this to 1.62).
 
 Tolerances and why:
-- Height: 3 mm after 2 s (400 PhysX steps of 5 ms). A step-by-step check showed that PhysX
-  moves the articulation root with the mean velocity of the step, which reproduces the exact
-  parabola (the first steps match to the last float32 digit). What remains is float32 rounding:
-  a height near 54 m is stored in steps of 3.8 micrometres, and the measured error grows to
-  1.1 mm in 2 s. 3 mm leaves a factor of three.
+- Against the exact formula: 2 cm after 2 s. With the PGS solver PhysX integrates with
+  semi-implicit Euler (first the speed, then the position with the new speed), which falls
+  1/2 g t dt further than the exact parabola: 8.1 mm at t = 2 s with dt = 5 ms.
+- Against the integrator's own closed form (z0 - 1/2 g t^2 - 1/2 g t dt): 1 mm. What is left
+  is float32 rounding: a height near 54 m is stored in steps of 3.8 micrometres, over 400
+  steps. (With the TGS solver PhysX follows the exact parabola instead; this was measured
+  during the contact study.)
 - Speed: |v + g t| < 1 mm/s. The measured error is 0.1 mm/s, again float32 accumulation.
 """
 
@@ -39,10 +41,12 @@ def fallen_state():
 
 
 def test_height_follows_the_parabola(fallen_state):
-    """z matches z0 - 1/2 g t^2 within 3 mm after 2 s, in all 16 environments."""
-    start_height, end, _ = fallen_state
+    """z matches z0 - 1/2 g t^2 within 2 cm, and the integrator's closed form within 1 mm."""
+    start_height, end, physics_step = fallen_state
     exact = start_height - 0.5 * MOON_SURFACE_GRAVITY * FALL_TIME**2
-    assert float((end.position[:, 2] - exact).abs().max()) < 0.003
+    integrator = exact - 0.5 * MOON_SURFACE_GRAVITY * FALL_TIME * physics_step
+    assert float((end.position[:, 2] - exact).abs().max()) < 0.02
+    assert float((end.position[:, 2] - integrator).abs().max()) < 0.001
 
 
 def test_speed_is_g_times_t(fallen_state):

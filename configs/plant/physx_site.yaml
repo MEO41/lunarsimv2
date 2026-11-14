@@ -1,7 +1,13 @@
 binding: physx_site
-# Solver and contact settings (tuned in the contact-rest test; see M1A_REPORT.md).
-solver_position_iterations: 8
+# Solver and contact settings, chosen in the contact-rest study (see M1A_REPORT.md).
+# The PGS solver is used because the default TGS solver made the strut spring 22 % too soft
+# in steady state (an artefact of its implicit joint damper with light leg links).
+solver_position_iterations: 16
 solver_velocity_iterations: 1
 contact_offset_m: 0.02
 rest_offset_m: 0.0
 max_depenetration_velocity_mps: 1.0
+physx_scene:
+  solver_type: 0                                  # 0 = PGS, 1 = TGS
+  enable_external_forces_every_iteration: false   # only supported by TGS
+  bounce_threshold_velocity: 0.5                  # m/s; restitution is 0 anyway
