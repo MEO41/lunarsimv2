@@ -665,6 +665,11 @@
     },
     {
       "source": "pending-user-decisions",
+      "target": "open-issues",
+      "relation": "mentions"
+    },
+    {
+      "source": "pending-user-decisions",
       "target": "terrain-integration-plan",
       "relation": "mentions"
     },

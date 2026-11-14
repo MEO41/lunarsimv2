@@ -55,4 +55,7 @@ Runs (git-ignored): `runs/flat_lm_corrected_zem_zev_seed{0,1,2}`, `runs/apollo17
 
 - compares with: [[milestone-1a-results]]
 - measured on: [[measured-terrain-surface]]
+- Video `runs/landing_videos/landings.mp4` (git-ignored; remake with
+  `scripts/record_landing_videos.py`): 5 successes and 5 body-contact failures from a 3,072-landing
+  run (96.61 %, 17 body strikes). All strikes happen at the two tallest rocks of the patch.
 - see also: [[drop-test-results]]
