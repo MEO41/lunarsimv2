@@ -1,0 +1,53 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Layout follows the Isaac Lab external-project template (src/<package>, scripts/, tests/).
+# The build backend is setuptools (the template uses uv_build, but uv is not installed on the
+# development workstation).
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lunarsim"
+version = "0.1.0"
+description = "LunarSim v2: a modular lunar-landing research simulator on Isaac Lab."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Muhammed Emin Onay" }]
+requires-python = ">=3.10"
+# Isaac Sim and Isaac Lab are NOT listed here on purpose: the core package and the pure-torch
+# models must install and run without them (CPU tests in CI). The pinned simulator versions
+# are written in README.md and in every run manifest.
+dependencies = [
+    "torch>=2.4",
+    "numpy",
+    "pyyaml",
+    "hydra-core>=1.3",
+    "omegaconf>=2.3",
+    "pyarrow>=15",
+    "pandas",
+    "matplotlib",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.11"]
+
+[project.scripts]
+lunarsim = "lunarsim.tools.command_line:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit"]
+markers = [
+    "isaac: test needs Isaac Lab and a GPU; run through scripts/run_isaac_tests.py",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B"]
+ignore = ["E501"]
