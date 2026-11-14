@@ -15,6 +15,7 @@ Simplifications (also listed in M1A_REPORT.md):
 from __future__ import annotations
 
 import hashlib
+import math
 from pathlib import Path
 
 from lunarsim.assets.lander_preset import LanderPreset
@@ -31,6 +32,39 @@ def leg_link_name(leg_index: int) -> str:
 def strut_joint_name(leg_index: int) -> str:
     """Return the joint name of a strut (1-based in the name)."""
     return f"strut_{leg_index + 1}"
+
+
+def _strut_visual_lines(preset: LanderPreset, leg_position: tuple[float, float, float]) -> list[str]:
+    """Return USD lines of a thin cylinder from the footpad to the descent stage.
+
+    It is for pictures only: it has no collision shape and no mass, so the physics is the same
+    with or without it. It belongs to the leg link, so it slides into the body when the strut
+    compresses.
+    """
+    x, y, z = leg_position
+    radial = math.hypot(x, y)
+    attach_height = -0.6 * preset.body_collision_bottom_below_center_of_mass
+    attach = (preset.body_collision_radius * x / radial, preset.body_collision_radius * y / radial, attach_height)
+    direction = (attach[0] - x, attach[1] - y, attach[2] - z)
+    length = math.sqrt(sum(component * component for component in direction))
+    unit = tuple(component / length for component in direction)
+    # Shortest rotation that takes the cylinder axis (+z) to the strut direction, as (w, x, y, z).
+    quaternion = (1.0 + unit[2], -unit[1], unit[0], 0.0)
+    norm = math.sqrt(sum(component * component for component in quaternion))
+    w, qx, qy, qz = (component / norm for component in quaternion)
+    return [
+        "",
+        '        def Cylinder "strut_visual"',
+        "        {",
+        '            uniform token axis = "Z"',
+        f"            double height = {length:.6f}",
+        "            double radius = 0.08",
+        f"            double3 xformOp:translate = ({0.5 * direction[0]:.6f}, {0.5 * direction[1]:.6f}, {0.5 * direction[2]:.6f})",
+        f"            quatf xformOp:orient = ({w:.6f}, {qx:.6f}, {qy:.6f}, {qz:.6f})",
+        '            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient"]',
+        "            color3f[] primvars:displayColor = [(0.35, 0.35, 0.38)]",
+        "        }",
+    ]
 
 
 def build_lander_usda(preset: LanderPreset) -> str:
@@ -94,6 +128,7 @@ def build_lander_usda(preset: LanderPreset) -> str:
             f"            double radius = {preset.footpad_radius:.6f}",
             "            color3f[] primvars:displayColor = [(0.5, 0.5, 0.55)]",
             "        }",
+            *_strut_visual_lines(preset, (x, y, z)),
             "    }",
             "",
             f'    def PhysicsPrismaticJoint "{strut_joint_name(leg_index)}" (',
