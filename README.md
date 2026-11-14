@@ -21,6 +21,33 @@ manifest and one record per episode, and figures are made from these files alone
 
 *The Apollo LM preset at rest on flat ground (collision shapes of the simulator).*
 
+## Results of milestone 1a
+
+The classical ZEM/ZEV agent on scenario S1 (true state, flat ground, Apollo LM preset). Full
+numbers, tolerances and open issues are in [M1A_REPORT.md](M1A_REPORT.md).
+
+![Success rate by start state](docs/m1a/success_by_start.png)
+
+*Success rate over the full `terminal_box` start range (seed 0, 4,096 episodes). Over three
+seeds the rate is 96.8 %; almost all failures start below 20 m with more than 3 m/s of descent
+rate.*
+
+![Sample trajectories](docs/m1a/trajectories.png)
+
+*Sixteen logged landings: altitude, vertical speed against altitude, ground track and tilt.*
+
+![Touchdown speeds](docs/m1a/touchdown_envelope.png)
+
+*Speeds at first footpad contact against the landing-gear design envelope of the preset.*
+
+![Glide-slope constraint in 3-D](docs/figures/glide_slope_constraint_3d.png)
+
+*The glide-slope constraint of powered-descent guidance. (a) The lander must stay inside a cone
+with minimum slope angle γ; in the minimum-landing-error problem the apex is the landed
+position, not the original target. (b) The same sixteen landings, each shifted so that it lands
+at the apex of a 30° cone. Two of them leave the cone (orange): the ZEM/ZEV agent has no
+glide-slope constraint.*
+
 - Design: [docs/design](docs/design) (architecture and build plan, scenario catalogue).
 - Plan for the current milestones: [PLAN.md](PLAN.md). Status: [PROGRESS.md](PROGRESS.md).
 
