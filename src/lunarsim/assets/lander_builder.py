@@ -57,7 +57,7 @@ def build_lander_usda(preset: LanderPreset) -> str:
         "    )",
         "    {",
         f"        float physics:mass = {preset.body_mass:.6f}",
-        "        point3f physics:centerOfMass = (0, 0, 0)",
+        f"        point3f physics:centerOfMass = (0, 0, {preset.body_center_of_mass_height:.6f})",
         f"        float3 physics:diagonalInertia = ({body_inertia[0]:.6f}, {body_inertia[1]:.6f}, {body_inertia[2]:.6f})",
         "        quatf physics:principalAxes = (1, 0, 0, 0)",
         "",

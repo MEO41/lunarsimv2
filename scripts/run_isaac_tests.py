@@ -28,7 +28,7 @@ def collect_test_files(selections: list[str]) -> list[Path]:
         if not path.exists():
             path = REPOSITORY_ROOT / "tests" / selection
         files += sorted(path.glob("test_*.py")) if path.is_dir() else [path]
-    return files
+    return [file.resolve() for file in files]
 
 
 def main() -> int:

@@ -1,0 +1,2 @@
+binding: engine_rcs_pulse
+initial_throttle: hover   # the engine is already running when the terminal phase starts

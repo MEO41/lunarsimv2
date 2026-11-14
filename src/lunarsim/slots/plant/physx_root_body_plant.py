@@ -50,6 +50,7 @@ class PhysxRootBodyPlant(BindingBase):
             self.number_of_environments, dtype=torch.bool, device=self.device
         )
         self._root_body_ids = [self.root_body_index]
+        self._force_application_offset = torch.zeros(self.number_of_environments, 1, 3, device=self.device)
         self._all_environment_ids = torch.arange(self.number_of_environments, device=self.device)
 
     def reset(self, env_ids: Tensor, gen: torch.Generator) -> None:
@@ -70,7 +71,7 @@ class PhysxRootBodyPlant(BindingBase):
         )
         root_velocity = torch.cat((start.velocity[env_ids].to(torch.float32), angular_velocity_world), dim=1)
         self.asset.write_root_pose_to_sim_index(root_pose=root_pose, env_ids=env_ids)
-        self.asset.write_root_velocity_to_sim_index(root_velocity=root_velocity, env_ids=env_ids)
+        self.asset.write_root_link_velocity_to_sim_index(root_velocity=root_velocity, env_ids=env_ids)
         self._reset_joints(env_ids)
 
         start_mass = start.mass[env_ids].to(torch.float32)
@@ -87,10 +88,12 @@ class PhysxRootBodyPlant(BindingBase):
         surface_wrench: Wrench = bus.read(MessageKey.SURFACE_WRENCH, self)
         force = actuator_wrench.force + surface_wrench.force
         torque = actuator_wrench.torque + surface_wrench.torque
-        # Body-frame force through the centre of mass of the root body, plus a body-frame torque.
+        # Body-frame force acting at the origin of the body frame (the vehicle centre of mass),
+        # plus a body-frame torque about that point.
         self.asset.permanent_wrench_composer.set_forces_and_torques_index(
             forces=force.unsqueeze(1),
             torques=torque.unsqueeze(1),
+            positions=self._force_application_offset,
             body_ids=self._root_body_ids,
             is_global=False,
         )
@@ -133,9 +136,9 @@ class PhysxRootBodyPlant(BindingBase):
             frame=Frame.SITE,
             time=self.context.clock.time,
             position=data.root_link_pos_w.torch - self.environment_origins,
-            velocity=data.root_com_lin_vel_w.torch.clone(),
+            velocity=data.root_link_lin_vel_w.torch.clone(),
             orientation_quaternion=orientation,
-            angular_velocity=rotate_vector_parent_to_body(orientation, data.root_com_ang_vel_w.torch),
+            angular_velocity=rotate_vector_parent_to_body(orientation, data.root_link_ang_vel_w.torch),
             mass=self.total_mass.clone(),
             contact=self._read_contact_forces(),
         )

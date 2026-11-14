@@ -54,12 +54,19 @@ def test_units_and_derived_values(preset):
     assert preset.engine_minimum_thrust < lunar_weight < preset.engine_maximum_thrust
 
 
-def test_body_plus_legs_reproduce_total_mass_and_inertia(preset):
-    """Root body + point-mass legs give back the preset's totals."""
+def test_body_plus_legs_reproduce_total_mass_inertia_and_centre_of_mass(preset):
+    """Root body + point-mass legs give back the preset's totals about the body-frame origin."""
     assert preset.body_mass + preset.number_of_legs * preset.leg_mass == pytest.approx(preset.mass_at_start)
-    about_x = preset.body_inertia[0] + sum(preset.leg_mass * (y * y + z * z) for _, y, z in preset.leg_positions)
+    height = preset.body_center_of_mass_height
+    first_moment = preset.body_mass * height + sum(preset.leg_mass * z for _, _, z in preset.leg_positions)
+    assert first_moment == pytest.approx(0.0, abs=1e-6)
+    assert 0.05 < height < 0.15
+    offset_term = preset.body_mass * height**2
+    about_x = preset.body_inertia[0] + offset_term + sum(preset.leg_mass * (y * y + z * z) for _, y, z in preset.leg_positions)
+    about_y = preset.body_inertia[1] + offset_term + sum(preset.leg_mass * (x * x + z * z) for x, _, z in preset.leg_positions)
     about_z = preset.body_inertia[2] + sum(preset.leg_mass * (x * x + y * y) for x, y, _ in preset.leg_positions)
     assert about_x == pytest.approx(preset.inertia_about_x)
+    assert about_y == pytest.approx(preset.inertia_about_y)
     assert about_z == pytest.approx(preset.inertia_about_z)
 
 

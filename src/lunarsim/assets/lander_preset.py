@@ -146,19 +146,33 @@ class LanderPreset:
         return self.mass_at_start - self.number_of_legs * self.leg_mass
 
     @property
-    def body_inertia(self) -> tuple[float, float, float]:
-        """Return the root-body inertia so that body plus legs give the preset's total inertia.
+    def body_center_of_mass_height(self) -> float:
+        """Return where the root body's own centre of mass sits above the body-frame origin, m.
 
-        Each leg is treated as a point mass at its footpad centre.
+        The origin of the body frame is the centre of mass of the whole vehicle (body plus
+        legs, struts extended). The legs hang below it, so the root body's centre of mass must
+        sit a little above it.
+        """
+        legs_moment = sum(self.leg_mass * z for _, _, z in self.leg_positions)
+        return -legs_moment / self.body_mass
+
+    @property
+    def body_inertia(self) -> tuple[float, float, float]:
+        """Return the root-body inertia about its own centre of mass.
+
+        It is chosen so that body plus legs give the preset's total inertia about the vehicle
+        centre of mass. Each leg is treated as a point mass at its footpad centre, and the
+        body's offset from the vehicle centre of mass is removed with the parallel-axis rule.
         """
         legs_about_x = legs_about_y = legs_about_z = 0.0
         for x, y, z in self.leg_positions:
             legs_about_x += self.leg_mass * (y * y + z * z)
             legs_about_y += self.leg_mass * (x * x + z * z)
             legs_about_z += self.leg_mass * (x * x + y * y)
+        body_offset_term = self.body_mass * self.body_center_of_mass_height**2
         inertia = (
-            self.inertia_about_x - legs_about_x,
-            self.inertia_about_y - legs_about_y,
+            self.inertia_about_x - legs_about_x - body_offset_term,
+            self.inertia_about_y - legs_about_y - body_offset_term,
             self.inertia_about_z - legs_about_z,
         )
         if min(inertia) <= 0.0:

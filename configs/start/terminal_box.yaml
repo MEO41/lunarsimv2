@@ -1,0 +1,6 @@
+binding: terminal_box
+# Ranges from the scenario catalogue (S1). Each quantity is sampled uniformly.
+altitude_m: [5, 50]          # footpad plane above the ground
+v_vertical_mps: [-6, 0]      # negative is down
+v_horizontal_mps: [-2, 2]    # each of the two horizontal components
+tilt_deg: [0, 10]            # tilt from the vertical, direction uniform in azimuth

@@ -1,4 +1,6 @@
 binding: flat
-static_friction: 0.8    # placeholder until the lander preset sets the footpad-soil value
-dynamic_friction: 0.7
+# Footpad-to-soil friction. Source: NASA TN D-6850 (Rogers, 1972): landing analyses used a
+# friction coefficient of 0.4 to 1.0; after flight, 0.4 was judged "a realistic value".
+static_friction: 0.4
+dynamic_friction: 0.4
 restitution: 0.0

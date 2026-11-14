@@ -40,6 +40,7 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests/unit"]
+filterwarnings = ["ignore::pytest.PytestRemovedIn10Warning"]
 markers = [
     "isaac: test needs Isaac Lab and a GPU; run through scripts/run_isaac_tests.py",
 ]

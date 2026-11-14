@@ -1,0 +1,24 @@
+# @package _global_
+# S1 Terminal touchdown with truth state (scenario catalogue, section S1).
+# Baseline run: agent zem_zev. The learned agent (ppo_mlp) arrives in milestone 1b.
+defaults:
+  - /start: terminal_box
+  - /plant: physx_site
+  - /surface: flat
+  - /sensors: none
+  - /faults: none
+  - /nav: truth
+  - /agent: zero
+  - /actuators: engine_rcs_pulse
+  - /metrics: none
+  - /landers@lander: apollo_lunar_module
+  - _self_
+
+name: s1_terminal_truth
+seed: 0
+env:
+  num_envs: 64
+  env_spacing_m: 30.0
+  physics_step_s: 0.005              # 200 Hz PhysX
+  physics_steps_per_control_step: 4  # 50 Hz control
+  episode_length_s: 90.0

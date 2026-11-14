@@ -1,0 +1,7 @@
+binding: physx_site
+# Solver and contact settings (tuned in the contact-rest test; see M1A_REPORT.md).
+solver_position_iterations: 8
+solver_velocity_iterations: 1
+contact_offset_m: 0.02
+rest_offset_m: 0.0
+max_depenetration_velocity_mps: 1.0

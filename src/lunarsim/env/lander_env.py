@@ -83,6 +83,11 @@ class LanderEnv(DirectRLEnv):
         )
         self.bus = MessageBus()
         self.random_generators = SlotRandomGenerators(self.scenario.root_seed, SlotName.ALL, device=self.device)
+        lander_preset = None
+        if self.scenario.lander:
+            from lunarsim.assets.lander_preset import lander_preset_from_dictionary
+
+            lander_preset = lander_preset_from_dictionary(self.scenario.lander)
         self.binding_context = BindingContext(
             number_of_environments=number_of_environments,
             device=self.device,
@@ -90,6 +95,7 @@ class LanderEnv(DirectRLEnv):
             bus=self.bus,
             shared_data={
                 "lander": self.scenario.lander,
+                "lander_preset": lander_preset,
                 "episode_length_seconds": self.scenario.episode_length_seconds,
                 "control_step_duration": self.scenario.control_step_duration,
             },
