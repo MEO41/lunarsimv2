@@ -33,6 +33,7 @@ c.g. is off the axis (`vehicle_axis_position`).
 | Nozzle exit | 1.499 m diameter, 0.483 m above the pads | Handbook Table 2.3-1; TN D-6850 p. 20 |
 | Descent engine | 46,706 N rated; throttle 0.10–0.65; Isp 305 s; lag 0.08 s; slew 0.85/s | TN D-7143; Klumpp R-695 |
 | Engine off below | 0.05 throttle | **model choice** |
+| Thrust tail-off after shutdown | straight line to zero in 0.5 s | Rogers 1973 p. 124 (design value; the flown engine took "several seconds") |
 | RCS jet | 444.8 N, Isp 281 s, min pulse 14 ms, valve delay 7 ms, 16 jets in 4 clusters | LM News Reference |
 | RCS cluster position | **1.679 m along each body axis** (on the diagonals) | MIT R-567 6.4.1.4; agrees with Cox's 5.5 ft |
 | Horizontal jet offsets | 1.562 m across, 1.685 m along the firing axis | R-567 6.4.1.4 |
@@ -40,6 +41,7 @@ c.g. is off the axis (`vehicle_axis_position`).
 | Footpads | 4 at 4.256 m from the axis; dish 0.940 m across, **0.178 m deep** | TN D-6850 p. 6, App. C p. 50 |
 | Strut | stroke 0.813 m; 78,800 N/m (**derived model choice**); damping ratio 1.0 (**model choice**) | TN D-6850 Fig. 7 |
 | Leg mass | 55.2 kg | TN D-6850 Table III / 4 |
+| Surface probes | 1.727 m (68 in) below the dish, along body −z, on legs 2, 3, 4 (not the ladder leg 1) | Rogers 1973 p. 124; TN D-6850 p. 8 (5.6 ft, −Z/+Y/−Y legs) |
 | Touchdown limits | vertical 3.048 m/s; horizontal 1.219 m/s up to 2.134 m/s vertical, then to 0; tilt 6°; rate 2°/s | TN D-6850 p. 3 |
 
 Lunar constants (`core/physical_constants.py`): GM 4.902800118e12 m³/s², radius 1,737.4 km,

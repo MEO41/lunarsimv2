@@ -12,3 +12,12 @@ time_to_go_stretch_factor: 1.25   # plan lasts at least factor * shortest possib
 time_to_go_extra_s: 2.0
 descend_below_horizontal_speed_mps: 0.3   # final descent at full rate below this horizontal speed
 hold_above_horizontal_speed_mps: 1.0      # final descent waits above this horizontal speed
+# Engine cut-off (see ClassicalLandingAgentBase). Apollo "probe mode": stop the engine after the
+# contact light of the 1.73 m surface probes ([ROGERS-73] p. 125), once the lander is steady.
+engine_cutoff_signal: surface_probe_contact   # or height_above_ground (the rule before 2026-11-15)
+# Model choice: crew reaction time. The Apollo 16 commander "counted one-potato after we got the
+# contact light" (technical debriefing); on Apollo 11 the stop came about 3 s after the light.
+engine_stop_delay_after_probe_contact_s: 1.0
+steady_rate_for_engine_stop_deg_per_s: 1.0    # model choice, half the 2 deg/s touchdown limit
+steady_tilt_for_engine_stop_deg: 3.0          # model choice, half the 6 deg touchdown limit
+backup_engine_cutoff_height_m: 0.0            # "pad mode": footpads at the ground straight below

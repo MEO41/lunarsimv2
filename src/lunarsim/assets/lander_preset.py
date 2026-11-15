@@ -62,6 +62,7 @@ class LanderPreset:
     engine_thrust_lag_time_constant: float
     engine_maximum_throttle_rate: float  # fraction of rated thrust per second
     engine_off_below_fraction: float
+    engine_shutdown_thrust_decay_time: float  # s, straight-line fall to zero thrust after shutdown
     # reaction control system
     jet_thrust: float
     jet_specific_impulse: float
@@ -80,12 +81,15 @@ class LanderPreset:
     strut_stiffness: float
     strut_damping_ratio: float
     leg_mass: float
+    surface_probe_length: float  # m, below the lowest point of the dish, along body -z
     # touchdown limits
     maximum_vertical_touchdown_speed: float
     maximum_horizontal_touchdown_speed: float
     vertical_speed_where_horizontal_limit_starts_to_drop: float
     maximum_touchdown_tilt: float  # rad
     maximum_touchdown_tilt_rate: float  # rad/s
+    # legs (1-based, in LunarSim leg order) that carry a surface probe
+    legs_with_surface_probes: tuple[int, ...] = ()
 
     # ---- derived quantities ----
 
@@ -164,6 +168,15 @@ class LanderPreset:
                 )
             )
         return positions
+
+    @property
+    def surface_probe_tip_offset_from_leg_link(self) -> tuple[float, float, float]:
+        """Return the probe tip relative to its leg-link origin, in body axes, m.
+
+        The probe hangs straight down (body -z) from the lowest point of the dish, so its tip lies
+        ``footpad_depth + surface_probe_length`` below the leg-link origin (the dish's flat top).
+        """
+        return (0.0, 0.0, -(self.footpad_depth + self.surface_probe_length))
 
     @property
     def footpad_sphere_radius(self) -> float:
@@ -310,6 +323,7 @@ _FIELD_MAP = (
     ("descent_engine", "thrust_lag_time_constant_s", "engine_thrust_lag_time_constant", 1.0),
     ("descent_engine", "maximum_throttle_rate_per_s", "engine_maximum_throttle_rate", 1.0),
     ("descent_engine", "engine_off_below_fraction", "engine_off_below_fraction", 1.0),
+    ("descent_engine", "shutdown_thrust_decay_time_s", "engine_shutdown_thrust_decay_time", 1.0),
     ("reaction_control_system", "jet_thrust_n", "jet_thrust", 1.0),
     ("reaction_control_system", "specific_impulse_s", "jet_specific_impulse", 1.0),
     ("reaction_control_system", "minimum_pulse_duration_s", "jet_minimum_pulse_duration", 1.0),
@@ -341,6 +355,7 @@ _FIELD_MAP = (
     ("landing_gear", "strut_stiffness_n_per_m", "strut_stiffness", 1.0),
     ("landing_gear", "strut_damping_ratio", "strut_damping_ratio", 1.0),
     ("landing_gear", "leg_mass_kg", "leg_mass", 1.0),
+    ("landing_gear", "surface_probe_length_m", "surface_probe_length", 1.0),
     ("touchdown_limits", "maximum_vertical_speed_mps", "maximum_vertical_touchdown_speed", 1.0),
     ("touchdown_limits", "maximum_horizontal_speed_mps", "maximum_horizontal_touchdown_speed", 1.0),
     (
@@ -354,6 +369,10 @@ _FIELD_MAP = (
 )
 
 
+# (section, key in the YAML file, field of LanderPreset): entries whose value is a list of integers.
+_LIST_FIELD_MAP = (("landing_gear", "legs_with_surface_probes", "legs_with_surface_probes"),)
+
+
 def lander_preset_from_dictionary(data: dict[str, Any]) -> LanderPreset:
     """Build a LanderPreset from the parsed YAML. Every entry needs a ``value`` and a ``source``."""
     values: dict[str, Any] = {"name": str(data.get("name", "unnamed"))}
@@ -365,12 +384,23 @@ def lander_preset_from_dictionary(data: dict[str, Any]) -> LanderPreset:
         if not isinstance(entry, dict) or "value" not in entry or not str(entry.get("source", "")).strip():
             raise LanderPresetError(f"Lander preset entry '{section}.{key}' needs a 'value' and a 'source'")
         values[field_name] = int(entry["value"]) if isinstance(factor, int) else float(entry["value"]) * factor
-    return LanderPreset(**values)
+    for section, key, field_name in _LIST_FIELD_MAP:
+        entry = (data.get(section) or {}).get(key)
+        if not isinstance(entry, dict) or "value" not in entry or not str(entry.get("source", "")).strip():
+            raise LanderPresetError(f"Lander preset entry '{section}.{key}' needs a 'value' and a 'source'")
+        values[field_name] = tuple(int(item) for item in entry["value"])
+    preset = LanderPreset(**values)
+    for leg in preset.legs_with_surface_probes:
+        if not 1 <= leg <= preset.number_of_legs:
+            raise LanderPresetError(f"legs_with_surface_probes names leg {leg}, but the lander has {preset.number_of_legs} legs")
+    return preset
 
 
 def lander_preset_sources(data: dict[str, Any]) -> dict[str, str]:
     """Return ``section.key -> source text`` for every number in the parsed YAML."""
-    return {f"{section}.{key}": str(data[section][key]["source"]) for section, key, _, _ in _FIELD_MAP}
+    sources = {f"{section}.{key}": str(data[section][key]["source"]) for section, key, _, _ in _FIELD_MAP}
+    sources.update({f"{section}.{key}": str(data[section][key]["source"]) for section, key, _ in _LIST_FIELD_MAP})
+    return sources
 
 
 def load_lander_preset(path: Path | str) -> LanderPreset:

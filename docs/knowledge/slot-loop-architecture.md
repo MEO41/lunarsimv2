@@ -48,16 +48,19 @@ start → plant → sensors → faults → nav → [observation builder] → age
 
 - PhysX step 5 ms (200 Hz); 4 substeps per control step → control at 20 ms (50 Hz).
 - **Action: 19 values** = throttle, 2 gimbal angles (accepted, unused), 16 jet commands.
-- **Observation: 15 values** = position 3, velocity 3, quaternion 4 (w, x, y, z), body rates 3,
+- **Observation: 16 values** = position 3, velocity 3, quaternion 4 (w, x, y, z), body rates 3,
   mass 1, **footpad height above the ground straight below the c.g.** 1 (`NavigationStateLayout`,
   `HEIGHT_ABOVE_GROUND`; added 2026-11-15, user decision). On flat ground it equals position z
-  minus 3.62 m.
+  minus 3.62 m. Plus **surface-probe contact** 1 (`SURFACE_PROBE_CONTACT`, 1.0 while a probe
+  tip touches the ground: the LM contact light; added 2026-11-15 for the probe-mode cut-off).
+  The plant computes it from the ground lookup (`TruthState.surface_probe_contact`) and
+  `nav: truth` passes it on; in milestone 2 it becomes a sensor.
 - Lateral acceleration comes from tilting the lander (no gimbal model).
 
 ## Message types (`core/message_types.py`)
 
 `TruthState` (frame, time, position, velocity, orientation_quaternion, angular_velocity, mass,
-contact, footpad_height_above_ground, body_contact), `SurfaceGeometry` (site_origin per env,
+contact, footpad_height_above_ground, body_contact, surface_probe_contact), `SurfaceGeometry` (site_origin per env,
 height_field; written by the surface, read by plant and metrics), `Measurement`, `NavEstimate`, `Observation`, `Command` (`from_action_tensor`,
 `to_action_tensor`), `Wrench` (force, torque and the extra `mass_flow_rate`), `EpisodeEvents`.
 Message keys include `start_state` (start slot → plant at reset) and `surface_geometry`

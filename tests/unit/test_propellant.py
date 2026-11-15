@@ -129,3 +129,30 @@ def test_continuous_firing_keeps_the_valve_open_across_control_steps():
     """Duty 1.0 in consecutive control steps gives a valve that stays fully open."""
     fractions = run_control_steps(make_jets(), [[1.0, 0.0, 0.0]] * 3)[:, 0]
     assert fractions[2:].tolist() == pytest.approx([1.0] * 10, abs=1e-6)
+
+
+def test_shutdown_thrust_falls_in_a_straight_line_over_the_decay_time():
+    """After a shutdown the thrust falls linearly to zero in 0.5 s; the impulse is half of F0 times 0.5 s."""
+    engine = DescentEngineModel(1, RATED_THRUST, 0.10, 0.65, 0.08, 0.85, 0.05, EXHAUST_VELOCITY, shutdown_decay_time=0.5)
+    engine.reset(torch.arange(1), 0.30, 1.0e6)
+    start_thrust = 0.30 * RATED_THRUST
+    impulse, thrust_at = 0.0, {}
+    for step in range(200):  # 1 s
+        thrust, _ = engine.step(torch.tensor([0.0]), PHYSICS_STEP)
+        impulse += float(thrust[0]) * PHYSICS_STEP
+        thrust_at[round((step + 1) * PHYSICS_STEP, 3)] = float(thrust[0])
+    assert thrust_at[0.25] == pytest.approx(0.5 * start_thrust, rel=0.02)
+    assert thrust_at[0.5] == pytest.approx(0.0, abs=0.01 * start_thrust)
+    assert thrust_at[1.0] == 0.0
+    assert impulse == pytest.approx(0.5 * start_thrust * 0.5, rel=1e-3)
+
+
+def test_engine_restarts_during_the_tail_off():
+    """A new throttle command during the tail-off brings the engine back."""
+    engine = DescentEngineModel(1, RATED_THRUST, 0.10, 0.65, 0.08, 0.85, 0.05, EXHAUST_VELOCITY, shutdown_decay_time=0.5)
+    engine.reset(torch.arange(1), 0.30, 1.0e6)
+    for _ in range(20):  # 0.1 s off
+        engine.step(torch.tensor([0.0]), PHYSICS_STEP)
+    for _ in range(400):  # 2 s on
+        thrust, _ = engine.step(torch.tensor([0.30]), PHYSICS_STEP)
+    assert float(thrust[0]) == pytest.approx(0.30 * RATED_THRUST, rel=1e-3)

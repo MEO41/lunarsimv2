@@ -18,6 +18,7 @@ Short keys match the lander preset file (`configs/landers/apollo_lunar_module.ya
 | A11-MR | Apollo 11 Mission Report, NASA MSC-00171 (1969), mass table "Lunar landing", sec. 9.13.1. The SP-238 edition has the mass table as Table B-I | https://www.nasa.gov/wp-content/uploads/static/apollo50th/pdf/A11_MissionReport.pdf ; https://ntrs.nasa.gov/api/citations/19710015566/downloads/19710015566.pdf |
 | D-7143 | Hammock, Currie, Fisher, "Apollo Experience Report - Descent Propulsion System", NASA TN D-7143 (1973) | https://ntrs.nasa.gov/citations/19730011150 |
 | D-6850 | Rogers, "Apollo Experience Report - Lunar Module Landing Gear Subsystem", NASA TN D-6850 (1972) | https://ntrs.nasa.gov/citations/19720018253 |
+| ROGERS-73 | Rogers, "Apollo Lunar Module Landing Gear", NASA Manned Spacecraft Center (1973), pp. 123-133: 1.73 m probes on three footpads (p. 124), 0.5 s design thrust decay (p. 124), probe mode and pad mode (p. 125), flight touchdown velocities (Fig. 8) | https://www.nasa.gov/wp-content/uploads/static/history/alsj/LM_Landing%20Gear1973010151.pdf |
 | LM-NEWS | Grumman, "Apollo Lunar Module News Reference" (1969) | ibiblio.org/apollo (nasa.gov links returned 404 on 2026-11-14) |
 | COX | Cox, "Design Development of the Apollo Lunar Module Digital Autopilot", NASA (1978) | https://ntrs.nasa.gov/citations/19780015068 |
 | KLUMPP | Klumpp, "Apollo Lunar-Descent Guidance", MIT R-695 (1971) | https://www.ibiblio.org/apollo/Documents/Apollo%20Lunar%20Descent%20Guidance.pdf |

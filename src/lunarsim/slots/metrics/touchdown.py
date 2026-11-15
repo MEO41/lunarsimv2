@@ -27,6 +27,9 @@ OUTCOME_NAMES = (
     "tip_over",  # inside all limits at contact, but tipped over afterwards
     "not_settled",  # inside all limits at contact, but still moving when the settle time ran out
     "body_contact",  # inside all limits at contact, but a stage of the vehicle hit the ground or a rock
+    # inside all limits, but the nozzle rim reached below the allowed clearance; only when
+    # ``nozzle_clearance_counts_as_failure`` is on (added at the end so older codes keep their number)
+    "nozzle_contact",
 )
 # Number of points on the nozzle rim used for the clearance check.
 NOZZLE_RIM_POINTS = 12
@@ -51,9 +54,15 @@ class TouchdownMetrics(BindingBase):
     so the metric records the lowest clearance of the nozzle rim above the ground instead, and the
     ground slope and relief under the footprint at the moment of first contact.
 
+    By default a low nozzle clearance is only recorded, because the real skirt was built to crush
+    (28 in). With ``nozzle_clearance_counts_as_failure: true`` an episode whose nozzle rim came
+    closer to the ground than ``nozzle_failure_clearance_m`` (default 0: rim below the ground) ends
+    as ``nozzle_contact`` instead of a success.
+
     Parameters (all optional): ``contact_force_threshold_n``, ``settle_speed_mps``,
     ``settle_rate_deg_per_s``, ``settle_hold_s``, ``settle_timeout_s``, ``tip_over_tilt_deg``,
-    ``maximum_horizontal_distance_m``, ``maximum_altitude_m``.
+    ``maximum_horizontal_distance_m``, ``maximum_altitude_m``, ``nozzle_clearance_counts_as_failure``,
+    ``nozzle_failure_clearance_m``.
     """
 
     requires = frozenset({MessageKey.TRUTH_STATE, MessageKey.START_STATE, MessageKey.SURFACE_GEOMETRY})
@@ -74,6 +83,8 @@ class TouchdownMetrics(BindingBase):
         self.tip_over_tilt = math.radians(float(get("tip_over_tilt_deg", 45.0)))
         self.maximum_horizontal_distance = float(get("maximum_horizontal_distance_m", 300.0))
         self.maximum_altitude = float(get("maximum_altitude_m", 200.0))
+        self.nozzle_clearance_counts_as_failure = bool(get("nozzle_clearance_counts_as_failure", False))
+        self.nozzle_failure_clearance = float(get("nozzle_failure_clearance_m", 0.0))
         self.episode_length = float(context.shared_data["episode_length_seconds"])
 
         count, device = self.number_of_environments, self.device
@@ -90,6 +101,9 @@ class TouchdownMetrics(BindingBase):
         self.minimum_nozzle_clearance = zeros()
         self.touchdown_ground_slope = zeros()
         self.touchdown_ground_relief = zeros()
+        # Time the contact light (surface probe) first came on; negative while it has not.
+        self.probe_contact_time = zeros()
+        self.footpad_height_at_probe_contact = zeros()
         # Nozzle rim points and footprint sample points in the body frame.
         rim_angles = torch.arange(NOZZLE_RIM_POINTS, dtype=torch.float32) * (2.0 * math.pi / NOZZLE_RIM_POINTS)
         nozzle_x, nozzle_y, nozzle_z = preset.nozzle_exit_center
@@ -164,6 +178,8 @@ class TouchdownMetrics(BindingBase):
         self.minimum_nozzle_clearance[env_ids] = float("inf")
         self.touchdown_ground_slope[env_ids] = 0.0
         self.touchdown_ground_relief[env_ids] = 0.0
+        self.probe_contact_time[env_ids] = -1.0
+        self.footpad_height_at_probe_contact[env_ids] = float("nan")
         for values in self.touchdown.values():
             values[env_ids] = 0.0
         self.touchdown_position[env_ids] = 0.0
@@ -217,6 +233,12 @@ class TouchdownMetrics(BindingBase):
         self.peak_body_force = torch.maximum(self.peak_body_force, truth.body_contact)
         self.minimum_nozzle_clearance = torch.minimum(self.minimum_nozzle_clearance, self.nozzle_clearance(truth, geometry))
 
+        first_probe_contact = (truth.surface_probe_contact > 0.5) & (self.probe_contact_time < 0.0)
+        self.probe_contact_time = torch.where(first_probe_contact, truth.time, self.probe_contact_time)
+        self.footpad_height_at_probe_contact = torch.where(
+            first_probe_contact, truth.footpad_height_above_ground, self.footpad_height_at_probe_contact
+        )
+
         first_contact = ((leg_force > self.contact_force_threshold) | (truth.body_contact > self.contact_force_threshold)) & ~self.has_contact
         if bool(first_contact.any()):
             slope, relief = self.footprint_slope_and_relief(truth, geometry)
@@ -267,6 +289,8 @@ class TouchdownMetrics(BindingBase):
         outcome = torch.full_like(self.episode_number, OUTCOME_CODE["not_settled"])
         outcome[settled] = OUTCOME_CODE["success"]
         # Later lines have higher priority.
+        if self.nozzle_clearance_counts_as_failure:
+            outcome[self.minimum_nozzle_clearance < self.nozzle_failure_clearance] = OUTCOME_CODE["nozzle_contact"]
         outcome[self.peak_body_force > self.contact_force_threshold] = OUTCOME_CODE["body_contact"]
         outcome[tipped_over] = OUTCOME_CODE["tip_over"]
         outcome[too_fast_turning] = OUTCOME_CODE["tilt_rate_at_contact"]
@@ -311,6 +335,8 @@ class TouchdownMetrics(BindingBase):
             "minimum_nozzle_clearance_m": self.minimum_nozzle_clearance,
             "touchdown_ground_slope_deg": self.touchdown_ground_slope * degrees,
             "touchdown_ground_relief_m": self.touchdown_ground_relief,
+            "probe_contact_time_s": self.probe_contact_time,
+            "footpad_height_at_probe_contact_m": self.footpad_height_at_probe_contact,
             "propellant_used_kg": propellant_used,
             "episode_duration_s": truth.time,
             "outcome_code": outcome,

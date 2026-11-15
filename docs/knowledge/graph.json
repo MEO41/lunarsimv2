@@ -433,6 +433,11 @@
     },
     {
       "source": "decisions-log",
+      "target": "workstation-setup-and-machines",
+      "relation": "mentions"
+    },
+    {
+      "source": "decisions-log",
       "target": "pending-user-decisions",
       "relation": "mentions"
     },
@@ -708,17 +713,12 @@
     },
     {
       "source": "pending-user-decisions",
-      "target": "open-issues",
+      "target": "decisions-log",
       "relation": "mentions"
     },
     {
       "source": "pending-user-decisions",
       "target": "terrain-integration-plan",
-      "relation": "mentions"
-    },
-    {
-      "source": "pending-user-decisions",
-      "target": "decisions-log",
       "relation": "mentions"
     },
     {

@@ -18,7 +18,8 @@ from lunarsim.slots.actuators.propulsion_models import DescentEngineModel, React
 class EngineAndPulsedJetsActuators(BindingBase):
     """Turns a Command into a body-frame Wrench, every PhysX substep.
 
-    Engine: throttle range, command slew limit, first-order thrust lag, propellant use.
+    Engine: throttle range, command slew limit, first-order thrust lag, thrust tail-off after a
+    shutdown, propellant use.
     Jets: minimum pulse width, valve delay, propellant use. The gimbal command is accepted but
     ignored (the ``gimbal`` actuator is a later binding); the thrust acts along body +z through
     the centre of mass.
@@ -46,6 +47,7 @@ class EngineAndPulsedJetsActuators(BindingBase):
             off_below_fraction=preset.engine_off_below_fraction,
             exhaust_velocity=preset.engine_exhaust_velocity,
             device=self.device,
+            shutdown_decay_time=preset.engine_shutdown_thrust_decay_time,
         )
         self.jets = ReactionControlPulseModel(
             count,

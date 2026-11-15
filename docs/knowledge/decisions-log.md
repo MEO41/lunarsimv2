@@ -60,5 +60,11 @@ Newest at the bottom. "User" means the user decided; the others were proposed, e
 | 2026-11-15 | One recorder and one renderer for all videos and stills (`replay_recording.py`, `replay_rendering.py`, `render_replay.py`) | Landings, drops and contact checks share them ([[replay-recording-and-rendering]]) |
 | 2026-11-15 | Drop test: tip-over limit of the metric raised to 150° for this test; "tipped over" = final tilt above 45° | User asked to see flips; stopping at 45° cut them off |
 | 2026-11-15 | Contact check rule: loaded pad needs |gap| < 3 cm, free pad must not be inside the ground | Contact offset 2 cm; result 32/32 ([[contact-check-results]]) |
+| 2026-11-15 | **Engine cut-off = Apollo probe mode**: three 1.727 m surface probes (legs 2, 3, 4, not the ladder leg); the engine stops 1 s after the contact light once the lander is steady (rate < 1°/s, tilt < 3°), else it keeps descending and stops with the pads at the ground ("pad mode"). The old 0.25 m height rule stays as `engine_cutoff_signal: height_above_ground` | User: "go with the probe". Rogers 1973 p. 124–125; delay is a model choice (Apollo 16 "one-potato", Apollo 11 about 3 s). Without the steadiness rule, low-and-fast starts fell to 84 % success (rates of 4°/s at contact) |
+| 2026-11-15 | **Observation grows to 16 values**: `SURFACE_PROBE_CONTACT` (the contact light) | Needed for probe mode; M1b has not started, so no trained policy breaks |
+| 2026-11-15 | Engine thrust falls in a straight line to zero over 0.5 s after shutdown (was the 0.08 s throttle lag) | Rogers 1973 p. 124: 0.5 s design value; the flown engine took "several seconds" |
+| 2026-11-15 | Nozzle clearance stays a record, not a failure; switch `nozzle_clearance_counts_as_failure` (default false) adds outcome `nozzle_contact` (code 11) | User: crushable skirt, keep it changeable |
+| 2026-11-15 | Struts stay straight (along body z) for now; the 23° lean comes with the honeycomb crush model in milestone 5 | User left it to Claude: the lean is only in a CAD-based secondary source, and both leg changes need the same re-validation |
+| 2026-11-15 | Heavy GPU runs move to the RTX 5090 machine `minsky` (SSH key login) | User request ([[workstation-setup-and-machines]]) |
 
 Decisions still open: [[pending-user-decisions]].

@@ -1,1 +1,7 @@
 binding: vertical_descent
+# Engine cut-off: see configs/agent/zem_zev.yaml for the meaning and the sources.
+engine_cutoff_signal: surface_probe_contact
+engine_stop_delay_after_probe_contact_s: 1.0
+steady_rate_for_engine_stop_deg_per_s: 1.0
+steady_tilt_for_engine_stop_deg: 3.0
+backup_engine_cutoff_height_m: 0.0

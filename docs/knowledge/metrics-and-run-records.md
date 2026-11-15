@@ -19,13 +19,18 @@ summary: How a landing is judged (outcome codes, detection settings) and what ev
   `propellant_depleted`, `hard_vertical`, `hard_horizontal`, `tilt_at_contact`,
   `tilt_rate_at_contact`, `tip_over`, `not_settled`, `body_contact` (code 10, added
   2026-11-15: a stage hit the ground or a rock; priority above `success` and `not_settled`,
-  below `tip_over` and the limit failures). Limits from [[lander-preset-apollo-lm]].
+  below `tip_over` and the limit failures), `nozzle_contact` (code 11, only with
+  `nozzle_clearance_counts_as_failure: true`: the nozzle rim came closer to the ground than
+  `nozzle_failure_clearance_m`; priority just below `body_contact`). Limits from
+  [[lander-preset-apollo-lm]].
 - Also recorded since 2026-11-15: `peak_body_contact_force_n`, `minimum_nozzle_clearance_m`
-  (lowest height of the nozzle rim above the ground during the episode; **not** a failure,
-  because the real skirt is crushable), `touchdown_ground_slope_deg` and
+  (lowest height of the nozzle rim above the ground during the episode; **not** a failure by
+  default, because the real skirt is crushable; switchable since 2026-11-15), `touchdown_ground_slope_deg` and
   `touchdown_ground_relief_m` (plane fit and height range of the ground under the footprint at
   first contact; the LM design surface allows a 6° mean slope and 24 in relief, TN D-6850).
 - Altitude for out-of-bounds is now the height above the ground below.
+- Since 2026-11-15 also `probe_contact_time_s` (first contact light, −1 if none) and
+  `footpad_height_at_probe_contact_m`.
 - One record per episode, collected with `drain_episode_records`.
 
 ## Run directory (git-ignored `runs/`)

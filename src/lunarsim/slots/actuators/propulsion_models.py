@@ -20,6 +20,10 @@ class DescentEngineModel:
     ``off_below_fraction`` shuts the engine down; any other command is clamped to the
     throttleable range. The commanded fraction slews at ``maximum_throttle_rate`` and the
     thrust follows it with a first-order lag of ``lag_time_constant``.
+
+    After a shutdown the thrust falls in a straight line from its value at the shutdown to zero
+    in ``shutdown_decay_time`` seconds (the tail-off of a real engine). With a decay time of
+    zero, a shutdown follows the throttle lag instead.
     """
 
     def __init__(
@@ -33,6 +37,7 @@ class DescentEngineModel:
         off_below_fraction: float,
         exhaust_velocity: float,
         device: torch.device | str = "cpu",
+        shutdown_decay_time: float = 0.0,
     ) -> None:
         """Store the engine constants and allocate the per-environment state."""
         self.rated_thrust = float(rated_thrust)
@@ -42,6 +47,10 @@ class DescentEngineModel:
         self.maximum_throttle_rate = float(maximum_throttle_rate)
         self.off_below_fraction = float(off_below_fraction)
         self.exhaust_velocity = float(exhaust_velocity)
+        self.shutdown_decay_time = float(shutdown_decay_time)
+        # Thrust fraction lost per second while the engine tails off after a shutdown.
+        self.shutdown_decay_rate = torch.zeros(number_of_environments, device=device)
+        self.engine_was_on = torch.zeros(number_of_environments, dtype=torch.bool, device=device)
         self.slewed_fraction = torch.zeros(number_of_environments, device=device)
         self.thrust_fraction = torch.zeros(number_of_environments, device=device)
         self.propellant_mass = torch.zeros(number_of_environments, device=device)
@@ -51,6 +60,22 @@ class DescentEngineModel:
         self.slewed_fraction[env_ids] = initial_fraction
         self.thrust_fraction[env_ids] = initial_fraction
         self.propellant_mass[env_ids] = propellant_mass
+        self.engine_was_on[env_ids] = torch.as_tensor(initial_fraction, device=self.engine_was_on.device) > 0.0
+        self.shutdown_decay_rate[env_ids] = 0.0
+
+    def _tail_off(self, dt: float) -> tuple[Tensor, Tensor]:
+        """Return (mean thrust fraction over the step, fraction at its end) for an engine that tails off.
+
+        The fraction falls in a straight line at ``shutdown_decay_rate`` and stops at zero; the
+        mean is exact also when zero is reached inside the step.
+        """
+        start = self.thrust_fraction
+        rate = self.shutdown_decay_rate
+        end = (start - rate * dt).clamp_min(0.0)
+        time_to_zero = torch.where(rate > 0.0, start / rate.clamp_min(1e-12), torch.full_like(start, float("inf")))
+        reaches_zero = time_to_zero < dt
+        mean = torch.where(reaches_zero, start * time_to_zero / (2.0 * dt), 0.5 * (start + end))
+        return mean, end
 
     def step(self, throttle_command: Tensor, dt: float) -> tuple[Tensor, Tensor]:
         """Advance by ``dt`` and return (mean thrust over the step in N, mass flow in kg/s), shape (N,).
@@ -70,7 +95,17 @@ class DescentEngineModel:
         mean_weight = (self.lag_time_constant / dt) * (1.0 - decay) if self.lag_time_constant > 0.0 else 0.0
         difference = self.thrust_fraction - slewed
         mean_fraction = slewed + difference * mean_weight
-        self.thrust_fraction = slewed + difference * decay
+        end_fraction = slewed + difference * decay
+        if self.shutdown_decay_time > 0.0:
+            just_shut_down = self.engine_was_on & ~engine_on
+            self.shutdown_decay_rate = torch.where(
+                just_shut_down, self.thrust_fraction / self.shutdown_decay_time, self.shutdown_decay_rate
+            )
+            tail_mean, tail_end = self._tail_off(dt)
+            mean_fraction = torch.where(engine_on, mean_fraction, tail_mean)
+            end_fraction = torch.where(engine_on, end_fraction, tail_end)
+        self.engine_was_on = engine_on
+        self.thrust_fraction = end_fraction
         self.slewed_fraction = slewed
 
         thrust = mean_fraction * self.rated_thrust

@@ -2,14 +2,18 @@
 """Controller build-up step 3 (GPU): vertical descent to a soft touchdown from straight above.
 
 16 landers start upright with no horizontal speed, at footpad altitudes from 5 m to 50 m and
-vertical speeds from 0 to -2 m/s. The agent follows the descent-rate profile and cuts the
-engine 0.25 m above the ground. The touchdown metric judges every landing.
+vertical speeds from 0 to -2 m/s. The agent follows the descent-rate profile and stops the
+engine 1 s after the contact light of the 1.727 m surface probes (Apollo probe mode). The
+touchdown metric judges every landing.
 
 Pass criteria and why:
 - All 16 episodes are a success (inside the Apollo landing-gear envelope, settled, upright).
-- Vertical speed at contact between 0.5 and 1.5 m/s. The profile ends at 0.6 m/s; the engine
-  is cut at 0.25 m, and a free drop from there adds up to sqrt(0.6^2 + 2 g 0.25) = 1.08 m/s.
-  The 0.08 s thrust decay and the 20 ms sampling of the cut height explain the spread.
+- The contact light comes on when the footpads are 1.727 m above the ground (upright lander,
+  probe length), within 3 cm (20 ms sampling at about 1.2 m/s).
+- Vertical speed at contact between 1.2 and 2.0 m/s. At probe height the profile asks for
+  sqrt(0.6^2 + 2 * 0.8 * (1.727 - 1.0)) = 1.24 m/s; during the 1 s delay the lander slows to
+  about 0.9 m/s and the pads come down to about 0.7 m. The 0.5 s thrust tail-off and the free
+  drop give sqrt(v^2 + 2 g h) of about 1.6 m/s; the band allows for the tail-off thrust.
 - Horizontal speed at contact below 5 cm/s and tilt below 1 degree: nothing excites the
   lateral motion in this step.
 - Propellant below 250 kg: the longest descent (50 m) takes about 35 s at about 4 kg/s.
@@ -45,9 +49,15 @@ def test_every_descent_is_a_successful_landing(episodes):
     assert episodes["outcome"].tolist() == ["success"] * COUNT
 
 
+def test_contact_light_comes_on_at_the_probe_length(episodes):
+    """Upright landers see the light with the footpads 1.727 m above the ground, within 3 cm."""
+    print(episodes["footpad_height_at_probe_contact_m"].describe().to_string())
+    assert episodes["footpad_height_at_probe_contact_m"].between(1.697, 1.727 + 0.005).all()
+
+
 def test_touchdown_is_soft_and_straight(episodes):
-    """Contact speed 0.5-1.5 m/s down, below 5 cm/s sideways, tilt below 1 degree."""
-    assert episodes["touchdown_vertical_speed_mps"].between(-1.5, -0.5).all()
+    """Contact speed 1.2-2.0 m/s down, below 5 cm/s sideways, tilt below 1 degree."""
+    assert episodes["touchdown_vertical_speed_mps"].between(-2.0, -1.2).all()
     assert (episodes["touchdown_horizontal_speed_mps"] < 0.05).all()
     assert (episodes["touchdown_tilt_deg"] < 1.0).all()
     assert (episodes["final_tilt_deg"] < 0.5).all()

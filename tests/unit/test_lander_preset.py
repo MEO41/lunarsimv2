@@ -128,3 +128,20 @@ def test_footpad_dish_mesh_has_the_real_size(preset):
     assert max(heights) == pytest.approx(0.0, abs=1e-6)
     assert len(points) < 255
     assert sum(counts) == len(indices) and max(indices) == len(points) - 1
+
+
+def test_surface_probes_and_engine_tail_off_follow_the_landing_gear_report(preset):
+    """Three 68 in probes (not on the ladder leg, leg 1) and the 0.5 s design thrust decay."""
+    assert preset.surface_probe_length == pytest.approx(1.727)
+    assert preset.legs_with_surface_probes == (2, 3, 4)
+    assert preset.surface_probe_tip_offset_from_leg_link == pytest.approx((0.0, 0.0, -(0.178 + 1.727)))
+    assert preset.engine_shutdown_thrust_decay_time == pytest.approx(0.5)
+
+
+def test_probe_on_a_leg_that_does_not_exist_is_rejected():
+    """A probe leg number outside 1..number_of_legs stops the loading."""
+    with open(PRESET_PATH) as file:
+        data = yaml.safe_load(file)
+    data["landing_gear"]["legs_with_surface_probes"]["value"] = [2, 5]
+    with pytest.raises(LanderPresetError):
+        lander_preset_from_dictionary(data)

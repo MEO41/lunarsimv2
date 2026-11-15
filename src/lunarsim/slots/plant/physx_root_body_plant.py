@@ -5,7 +5,8 @@ The plant has three jobs:
 
 1. ``step``: read the body state from PhysX and write it to the bus as ``TruthState`` in the
    SITE frame (position relative to the site origin that the surface slot gives for each
-   environment, quaternion as w, x, y, z), with the footpad height above the ground below.
+   environment, quaternion as w, x, y, z), with the footpad height above the ground below and
+   the surface-probe contact signal.
 2. ``apply_wrench``: every PhysX substep, add up the actuator and surface wrenches and hand
    them to PhysX; integrate the vehicle mass from the propellant flow.
 3. ``reset``: put the body at the state that the start slot sampled.
@@ -149,6 +150,10 @@ class PhysxRootBodyPlant(BindingBase):
         """Return the contact force magnitude on the vehicle body (N,). The base reports zero."""
         return torch.zeros(self.number_of_environments, device=self.device)
 
+    def _read_surface_probe_contact(self, geometry: SurfaceGeometry, orientation: Tensor) -> Tensor:
+        """Return 1.0 where a surface probe touches the ground, else 0.0, (N,). The base has no probes."""
+        return torch.zeros(self.number_of_environments, device=self.device)
+
     def step(self, bus, dt: float) -> None:
         """Read the state from PhysX and write TruthState in the SITE frame."""
         self._write_mass_to_simulation()
@@ -168,5 +173,6 @@ class PhysxRootBodyPlant(BindingBase):
             contact=self._read_contact_forces(),
             footpad_height_above_ground=world_position[:, 2] - self.reference_height_above_ground_contact - ground_height,
             body_contact=self._read_body_contact_force(),
+            surface_probe_contact=self._read_surface_probe_contact(geometry, orientation),
         )
         bus.write(MessageKey.TRUTH_STATE, state, self)

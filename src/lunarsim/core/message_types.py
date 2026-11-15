@@ -78,6 +78,9 @@ class TruthState:
     # centre of mass, m. NaN where unknown (a sampled start state).
     footpad_height_above_ground: Tensor | None = None  # (N,)
     body_contact: Tensor | None = None  # (N,) contact force magnitude on the vehicle body (stages), N
+    # 1.0 while the tip of at least one surface probe is at or below the ground (the LM "contact
+    # light"), else 0.0.
+    surface_probe_contact: Tensor | None = None  # (N,)
 
     def __post_init__(self) -> None:
         """Check the shapes of all fields and fill the optional ones."""
@@ -87,6 +90,8 @@ class TruthState:
             self.footpad_height_above_ground = torch.full_like(self.time, float("nan"), dtype=self.position.dtype)
         if self.body_contact is None:
             self.body_contact = torch.zeros_like(self.time, dtype=self.position.dtype)
+        if self.surface_probe_contact is None:
+            self.surface_probe_contact = torch.zeros_like(self.time, dtype=self.position.dtype)
         number_of_environments = _first_dimension_of(self)
         expected_shapes = {
             "time": (number_of_environments,),
@@ -97,6 +102,7 @@ class TruthState:
             "mass": (number_of_environments,),
             "footpad_height_above_ground": (number_of_environments,),
             "body_contact": (number_of_environments,),
+            "surface_probe_contact": (number_of_environments,),
         }
         for name, shape in expected_shapes.items():
             if tuple(getattr(self, name).shape) != shape:
@@ -159,7 +165,9 @@ class NavigationStateLayout:
     # Height of the footpad plane above the ground straight below the lander, m. On flat ground
     # it equals position z minus the centre-of-mass height above the footpads.
     HEIGHT_ABOVE_GROUND = slice(14, 15)
-    DIMENSION = 15
+    # 1.0 while a surface probe touches the ground (the LM contact light), else 0.0.
+    SURFACE_PROBE_CONTACT = slice(15, 16)
+    DIMENSION = 16
 
 
 @dataclass

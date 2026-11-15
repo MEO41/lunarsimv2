@@ -189,4 +189,4 @@ class ZeroEffortMissZeroEffortVelocityAgent(ClassicalLandingAgentBase):
         throttle = controller.throttle_for_vertical_acceleration(
             thrust_acceleration[:, 2] - MOON_SURFACE_GRAVITY, mass, orientation
         )
-        return self.assemble_command(throttle, orientation, angular_velocity, wanted_orientation, altitude, control_step_duration)
+        return self.assemble_command(throttle, orientation, angular_velocity, wanted_orientation, observation, control_step_duration)

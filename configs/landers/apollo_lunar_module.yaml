@@ -23,6 +23,8 @@
 #   [AOH-LM3]  Apollo Operations Handbook LMA790-3-LM 3, Vol. I (1 Jan 1968), Fig. 1-3 "LM 3
 #              Overall Dimensions" and Table 2.3-1.
 #              https://www.ibiblio.org/apollo/Documents/LM-3_Apollo_Operations_Handbook_Vol_I.pdf
+#   [ROGERS-73] Rogers, "Apollo Lunar Module Landing Gear", NASA Manned Spacecraft Center (1973),
+#              pages 123-133. https://www.nasa.gov/wp-content/uploads/static/history/alsj/LM_Landing%20Gear1973010151.pdf
 #   [R-567]    MIT Instrumentation Laboratory R-567, GSOP Luminary, Section 6 "Control Data"
 #              (Nov 1968), sec. 6.4.1.4, RCS jet positions (data set for LM-6).
 #              https://www.ibiblio.org/apollo/NARA-SW/R-567-sec6.pdf
@@ -114,6 +116,9 @@ descent_engine:
   engine_off_below_fraction:
     value: 0.05
     source: "model choice: a throttle command below half of the minimum throttle shuts the engine down"
+  shutdown_thrust_decay_time_s:
+    value: 0.5
+    source: "[ROGERS-73] p. 124: 'For design purposes, a thrust-decay time of approximately 0.5 second had been assumed'; the flown engine decayed over 'several seconds' (no number given), so 0.5 s is the softer design value. Modelled as a straight-line fall to zero thrust after the engine is shut down"
 
 reaction_control_system:
   jet_thrust_n:
@@ -167,6 +172,12 @@ landing_gear:
   strut_damping_ratio:
     value: 1.0
     source: "model choice: critical damping against (vehicle mass / 4), because crushed honeycomb does not spring back"
+  surface_probe_length_m:
+    value: 1.727
+    source: "[ROGERS-73] p. 124: 'Attached to each of three of the footpads is a 1.73-meter (68 inch) probe designed to sense lunar-surface proximity'; [D-6850] p. 8 gives 5.6 ft (1.707 m). 68 in = 1.727 m, measured here from the lowest point of the dish along the body -z axis"
+  legs_with_surface_probes:
+    value: [2, 3, 4]
+    source: "[D-6850] p. 8: probes on the -Z, +Y and -Y legs, none on the +Z (ladder) leg. LunarSim leg 1 is the ladder leg (+x = LM +Z), legs 2, 3, 4 are +y, -x, -y"
   leg_mass_kg:
     value: 55.2
     source: "[D-6850] Table III: landing gear total 486.5 lb (220.7 kg) on Apollo 11, divided by four legs"

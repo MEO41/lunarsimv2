@@ -8,3 +8,7 @@ settle_timeout_s: 10.0             # give up waiting for rest this long after co
 tip_over_tilt_deg: 45.0
 maximum_horizontal_distance_m: 300.0
 maximum_altitude_m: 200.0
+# The nozzle rim has no collision shape (the real skirt crushes, 28 in). Its lowest clearance is
+# always recorded; set this to true to count a rim below nozzle_failure_clearance_m as a failure.
+nozzle_clearance_counts_as_failure: false
+nozzle_failure_clearance_m: 0.0

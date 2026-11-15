@@ -22,7 +22,9 @@ summary: Known weak points of the model and the code, with what each one affects
 | Mass in PhysX updated once per control step; inertia scaled with mass | Small dynamics error | Accept for now |
 | Landers slide on slopes above about 15° after an impact (friction 0.4 cannot hold above 21.8°); real footpads dig in | Drop tests and landings on steep ground | Regolith/footpad model (milestone 5) ([[drop-test-results]]) |
 | 27 body strikes on rocks in 12,288 terrain landings; ZEM/ZEV does not look for a safe spot | Terrain success | Hazard maps and site selection (milestone 4) |
-| Engine cut-off uses the height straight below the c.g.: over a tall rock the engine stops while the pads are still up to 1.5 m above the ground around it, and the stage drops onto the rock (seen in the landing video, clips 6–10). The real LM stopped on the contact light of 1.7 m surface probes (TN D-6850) | Body strikes | Probe-contact cut-off or lowest-footpad height; needs a decision |
+| Probe-mode cut-off (since 2026-11-15) drops the lander about 1 m with the engine off; a rock under a probe leg still switches the light on early. Body strikes on tall rocks under the stage cannot be avoided by any cut-off rule | Body strikes, touchdown speed | Hazard maps and site selection (milestone 4) |
+| Thrust tail-off modelled with the 0.5 s design value; the flown engine took several seconds (Rogers 1973, no number) | Touchdown speed, toppling | Find a measured tail-off curve |
+| Probes have no shape and never bend; the light is the probe tip against the ground lookup | Contact light timing on rocks | Accept |
 | Landing miss up to 43 m when the guided phase is cut short | Precision landing | Agent work |
 | No glide-slope constraint in `zem_zev` | Safety on terrain | Optional metric offered; not requested |
 | Start mass = Apollo 11 touchdown mass with remaining propellant | Starts with more propellant need a sourced number | Find a source when needed |

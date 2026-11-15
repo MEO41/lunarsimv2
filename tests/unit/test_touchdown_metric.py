@@ -26,12 +26,12 @@ class _World:
 WORLD = _World()
 
 
-def make_metrics(count=1, episode_length=60.0):
+def make_metrics(count=1, episode_length=60.0, parameters=None):
     """Build the metric with the Apollo preset on the CPU and reset all environments from 20 m."""
     context = make_binding_context(count)
     preset = load_lander_preset(default_config_directory() / "landers" / "apollo_lunar_module.yaml")
     context.shared_data.update({"lander_preset": preset, "episode_length_seconds": episode_length})
-    metrics = TouchdownMetrics({}, context)
+    metrics = TouchdownMetrics(parameters or {}, context)
     context.bus.write(MessageKey.SURFACE_GEOMETRY, SurfaceGeometry(site_origin=torch.zeros(count, 3)), WORLD)
     start = state(count, preset, altitude=20.0)
     context.bus.write(MessageKey.START_STATE, start, WORLD)
@@ -40,12 +40,14 @@ def make_metrics(count=1, episode_length=60.0):
 
 
 def state(
-    count, preset, altitude, vertical_speed=0.0, horizontal_speed=0.0, tilt_deg=0.0, leg_force=0.0, time=0.0, mass=7327.0, body_force=0.0
+    count, preset, altitude, vertical_speed=0.0, horizontal_speed=0.0, tilt_deg=0.0, leg_force=0.0, time=0.0, mass=7327.0, body_force=0.0,
+    probe_contact=0.0,
 ):
     """Build a TruthState with the given simple values for all environments (flat ground at z = 0)."""
     truth = make_truth_state(count)
     truth.footpad_height_above_ground[:] = altitude
     truth.body_contact[:] = body_force
+    truth.surface_probe_contact[:] = probe_contact
     truth.position[:] = torch.tensor([0.0, 0.0, altitude + preset.center_of_mass_height_above_footpad_plane])
     truth.velocity[:] = torch.tensor([horizontal_speed, 0.0, vertical_speed])
     axis = torch.tensor([[1.0, 0.0, 0.0]]).repeat(count, 1)
@@ -179,3 +181,43 @@ def test_nozzle_clearance_and_flat_footprint_on_flat_ground():
     assert record["minimum_nozzle_clearance_m"] == pytest.approx(preset.nozzle_exit_height_above_footpad_plane, abs=1e-4)
     assert record["touchdown_ground_slope_deg"] == pytest.approx(0.0, abs=1e-4)
     assert record["touchdown_ground_relief_m"] == pytest.approx(0.0, abs=1e-6)
+
+
+def sunken_nozzle_landing(metrics, context, preset):
+    """Land softly, but with the pads (and the nozzle rim) 0.6 m into the ground for one step."""
+    states = [state(1, preset, 0.1, -1.0, time=1.0)]
+    states.append(state(1, preset, -0.6, -0.3, leg_force=5000.0, time=1.02))
+    states += [state(1, preset, 0.0, 0.0, leg_force=3000.0, time=1.04 + 0.02 * k) for k in range(60)]
+    run(metrics, context, states)
+    return records_to_frame(metrics.drain_episode_records(), OUTCOME_NAMES).iloc[0]
+
+
+def test_nozzle_below_the_ground_is_recorded_but_not_a_failure_by_default():
+    """The default keeps a low nozzle clearance as a record only (the real skirt crushes)."""
+    metrics, context, preset = make_metrics()
+    record = sunken_nozzle_landing(metrics, context, preset)
+    assert record["minimum_nozzle_clearance_m"] == pytest.approx(preset.nozzle_exit_height_above_footpad_plane - 0.6, abs=1e-4)
+    assert record["outcome"] == "success"
+
+
+def test_nozzle_switch_turns_a_low_clearance_into_a_failure():
+    """With the switch on, a rim below the allowed clearance ends as nozzle_contact; above it, success."""
+    metrics, context, preset = make_metrics(parameters={"nozzle_clearance_counts_as_failure": True})
+    assert sunken_nozzle_landing(metrics, context, preset)["outcome"] == "nozzle_contact"
+    metrics, context, preset = make_metrics(parameters={"nozzle_clearance_counts_as_failure": True})
+    assert land(metrics, context, preset, vertical_speed=-1.0)["outcome"] == "success"
+    assert OUTCOME_CODE["body_contact"] == len(OUTCOME_NAMES) - 2  # older codes keep their number
+
+
+def test_first_probe_contact_time_and_height_are_recorded():
+    """The record keeps when the contact light first came on and the footpad height at that moment."""
+    metrics, context, preset = make_metrics()
+    states = [state(1, preset, 2.0, -1.0, time=0.5)]
+    states.append(state(1, preset, 1.7, -1.0, time=0.52, probe_contact=1.0))
+    states.append(state(1, preset, 0.1, -1.0, time=0.54, probe_contact=1.0))
+    states.append(state(1, preset, 0.0, -0.3, leg_force=5000.0, time=0.56, probe_contact=1.0))
+    states += [state(1, preset, 0.0, 0.0, leg_force=3000.0, time=0.58 + 0.02 * k, probe_contact=1.0) for k in range(60)]
+    run(metrics, context, states)
+    record = records_to_frame(metrics.drain_episode_records(), OUTCOME_NAMES).iloc[0]
+    assert record["probe_contact_time_s"] == pytest.approx(0.52)
+    assert record["footpad_height_at_probe_contact_m"] == pytest.approx(1.7)
