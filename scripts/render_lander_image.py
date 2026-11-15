@@ -7,7 +7,8 @@ Example::
 
 The lander is dropped from 0.3 m with the engine off, settles for 6 s, and a camera takes one
 picture. The picture shows the simple collision shapes that the simulator uses (a cylinder for
-the two stages, a sphere per footpad) and a thin visual cylinder for each strut.
+the descent stage, a box for the ascent stage, a dish per footpad) and a thin visual cylinder for
+each strut. The surface probes and the nozzle have no shape and do not show.
 """
 
 import argparse

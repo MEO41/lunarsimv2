@@ -6,20 +6,27 @@ sensors, faults, estimators, agents or physics in one line of a scenario file.
 
 ![Overview of the slot loop](docs/figures/slot_loop_overview.png)
 
-**The slot loop of LunarSim v2 as built in milestone 1a.** (1) A scenario file names one
-binding per slot and a lander preset; the registry check stops the run if a required message
-has no provider or a flight-side binding would read the true state. (2) `LanderEnv` runs the
-eight environment slots inside the `DirectRLEnv` hooks for N environments on the GPU: start,
-plant, sensors, faults and navigation produce the estimate; actuators and surface turn the
-command into a wrench on the plant; metrics judge the touchdown. Blue slots belong to the
-simulated world and may read `TruthState`; yellow slots are flight software and may not,
-except `nav: truth`. (3) The agent sits outside the environment and exchanges only
-`Observation` and `Command`; here it is the classical ZEM/ZEV baseline. (4) Every run writes a
-manifest and one record per episode, and figures are made from these files alone.
+**The slot loop of LunarSim v2 as built up to milestone 3.** (1) A scenario file (here the
+sensor-failure study `s3_faults`) names one binding per slot and a lander preset; the registry
+check stops the run if a required message has no provider or a flight-side binding would read
+the true state. (2) `LanderEnv` runs the eight environment slots inside the `DirectRLEnv` hooks
+for N environments on the GPU. Start puts each lander in its start box with a navigation error;
+the sensor suite (IMU, radar altimeter, Doppler velocimeter, optional flash LiDAR, propellant
+gauge, contact probes) reads the true state; faults corrupt or delay the readings; the filter
+(`ekf`, `ekf_fdi` with failure detection, or `ekf_late_fusion`) makes the estimate. Actuators
+and surface (flat ground or the measured Apollo 17 terrain) turn the command into a wrench on
+the plant; metrics judge the touchdown and the response to each fault. Blue slots belong to the
+simulated world and may read `TruthState`; yellow slots are flight software and may not.
+(3) The agent sits outside the environment and exchanges only `Observation` and `Command`: the
+classical ZEM/ZEV baseline or a PPO policy (`ppo_mlp`, `ppo_gru`, `ppo_attention`) trained with
+rsl_rl. (4) Every run writes a manifest and one record per episode, and figures and comparisons
+are made from these files alone.
 
 ![The lander at rest](docs/figures/lander_at_rest.png)
 
-*The Apollo LM preset at rest on flat ground (collision shapes of the simulator).*
+*The Apollo LM preset at rest on flat ground (collision shapes of the simulator): a cylinder for
+the descent stage, a box for the ascent stage, dish footpads on spring-damper struts. The three
+surface probes and the nozzle have no collision shape and are not drawn.*
 
 ## Real terrain: Apollo 17 with craters and rocks
 
