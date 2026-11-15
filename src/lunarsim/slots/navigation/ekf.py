@@ -145,28 +145,41 @@ class ExtendedKalmanFilterNavigation(BindingBase):
         """Propagate, fuse the new measurements, and write the estimate."""
         geometry: SurfaceGeometry = bus.read(MessageKey.SURFACE_GEOMETRY, self)
         imu = bus.read(IMU_KEY, self)
-        delta_velocity, delta_angle = imu.value[:, :3], imu.value[:, 3:6]
-        self.filter.propagate(delta_velocity, delta_angle, dt, imu.valid)
-        self.body_rates = torch.where(imu.valid.unsqueeze(1), delta_angle / dt - self.filter.gyro_bias, self.body_rates)
-
+        self.propagate_with(imu.value, imu.valid, dt)
         altimeter = bus.read(RADAR_ALTIMETER_KEY, self)
-        predicted, jacobian, hit = self.filter.predict_ranges(self.altimeter_directions, geometry, self.altimeter_maximum_range)
-        use = altimeter.valid.unsqueeze(1) & torch.isfinite(altimeter.value) & hit
-        expected = (hit & (predicted >= self.altimeter_minimum_range)).any(dim=1)
-        self.fuse(0, torch.nan_to_num(altimeter.value - predicted), jacobian, altimeter.covariance, use, altimeter.stamp, altimeter.valid, expected)
-
+        self.fuse_altimeter(geometry, altimeter.value, altimeter.valid, altimeter.stamp, altimeter.covariance)
         doppler = bus.read(DOPPLER_VELOCIMETER_KEY, self)
+        self.fuse_doppler(geometry, doppler.value, doppler.valid, doppler.stamp, doppler.covariance)
+        self.finish_step(bus, geometry, dt)
+
+    def propagate_with(self, imu_value: Tensor, imu_valid: Tensor, dt: float) -> None:
+        """Propagate with one IMU sample (delta-velocity, delta-angle) and refresh the body rates."""
+        delta_velocity, delta_angle = imu_value[:, :3], imu_value[:, 3:6]
+        self.filter.propagate(delta_velocity, delta_angle, dt, imu_valid)
+        self.body_rates = torch.where(imu_valid.unsqueeze(1), delta_angle / dt - self.filter.gyro_bias, self.body_rates)
+
+    def fuse_altimeter(self, geometry: SurfaceGeometry, value: Tensor, valid: Tensor, stamp: Tensor, covariance: Tensor) -> None:
+        """Fuse one radar altimeter message (slant range along body -z)."""
+        predicted, jacobian, hit = self.filter.predict_ranges(self.altimeter_directions, geometry, self.altimeter_maximum_range)
+        use = valid.unsqueeze(1) & torch.isfinite(value) & hit
+        expected = (hit & (predicted >= self.altimeter_minimum_range)).any(dim=1)
+        self.fuse(0, torch.nan_to_num(value - predicted), jacobian, covariance, use, stamp, valid, expected)
+
+    def fuse_doppler(self, geometry: SurfaceGeometry, value: Tensor, valid: Tensor, stamp: Tensor, covariance: Tensor) -> None:
+        """Fuse one Doppler message (three line-of-sight velocities, three ranges)."""
         beams = self.doppler_directions.shape[0]
         velocity_prediction, velocity_jacobian = self.filter.predict_line_of_sight_velocities(self.doppler_directions)
         range_prediction, range_jacobian, range_hit = self.filter.predict_ranges(
             self.doppler_directions, geometry, self.doppler_maximum_range
         )
-        residual = torch.cat((doppler.value[:, :beams] - velocity_prediction, doppler.value[:, beams:] - range_prediction), dim=1)
+        residual = torch.cat((value[:, :beams] - velocity_prediction, value[:, beams:] - range_prediction), dim=1)
         jacobian = torch.cat((velocity_jacobian, range_jacobian), dim=1)
-        use = doppler.valid.unsqueeze(1) & torch.isfinite(doppler.value) & torch.cat((range_hit, range_hit), dim=1)
+        use = valid.unsqueeze(1) & torch.isfinite(value) & torch.cat((range_hit, range_hit), dim=1)
         expected = (range_hit & (range_prediction >= self.doppler_minimum_range)).any(dim=1)
-        self.fuse(1, torch.nan_to_num(residual), jacobian, doppler.covariance, use, doppler.stamp, doppler.valid, expected)
+        self.fuse(1, torch.nan_to_num(residual), jacobian, covariance, use, stamp, valid, expected)
 
+    def finish_step(self, bus, geometry: SurfaceGeometry, dt: float) -> None:
+        """Take the gauge and the contact light, advance the filter clock, and write the estimate."""
         gauge = bus.read(PROPELLANT_GAUGE_KEY, self)
         self.mass = torch.where(gauge.valid & torch.isfinite(gauge.value[:, 0]), gauge.value[:, 0], self.mass)
         contact = bus.read(CONTACT_PROBE_KEY, self)

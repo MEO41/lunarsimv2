@@ -144,3 +144,23 @@ def test_same_seed_draws_the_same_faults():
     assert not torch.equal(draw(1), draw(2))
     codes = draw(1)[:256]
     assert set(codes.long().tolist()) == set(range(1, len(FAULT_CODE)))
+
+
+def test_fault_grid_covers_every_cell_evenly():
+    """160 environments: each of the 80 cells twice, with the grid's onsets and mid sizes."""
+    from lunarsim.slots.faults.fault_grid import GRID_ONSET_ALTITUDES_M, apply_fault_grid, grid_cells
+
+    with open(default_config_directory() / "faults" / "schedule.yaml") as file:
+        parameters = yaml.safe_load(file)
+    parameters.pop("binding")
+    context = make_binding_context(160)
+    context.shared_data["control_step_duration"] = STEP
+    schedule = FaultSchedule(parameters, context)
+    apply_fault_grid(schedule, 160, "cpu")
+    schedule.reset(torch.arange(160), torch.Generator().manual_seed(1000))
+    cells = {(int(code), int(target), float(onset)) for code, target, onset in zip(schedule.fault_type, schedule.target, schedule.onset_altitude)}
+    assert len(grid_cells()) == 80 and len(cells) == 80
+    assert set(schedule.onset_altitude.tolist()) == set(GRID_ONSET_ALTITUDES_M)
+    bias = schedule.fault_type == FAULT_CODE["bias"]
+    altimeter = schedule.target == TARGET_NAMES.index("radar_altimeter")
+    assert torch.allclose(schedule.size[bias & altimeter].abs(), torch.tensor(2.75))  # middle of 0.5-5 m

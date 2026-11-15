@@ -21,8 +21,10 @@ summary: Every binding that exists, per slot, with its file and what it does; th
 | sensors | `none` | `slots/sensors/none.py` | No sensors |
 | sensors | `terminal_suite` | `slots/sensors/terminal_suite.py`, `sensor_models.py` | IMU, radar altimeter, Doppler velocimeter, propellant gauge, probe switches; with `terminal_suite_with_lidar.yaml` also the cheap flash LiDAR ([[sensors-and-ekf]]) |
 | faults | `schedule` | `slots/faults/fault_schedule.py` | One seeded fault per episode on altimeter or Doppler ([[faults-and-detection]]) |
+| faults | `delay` | `slots/faults/delayed_delivery.py` | Late delivery with capture stamps (S4) |
 | faults | `none` | `slots/faults/none.py` | No faults |
 | nav | `ekf_fdi` | `slots/navigation/ekf_fdi.py` | `ekf` plus age check, chi-square gate, isolation, loss ([[faults-and-detection]]) |
+| nav | `ekf_late_fusion` | `slots/navigation/ekf_late_fusion.py` | Applies late samples at their capture time, replays to now (S4) |
 | nav | `ekf` | `slots/navigation/ekf.py`, `error_state_kalman_filter.py` | 15-state error-state filter on IMU, altimeter, Doppler; never reads truth ([[sensors-and-ekf]]) |
 | nav | `truth` | `slots/navigation/truth.py` | Copies `TruthState` into `NavEstimate` (16 values, including the probe contact light), zero covariance |
 | actuators | `none` | `slots/actuators/none.py` | Zero wrench |
@@ -42,6 +44,7 @@ summary: Every binding that exists, per slot, with its file and what it does; th
   spacing 30 m, episode 90 s.
 - `s2_terminal_ekf.yaml`: S1 with `sensors: terminal_suite`, `nav: ekf`, `start.nav_error` 1 m / 0.2 m/s / 0.1°.
 - `s3_faults.yaml`: S2 with `faults: schedule`, `nav: ekf_fdi`, `metrics: fault_response`; ZEM/ZEV baseline row.
+- `s4_late_fusion.yaml`: S2 with `faults: delay` (Doppler 50-200 ms) and `nav: ekf_late_fusion`.
 - `apollo17_terminal_truth.yaml`: as S1 with surface `apollo17_taurus_littrow`
   (`measured_terrain`); spacing 1 m, first spawn 40 m up; needs the downloaded height maps.
 

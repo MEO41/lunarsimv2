@@ -1,0 +1,5 @@
+binding: delay
+# Late delivery of sensor samples (scenario S4, src/lunarsim/slots/faults/delayed_delivery.py).
+delay_ms:
+  doppler_velocimeter: [50, 200]   # design S4
+jitter_ms: 20                      # design S4

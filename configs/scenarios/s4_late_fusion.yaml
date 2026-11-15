@@ -1,0 +1,34 @@
+# @package _global_
+# S4 Late fusion with asynchronous, delayed sensors (scenario catalogue, section S4): S2 with the
+# Doppler samples arriving 50-200 ms late (jitter 20 ms). Compare three filters: nav=ekf (late data
+# used as if new), nav=ekf_fdi (late data dropped by the age check), nav=ekf_late_fusion (applied
+# at the capture time). The design's camera_cheap sensor is not built yet (milestone 6).
+defaults:
+  - /start: terminal_box
+  - /plant: physx_site
+  - /surface: flat
+  - /sensors: terminal_suite
+  - /faults: delay
+  - /nav: ekf_late_fusion
+  - /agent: zem_zev
+  - /actuators: engine_rcs_pulse
+  - /metrics: touchdown
+  - /training: none
+  - /landers@lander: apollo_lunar_module
+  - _self_
+
+name: s4_late_fusion
+seed: 0
+start:
+  nav_error:
+    position_m: 1.0
+    velocity_mps: 0.2
+    attitude_deg: 0.1
+observation:
+  include_navigation_health: true
+env:
+  num_envs: 64
+  env_spacing_m: 30.0
+  physics_step_s: 0.005
+  physics_steps_per_control_step: 4
+  episode_length_s: 90.0

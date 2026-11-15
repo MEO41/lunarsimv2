@@ -9,7 +9,8 @@ Writes ``runs/<run_name>/manifest.yaml``, ``episodes.parquet`` (one row per epis
 ``trajectories.parquet`` (a few environments, every control step). Figures are made from
 these files only: ``lunarsim figures runs/<run_name>``.
 
-Script arguments: ``run_name=``, ``episodes_per_env=`` (default 1), ``logged_envs=`` (default 16).
+Script arguments: ``run_name=``, ``episodes_per_env=`` (default 1), ``logged_envs=`` (default 16),
+``fault_grid=true`` (S3: the held-out fault test grid of ``slots/faults/fault_grid.py``).
 Every other ``key=value`` is a Hydra override of the scenario.
 """
 
@@ -37,7 +38,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 
 def main() -> None:
     """Run the evaluation and write the run files."""
-    script_options = {"run_name": None, "episodes_per_env": "1", "logged_envs": "16"}
+    script_options = {"run_name": None, "episodes_per_env": "1", "logged_envs": "16", "fault_grid": "false"}
     remaining_arguments = []
     for argument in scenario_arguments:
         key = argument.split("=", 1)[0]
@@ -52,6 +53,10 @@ def main() -> None:
 
     environment = LanderEnv(build_lander_env_cfg(scenario, device=arguments.device))
     agent = build_agent(environment)
+    if script_options["fault_grid"].lower() in ("true", "1", "yes"):
+        from lunarsim.slots.faults.fault_grid import apply_fault_grid
+
+        apply_fault_grid(environment.bindings["faults"], environment.num_envs, environment.device)
     trajectory_log = TrajectoryLog(environment, int(script_options["logged_envs"]))
     maximum_steps = int(1.2 * environment.max_episode_length * int(script_options["episodes_per_env"])) + 10
 

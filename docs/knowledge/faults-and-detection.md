@@ -72,5 +72,27 @@ samples are rejected one by one, not declared; dropout bursts only when longer t
 of the faults were present from the start (onset above the start altitude); 3.5 % of episodes
 had a false alarm.
 
+## Late data (scenario S4)
+
+- `faults: delay` (`slots/faults/delayed_delivery.py`, `configs/faults/delay.yaml`): every
+  sample of the listed sensors arrives late (design S4: Doppler 50-200 ms per episode, jitter
+  ±20 ms per sample), with its true capture stamp; no out-of-order delivery.
+- `nav: ekf_late_fusion` (`slots/navigation/ekf_late_fusion.py`): stores inputs and state of the
+  last 0.6 s; a late sample is inserted at its capture step and the filter replays to now
+  (batched; only replaying environments change their stored past). Without late data it is
+  exactly `ekf`.
+- CPU test (synthetic flight, Doppler 100-200 ms late), velocity error p95: no delay 4.5 mm/s;
+  late data used as new (`ekf`) 27.9 mm/s; dropped (`ekf_fdi` age check) 483 mm/s (velocity
+  unobserved); **late fusion 4.5 mm/s**, NEES 9.49.
+- Scenario `s4_late_fusion.yaml`; the design's `camera_cheap` sensor is not built (milestone 6).
+
+## Held-out fault grid (paper 1)
+
+`slots/faults/fault_grid.py`: 8 fault types × 2 targets × onsets 5, 10, 20, 30, 40 m = 80 cells,
+environment i gets cell i mod 80 (about 51 landings per cell at 4,096 envs), sizes at the middle
+of their ranges, seed 1000. `evaluate_agent.py fault_grid=true`. Queue for `minsky`:
+`scripts/minsky/queue_paper_one.sh` (S2 policy evaluation, S3 training of the three encoders
+5 seeds each, grid evaluation of everything plus ZEM/ZEV with `ekf_fdi` and `ekf`).
+
 - part of: [[slot-loop-architecture]]
 - extends: [[sensors-and-ekf]]

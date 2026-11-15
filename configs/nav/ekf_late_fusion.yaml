@@ -1,0 +1,8 @@
+# The ekf filter plus a buffer of past inputs and states; late samples are applied at their
+# capture time and the filter replays to now (src/lunarsim/slots/navigation/ekf_late_fusion.py).
+defaults:
+  - ekf
+  - _self_
+binding: ekf_late_fusion
+late_fusion:
+  buffer_seconds: 0.6   # model choice: longer than the longest S4 delay (200 ms + 20 ms jitter)
