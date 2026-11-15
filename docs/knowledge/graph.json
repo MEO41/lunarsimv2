@@ -181,6 +181,15 @@
       "path": "physx-contact-settings.md"
     },
     {
+      "id": "ppo-landing-agent",
+      "title": "PPO landing agent (milestone 1b)",
+      "type": "component",
+      "status": "current",
+      "updated": "2026-11-15",
+      "summary": "The ppo_mlp agent, its rsl_rl adapter, the landing reward, the training script, and how the design reached a policy that learns.",
+      "path": "ppo-landing-agent.md"
+    },
+    {
       "id": "project-goal-and-design-documents",
       "title": "Project goal and design documents",
       "type": "design",
@@ -203,7 +212,7 @@
       "title": "Rules from the user",
       "type": "rule",
       "status": "current",
-      "updated": "2026-11-14",
+      "updated": "2026-11-15",
       "summary": "Standing instructions for all work in this repository; read first in every session.",
       "path": "rules-from-the-user.md"
     },
@@ -438,6 +447,11 @@
     },
     {
       "source": "decisions-log",
+      "target": "ppo-landing-agent",
+      "relation": "mentions"
+    },
+    {
+      "source": "decisions-log",
       "target": "pending-user-decisions",
       "relation": "mentions"
     },
@@ -643,7 +657,7 @@
     },
     {
       "source": "milestone-roadmap-and-status",
-      "target": "rules-from-the-user",
+      "target": "ppo-landing-agent",
       "relation": "mentions"
     },
     {
@@ -742,6 +756,26 @@
       "relation": "recorded in"
     },
     {
+      "source": "ppo-landing-agent",
+      "target": "workstation-setup-and-machines",
+      "relation": "mentions"
+    },
+    {
+      "source": "ppo-landing-agent",
+      "target": "slot-loop-architecture",
+      "relation": "flies on"
+    },
+    {
+      "source": "ppo-landing-agent",
+      "target": "classical-agents",
+      "relation": "compared with"
+    },
+    {
+      "source": "ppo-landing-agent",
+      "target": "metrics-and-run-records",
+      "relation": "judged by"
+    },
+    {
       "source": "project-goal-and-design-documents",
       "target": "decisions-log",
       "relation": "mentions"
@@ -790,11 +824,6 @@
       "source": "replay-recording-and-rendering",
       "target": "drop-test-results",
       "relation": "used by"
-    },
-    {
-      "source": "rules-from-the-user",
-      "target": "milestone-roadmap-and-status",
-      "relation": "mentions"
     },
     {
       "source": "rules-from-the-user",

@@ -3,7 +3,7 @@ id: rules-from-the-user
 title: Rules from the user
 type: rule
 status: current
-updated: 2026-11-14
+updated: 2026-11-15
 summary: Standing instructions for all work in this repository; read first in every session.
 ---
 
@@ -33,7 +33,8 @@ These are the user's own instructions. They hold until the user changes them.
 - "All env code is **batched torch on the GPU**, with N envs as the first dimension. **No Python
   loop over envs.**"
 - **No RL until the user opens milestone 1b.** "No reward functions, no training code, no rsl_rl
-  setup." The session stopped at the M1a gate; see [[milestone-roadmap-and-status]].
+  setup." **Opened by the user on 2026-11-15** ("open m1b and train on minsky and on this
+  computer we continue with M2").
 - "**Ask before any choice that is hard to undo.**"
 - "If something in the design does not work in Isaac Lab, **stop and explain. Propose a fix; do
   not change the design silently.** When you explain, **use simple words**."

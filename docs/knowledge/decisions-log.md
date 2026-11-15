@@ -66,5 +66,11 @@ Newest at the bottom. "User" means the user decided; the others were proposed, e
 | 2026-11-15 | Nozzle clearance stays a record, not a failure; switch `nozzle_clearance_counts_as_failure` (default false) adds outcome `nozzle_contact` (code 11) | User: crushable skirt, keep it changeable |
 | 2026-11-15 | Struts stay straight (along body z) for now; the 23° lean comes with the honeycomb crush model in milestone 5 | User left it to Claude: the lean is only in a CAD-based secondary source, and both leg changes need the same re-validation |
 | 2026-11-15 | Heavy GPU runs move to the RTX 5090 machine `minsky` (SSH key login) | User request ([[workstation-setup-and-machines]]) |
+| 2026-11-15 | **Milestone 1b opened** by the user ("open m1b and train on minsky") | User |
+| 2026-11-15 | PPO action mapping: throttle (centred on hover) + wanted tilt flown by the classical attitude controller (`action_mode: attitude_commands`); `axis_commands` (raw jet couples) stays selectable | With raw jet commands the policy did not learn to hold attitude in 300 iterations; the comparison with ZEM/ZEV then isolates guidance |
+| 2026-11-15 | Policy decides every 5 control steps (10 Hz), discount 0.99; attitude controller at 50 Hz | At 50 Hz with discount 0.995 the policy looked ~4 s ahead and learned to hover until the propellant ran out |
+| 2026-11-15 | Reward: outcome (+100 / −100 / −300 without touchdown), capped touchdown term, Gaudet-style velocity tracking, attitude, propellant; time limit is a real end (no bootstrapping) | Trials learned to fly away (no-touchdown failure was cheaper than a crash) and to hover (potential shaping with discount); see [[ppo-landing-agent]] |
+| 2026-11-15 | `EpisodeEvents` carries the outcome code, first-contact flag and touchdown values; env `_get_rewards` and a `critic` truth group are the only env changes for M1b | M1b task list items 2 and 4 |
+| 2026-11-15 | Second Isaac environment on `minsky` (`~/lunarsim-workstation`) at the pinned versions; the user's `~/isaac-env` (Isaac Sim 6.2, newer Isaac Lab) is left untouched | Its Isaac Lab cloner API differs (`clone_plan_from_env_0`); pinned setup keeps results comparable |
 
 Decisions still open: [[pending-user-decisions]].

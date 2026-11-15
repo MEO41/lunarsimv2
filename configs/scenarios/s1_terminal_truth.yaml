@@ -1,6 +1,6 @@
 # @package _global_
 # S1 Terminal touchdown with truth state (scenario catalogue, section S1).
-# Baseline run: agent zem_zev. The learned agent (ppo_mlp) arrives in milestone 1b.
+# Baseline run: agent zem_zev. Learned agent: scripts/train_ppo.py (agent=ppo_mlp training=landing_ppo).
 defaults:
   - /start: terminal_box
   - /plant: physx_site
@@ -11,6 +11,7 @@ defaults:
   - /agent: zem_zev
   - /actuators: engine_rcs_pulse
   - /metrics: touchdown
+  - /training: none
   - /landers@lander: apollo_lunar_module
   - _self_
 

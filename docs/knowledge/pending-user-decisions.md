@@ -11,7 +11,6 @@ summary: Questions that wait for the user's answer; work that depends on them mu
 
 | # | Question | Default if the user agrees | Blocks |
 | --- | --- | --- | --- |
-| 2 | Open milestone 1b (RL)? | No; only when the user says so | All RL work |
 
 Answered and closed (2026-11-15, later): engine cut-off **probe contact** ("go with the
 probe"); nozzle clearance **not a failure by default, but switchable**; struts **left to

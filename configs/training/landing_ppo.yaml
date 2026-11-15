@@ -1,0 +1,18 @@
+# Training section for PPO on the landing task (milestone 1b). See src/lunarsim/env/reward_terms.py
+# for the meaning of every weight. All values are model choices for training.
+critic_observation: truth   # asymmetric actor-critic: the critic also sees TruthState
+reward:
+  success: 100.0
+  failure: -100.0                       # failed touchdown
+  failure_without_touchdown: -300.0     # flew away, timed out or tipped in the air: worse than any crash
+  touchdown_weight: 10.0                # times sum(min((value / limit)^2, cap)) at the first contact
+  touchdown_term_cap: 4.0
+  tracking_weight_per_s: 1.0            # per m/s of velocity error, per second of flight
+  tilt_weight_per_s: 1.0                # per rad, per second of flight
+  rate_weight_per_s: 1.0                # per rad/s, per second of flight
+  horizontal_time_constant_s: 10.0
+  maximum_wanted_horizontal_speed_mps: 2.0
+  vertical_time_constant_s: 4.0
+  wanted_touchdown_speed_mps: 0.5
+  maximum_wanted_descent_speed_mps: 6.0
+  propellant_weight_per_kg: -0.05

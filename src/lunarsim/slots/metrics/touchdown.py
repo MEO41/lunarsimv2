@@ -263,7 +263,11 @@ class TouchdownMetrics(BindingBase):
         truncated = (truth.time >= self.episode_length - 0.5 * dt) & ~terminated
 
         finished = terminated | truncated
+        outcome_code = torch.full_like(self.episode_number, -1)
         if bool(finished.any()):
+            propellant_used = self.start["mass"] - truth.mass
+            outcome = self.classify(settled, tipped_over, out_of_bounds, propellant_used)
+            outcome_code = torch.where(finished, outcome, outcome_code)
             self._store_records(finished, truth, tilt, settled, tipped_over, out_of_bounds)
 
         self.previous["vertical_speed"] = truth.velocity[:, 2].clone()
@@ -271,7 +275,14 @@ class TouchdownMetrics(BindingBase):
         self.previous["tilt"] = tilt
         self.previous["tilt_rate"] = tilt_rate
         self.previous_position = truth.position.clone()
-        bus.write(MessageKey.EPISODE_EVENTS, EpisodeEvents(terminated=terminated, truncated=truncated), self)
+        events = EpisodeEvents(
+            terminated=terminated,
+            truncated=truncated,
+            outcome_code=outcome_code,
+            first_contact=first_contact,
+            touchdown_values={name: values.clone() for name, values in self.touchdown.items()},
+        )
+        bus.write(MessageKey.EPISODE_EVENTS, events, self)
 
     # ---- records ----
 

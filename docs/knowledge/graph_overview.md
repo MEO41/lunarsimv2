@@ -23,6 +23,7 @@ flowchart LR
     measured_terrain_surface["Measured terrain surface (Apollo 17)"]
     metrics_and_run_records["Touchdown metric and run records"]
     physx_contact_settings["PhysX contact settings"]
+    ppo_landing_agent["PPO landing agent (milestone 1b)"]
     replay_recording_and_rendering["Replay recording and rendering"]
     slot_loop_architecture["Slot loop architecture"]
   end
@@ -91,6 +92,9 @@ flowchart LR
   milestone_roadmap_and_status -- "history" --> session_history
   physx_contact_settings -- "used by" --> lander_articulation_model
   physx_contact_settings -- "recorded in" --> decisions_log
+  ppo_landing_agent -- "flies on" --> slot_loop_architecture
+  ppo_landing_agent -- "compared with" --> classical_agents
+  ppo_landing_agent -- "judged by" --> metrics_and_run_records
   project_goal_and_design_documents -- "governs" --> milestone_roadmap_and_status
   project_goal_and_design_documents -- "governs" --> slot_loop_architecture
   replay_recording_and_rendering -- "used by" --> contact_check_results
@@ -133,6 +137,7 @@ flowchart LR
 | [Measured terrain surface (Apollo 17)](measured-terrain-surface.md) | component | current | The measured_terrain surface binding - real NASA height map, craters and rocks from published laws, one landing target per environment, exact GPU height lookup. |
 | [Touchdown metric and run records](metrics-and-run-records.md) | component | current | How a landing is judged (outcome codes, detection settings) and what every run writes to disk, plus the figure and summary tools. |
 | [PhysX contact settings](physx-contact-settings.md) | component | current | Solver and contact settings from the contact-rest study, why PGS and not TGS, and the measured residuals. |
+| [PPO landing agent (milestone 1b)](ppo-landing-agent.md) | component | current | The ppo_mlp agent, its rsl_rl adapter, the landing reward, the training script, and how the design reached a policy that learns. |
 | [Replay recording and rendering](replay-recording-and-rendering.md) | component | current | How runs are recorded frame by frame and rendered later as videos or stills, on a physics-free stage, with footpad force arrows. |
 | [Slot loop architecture](slot-loop-architecture.md) | component | current | The nine slots, the message bus with its truth guard, the hook order of one control step, timing and message fields. |
 | [Decisions log](decisions-log.md) | decision | current | Every decision taken so far, with date and reason; the place to add new ones. |

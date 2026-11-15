@@ -1,0 +1,3 @@
+# No training: zero reward and no critic observation group (evaluation of any agent).
+critic_observation: none
+reward: null

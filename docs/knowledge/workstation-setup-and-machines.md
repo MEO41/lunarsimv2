@@ -14,10 +14,37 @@ summary: The two machines, where the Python environment lives on each, how to se
 | Machine | GPU | Status | Isaac Python environment |
 | --- | --- | --- | --- |
 | Development machine (until 2026-11-14) | RTX 5060, 8 GB, driver 595.99.02, Ubuntu 24.04 | All M0/M1a results | `/media/noron/DISK02/isaac-lab-native/env_isaaclab`, Isaac Lab source at `/media/noron/DISK02/isaac-lab-native/IsaacLab` |
-| New machine (from 2026-11-14) | RTX 5090, 32 GB | Being set up | Default from the setup script: `~/lunarsim-workstation/env_isaaclab` |
+| `minsky` (from 2026-11-15), heavy GPU runs | RTX 5090, 32 GB; 32 CPU threads; 60 GB RAM; 1.9 TB disk | Set up 2026-11-15 by hand (not by the setup script) | **`~/lunarsim-workstation/env_isaaclab`** (pinned setup, user `minsky`); the user's `~/isaac-env` (Isaac Sim 6.2) is not used. Repo at `~/lunarsimv2`, height maps copied into `assets/terrain/apollo17/` |
 
 Repository on the development machine: `/home/noron/Desktop/MEO/lunarsimv2`. On a new
 machine, wherever it is cloned.
+
+## Using `minsky` from the development machine
+
+The two machines share the local network and Tailscale. `minsky` is at `minsky.local`
+(10.9.25.45) and at Tailscale address 100.104.128.23 (`minsky.tailc4da8d.ts.net`). Log in as
+user `minsky` with the development machine's key `~/.ssh/id_ed25519` (installed 2026-11-15;
+no password needed, and none is written in this repository):
+
+```bash
+ssh minsky@100.104.128.23
+source ~/lunarsim-workstation/env_isaaclab/bin/activate && export OMNI_KIT_ACCEPT_EULA=YES && cd ~/lunarsimv2 && git pull
+python scripts/evaluate_agent.py scenario=apollo17_terminal_truth num_envs=4096 run_name=... seed=0
+```
+
+Work flow: edit and commit on the development machine, push, `git pull` on `minsky`, run
+there, then copy the run directories back with `rsync -a minsky@100.104.128.23:lunarsimv2/runs/<name> runs/`.
+`gh` on `minsky` is logged in as MEO41. The user's own environment `~/isaac-env` has Isaac Sim 6.2.0 and a newer Isaac Lab whose cloner
+API differs, so LunarSim does not run in it. LunarSim uses a second environment made by
+`scripts/setup_workstation.sh` (2026-11-15): `~/lunarsim-workstation/env_isaaclab`, Isaac Sim
+6.0.1, Isaac Lab `e86463d`, rsl_rl 5.4.1. 18 of 20 checks agree: torch and torchvision are the
+CUDA 12.8 builds (Isaac Lab's install step replaced the cu130 wheels). The first Isaac launch in
+a new environment asks for the NVIDIA EULA on stdin, which blocks scripts: set
+`OMNI_KIT_ACCEPT_EULA=YES` (the user had accepted it in `~/isaac-env`). All 15 GPU test files pass there.
+
+```bash
+source ~/lunarsim-workstation/env_isaaclab/bin/activate && export OMNI_KIT_ACCEPT_EULA=YES
+```
 
 ## Pinned software (`requirements-pinned.txt`)
 

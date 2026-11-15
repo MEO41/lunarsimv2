@@ -297,7 +297,19 @@ class SurfaceGeometry:
 
 @dataclass
 class EpisodeEvents:
-    """Output of the metrics slot: which environments ended, and why."""
+    """Output of the metrics slot: which environments ended, and why.
+
+    The optional fields let a reward read the judgement of the metrics slot (milestone 1b)
+    without judging the landing a second time. A metrics binding that does not judge leaves
+    them empty.
+    """
 
     terminated: Tensor  # (N,) bool, the episode ended by an event (touchdown, tip-over, ...)
     truncated: Tensor  # (N,) bool, the episode ended by the time limit
+    # Outcome code of environments whose episode ended in this step, -1 for the others.
+    outcome_code: Tensor | None = None  # (N,) long
+    # True in the control step in which the first contact was seen.
+    first_contact: Tensor | None = None  # (N,) bool
+    # Approach values of the first contact (from the step before it), in SI units and radians:
+    # vertical speed (negative down), horizontal speed, tilt, tilt rate.
+    touchdown_values: dict[str, Tensor] | None = None

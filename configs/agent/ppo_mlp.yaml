@@ -1,0 +1,39 @@
+binding: ppo_mlp
+# Exported actor of a training run (scripts/train_ppo.py writes runs/<run>/policy.pt).
+policy_path: null
+# Action mapping (src/lunarsim/agents/rsl_rl/policy_action_adapter.py): attitude_commands =
+# throttle + wanted tilt flown by the classical attitude controller; axis_commands = throttle +
+# three jet turn commands.
+action_mode: attitude_commands
+maximum_tilt_deg: 15.0
+# The policy decides every 5 control steps (10 Hz guidance); the attitude controller fires the
+# jets every control step (50 Hz). At 50 Hz decisions the 0.995 discount looked only ~4 s ahead
+# and the policy learned to hover until the propellant ran out.
+policy_period_steps: 5
+# Training settings (rsl_rl 5.4 OnPolicyRunner). Model choices, starting from Isaac Lab's
+# default PPO settings for locomotion tasks; changed: no entropy bonus.
+ppo:
+  num_steps_per_env: 24          # decisions per environment per iteration (2.4 s)
+  max_iterations: 1500
+  save_interval: 100
+  empirical_normalization: true
+  actor:
+    hidden_dims: [256, 256, 128]
+    activation: elu
+    initial_noise_std: 0.5
+  critic:
+    hidden_dims: [256, 256, 128]
+    activation: elu
+  algorithm:
+    num_learning_epochs: 5
+    num_mini_batches: 4
+    learning_rate: 0.0003
+    schedule: adaptive
+    gamma: 0.99             # per decision (0.1 s): looks about 10 s ahead
+    lam: 0.95
+    entropy_coef: 0.0       # actions are clipped to [-1, 1]: a wide noise costs nothing, so no bonus for it
+    desired_kl: 0.01
+    max_grad_norm: 1.0
+    value_loss_coef: 1.0
+    use_clipped_value_loss: true
+    clip_param: 0.2

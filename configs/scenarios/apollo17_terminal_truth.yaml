@@ -13,6 +13,7 @@ defaults:
   - /agent: zem_zev
   - /actuators: engine_rcs_pulse
   - /metrics: touchdown
+  - /training: none
   - /landers@lander: apollo_lunar_module
   - _self_
 

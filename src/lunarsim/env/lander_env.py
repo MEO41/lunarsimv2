@@ -6,9 +6,14 @@ Hook order of one control step (from the design, "One control step"):
 1. ``_pre_physics_step``  agent output -> Command; actuators take the command
 2. ``_apply_action``      actuators + surface -> Wrench -> plant (repeats every PhysX substep)
 3. ``_get_dones``         plant state is read, then metrics
-4. ``_get_rewards``       reward (zero until milestone 1b)
+4. ``_get_rewards``       reward from the scenario's ``training.reward`` section (zero without it)
 5. ``_reset_idx``         start, then every slot resets (only finished environments)
 6. ``_get_observations``  plant, sensors, faults, navigation -> Observation
+
+Training (milestone 1b): with a ``training:`` section in the scenario, ``_get_rewards`` returns
+the landing reward (``reward_terms.py``), and ``training.critic_observation: truth`` adds a
+``critic`` observation group built from ``TruthState`` through a logged truth path (asymmetric
+actor-critic, design section "Message bus"). The actor's ``policy`` group never changes.
 """
 
 from __future__ import annotations
@@ -48,6 +53,30 @@ class _EpisodeEventsReader:
     reads_truth = False
 
 
+class _TrainingTruthReader:
+    """Training-side reader of TruthState (reward and critic group); its truth reads are logged."""
+
+    requires = frozenset({MessageKey.TRUTH_STATE, MessageKey.EPISODE_EVENTS})
+    provides = frozenset()
+    reads_truth = True
+
+
+def truth_observation_vector(truth) -> torch.Tensor:
+    """Return the critic's view of the truth in the NavigationStateLayout order, (N, 16)."""
+    return torch.cat(
+        (
+            truth.position,
+            truth.velocity,
+            truth.orientation_quaternion,
+            truth.angular_velocity,
+            truth.mass.unsqueeze(1),
+            truth.footpad_height_above_ground.unsqueeze(1),
+            truth.surface_probe_contact.unsqueeze(1),
+        ),
+        dim=1,
+    ).to(torch.float32)
+
+
 class LanderEnv(DirectRLEnv):
     """Runs the eight environment slots in the order of the design."""
 
@@ -72,6 +101,23 @@ class LanderEnv(DirectRLEnv):
         for slot in SlotName.INSIDE_ENVIRONMENT:
             self.bindings[slot].initialize(self)
         self._zero_reward = torch.zeros(self.num_envs, device=self.device)
+        self._training_truth_reader = _TrainingTruthReader()
+        training = dict(self.scenario.resolved.get("training") or {})
+        self.critic_observation = str(training.get("critic_observation", "none"))
+        if self.critic_observation not in ("none", "truth"):
+            raise ValueError(f"training.critic_observation must be 'none' or 'truth', not '{self.critic_observation}'")
+        self.reward_terms = None
+        if training.get("reward") is not None:
+            from lunarsim.env.reward_terms import LandingRewardTerms
+
+            self.reward_terms = LandingRewardTerms(
+                dict(training["reward"]),
+                self.binding_context.shared_data["lander_preset"],
+                self.num_envs,
+                self.device,
+                self.scenario.control_step_duration,
+            )
+        self.last_reward_terms: dict[str, torch.Tensor] = {}
 
     def _setup_scene(self) -> None:
         """Build the bindings, check the loop, and let the bindings create the scene."""
@@ -166,8 +212,13 @@ class LanderEnv(DirectRLEnv):
 
     # ---- hook 4 ----
     def _get_rewards(self) -> torch.Tensor:
-        """Return zero. Reward terms are added with the first learned agent (milestone 1b)."""
-        return self._zero_reward
+        """Return the landing reward of this control step, or zero when the scenario has none."""
+        if self.reward_terms is None:
+            return self._zero_reward
+        truth = self.bus.read(MessageKey.TRUTH_STATE, self._training_truth_reader)
+        events: EpisodeEvents = self.bus.read(MessageKey.EPISODE_EVENTS, self._training_truth_reader)
+        reward, self.last_reward_terms = self.reward_terms.compute(truth, events)
+        return reward
 
     # ---- hook 5 ----
     def _reset_idx(self, env_ids: Sequence[int] | None) -> None:
@@ -182,6 +233,8 @@ class LanderEnv(DirectRLEnv):
         start_binding.step(self.bus, 0.0)
         for slot in self.RESET_ORDER:
             self.bindings[slot].reset(env_ids, self.random_generators.generator_for(slot))
+        if getattr(self, "reward_terms", None) is not None:
+            self.reward_terms.reset(env_ids)
 
     # ---- hook 6 ----
     def _get_observations(self) -> dict:
@@ -192,4 +245,8 @@ class LanderEnv(DirectRLEnv):
         estimate: NavEstimate = self.bus.read(MessageKey.NAVIGATION_ESTIMATE, self._observation_builder)
         observation = Observation(policy=estimate.mean)
         self.bus.write(MessageKey.OBSERVATION, observation, self._observation_builder)
-        return {"policy": observation.policy}
+        groups = {"policy": observation.policy}
+        if getattr(self, "critic_observation", "none") == "truth":
+            truth = self.bus.read(MessageKey.TRUTH_STATE, self._training_truth_reader)
+            groups["critic"] = truth_observation_vector(truth)
+        return groups
