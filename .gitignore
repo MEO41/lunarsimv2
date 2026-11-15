@@ -18,6 +18,7 @@ pyrightconfig.json
 
 runs/
 *.parquet
+!results/**/*.parquet
 .hydra/
 
 # Public NASA height maps: downloaded by scripts/download_height_maps.py, never committed.

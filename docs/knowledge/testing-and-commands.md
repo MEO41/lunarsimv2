@@ -44,6 +44,8 @@ python scripts/render_replay.py replay=runs/landing_videos/landings.npz mode=vid
 python scripts/contact_check.py                                                   # then:
 python scripts/render_replay.py replay=runs/contact_check/contacts.npz mode=stills
 python scripts/render_replay.py replay=runs/drop_test_5m/flips.npz mode=video
+bash scripts/push_run_results.sh                  # results of every finished run -> results/ on GitHub (user rule)
+python scripts/archive_run_results.py runs/<run_name>   # only copy into results/ (no commit)
 lunarsim figures runs/<run_name>
 lunarsim summary runs/<run_name>
 lunarsim knowledge-graph            # rebuild graph.json and graph_overview.md

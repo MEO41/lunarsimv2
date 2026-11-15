@@ -40,6 +40,11 @@ These are the user's own instructions. They hold until the user changes them.
   not change the design silently.** When you explain, **use simple words**."
 - "**Small commits with clear messages.** Push them to https://github.com/MEO41/lunarsimv2.git".
   Keep `PROGRESS.md` up to date, and also this knowledge graph ([[knowledge-graph-tooling]]).
+- **Every run's results go to GitHub** (2026-11-15): "after every run take the results and commit
+  them on github so when we need it we can look through the commits and the results to see what
+  changed responsible for the results". Done by `scripts/push_run_results.sh` into `results/`
+  (manifest with the code commit, summary, episodes or policy and training curve, log); a
+  watcher runs it every 5 minutes on `minsky` ([[testing-and-commands]]).
 
 ## Requests from 2026-11-14 about the terrain work (see [[terrain-integration-plan]])
 
