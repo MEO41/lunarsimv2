@@ -76,5 +76,6 @@ Newest at the bottom. "User" means the user decided; the others were proposed, e
 | 2026-11-15 | Beams ray-cast on the surface's ground lookup, not Isaac Lab `RayCaster` | Same ground as plant and metrics, flat ground included |
 | 2026-11-15 | `nav: ekf` = 15-state error-state filter, float64 covariance, perfect onboard map | Gate test NEES 9.78 on recorded truth ([[sensors-and-ekf]]) |
 | 2026-11-15 | First navigation estimate written by the start slot (`initial_navigation_state`) from its own generator | The filter must not read truth; S1 and S2 keep identical true starts per seed |
+| 2026-11-15 | PPO training length 600 iterations (was 1,500); running S1 seeds stopped at their 600 checkpoint | User: "stop at 600 iterations" |
 
 Decisions still open: [[pending-user-decisions]].

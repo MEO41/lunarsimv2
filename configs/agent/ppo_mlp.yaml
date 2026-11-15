@@ -14,7 +14,7 @@ policy_period_steps: 5
 # default PPO settings for locomotion tasks; changed: no entropy bonus.
 ppo:
   num_steps_per_env: 24          # decisions per environment per iteration (2.4 s)
-  max_iterations: 1500
+  max_iterations: 600             # user decision 2026-11-15 (training success near 90 % by iteration 150)
   save_interval: 100
   empirical_normalization: true
   actor:

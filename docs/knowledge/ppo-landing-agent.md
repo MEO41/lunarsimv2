@@ -55,8 +55,10 @@ prints the comparison table (checks that all runs flew the same starts).
 
 ## Training runs
 
-The five-seed runs (4,096 envs) run on `minsky` ([[workstation-setup-and-machines]]); results
-go to a results note when done.
+The five-seed runs (4,096 envs) run on `minsky` ([[workstation-setup-and-machines]]). They were
+started with 1,500 iterations; the user cut them to **600** (2026-11-15): each run is stopped at
+its `model_600.pt` and `policy.pt` is exported from it (`scripts/export_policy.py`). S2 policies
+train for 600 iterations too. Results go to a results note when done.
 
 - flies on: [[slot-loop-architecture]]
 - compared with: [[classical-agents]]
