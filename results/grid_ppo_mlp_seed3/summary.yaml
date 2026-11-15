@@ -1,0 +1,23 @@
+run: grid_ppo_mlp_seed3
+kind: evaluation
+started_utc: '2026-11-15T19:06:55+00:00'
+code_commit: cbd0937f90ddbd0432a46b49d826a9924d8af802
+uncommitted_changes: false
+scenario: s3_faults
+agent: ppo_mlp (mlp)
+navigation: ekf_fdi
+seed: 1000
+command_line: scripts/evaluate_agent.py num_envs=4096 seed=1000 episodes_per_env=1
+  scenario=s3_faults fault_grid=true agent=ppo_mlp agent.policy_path=runs/ppo_mlp_s3_seed3/policy.pt
+  run_name=grid_ppo_mlp_seed3
+episodes: 4096
+success_percent: 97.63
+final_training_success_percent: ''
+outcomes:
+  success: 3999
+  hard_horizontal: 55
+  tilt_at_contact: 20
+  tilt_rate_at_contact: 12
+  hard_vertical: 10
+touchdown_vertical_speed_mps_mean: -0.956
+propellant_used_kg_mean: 51.3
