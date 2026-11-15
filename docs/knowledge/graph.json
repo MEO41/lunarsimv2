@@ -184,7 +184,7 @@
       "id": "paper-one-results",
       "title": "Paper 1 results, sensor faults (S3 fault grid)",
       "type": "result",
-      "status": "draft",
+      "status": "open",
       "updated": "2026-11-15",
       "summary": "First pass of paper 1 - ZEM/ZEV with ekf and ekf_fdi, and PPO with MLP, GRU and attention encoders (600 iterations) on the held-out fault grid; the memory encoders were still learning, so they continue to 1,500 iterations.",
       "path": "paper-one-results.md"
