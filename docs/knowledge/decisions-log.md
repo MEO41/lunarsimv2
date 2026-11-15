@@ -72,5 +72,9 @@ Newest at the bottom. "User" means the user decided; the others were proposed, e
 | 2026-11-15 | Reward: outcome (+100 / −100 / −300 without touchdown), capped touchdown term, Gaudet-style velocity tracking, attitude, propellant; time limit is a real end (no bootstrapping) | Trials learned to fly away (no-touchdown failure was cheaper than a crash) and to hover (potential shaping with discount); see [[ppo-landing-agent]] |
 | 2026-11-15 | `EpisodeEvents` carries the outcome code, first-contact flag and touchdown values; env `_get_rewards` and a `critic` truth group are the only env changes for M1b | M1b task list items 2 and 4 |
 | 2026-11-15 | Second Isaac environment on `minsky` (`~/lunarsim-workstation`) at the pinned versions; the user's `~/isaac-env` (Isaac Sim 6.2, newer Isaac Lab) is left untouched | Its Isaac Lab cloner API differs (`clone_plan_from_env_0`); pinned setup keeps results comparable |
+| 2026-11-15 | M2 sensors as one `terminal_suite` binding (IMU, radar altimeter, Doppler, gauge, probes), each with rate, noise, valid, stamp; numbers from LN-200S, NDL IM-1 calibration, TN D-6849, Apollo 10 DPS report | A slot holds one binding; sources in `configs/sensors/terminal_suite.yaml` ([[sensors-and-ekf]]) |
+| 2026-11-15 | Beams ray-cast on the surface's ground lookup, not Isaac Lab `RayCaster` | Same ground as plant and metrics, flat ground included |
+| 2026-11-15 | `nav: ekf` = 15-state error-state filter, float64 covariance, perfect onboard map | Gate test NEES 9.78 on recorded truth ([[sensors-and-ekf]]) |
+| 2026-11-15 | First navigation estimate written by the start slot (`initial_navigation_state`) from its own generator | The filter must not read truth; S1 and S2 keep identical true starts per seed |
 
 Decisions still open: [[pending-user-decisions]].

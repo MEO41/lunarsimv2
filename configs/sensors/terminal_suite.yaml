@@ -1,0 +1,48 @@
+binding: terminal_suite
+# Sensors of scenario S2 (design: IMU, altimeter, velocimeter). Every number has its source;
+# "model choice" marks numbers that the simulator needs but no public source gives.
+# Sources:
+#   [LN200]  Northrop Grumman, "LN-200S & LN-200HPS Inertial Measurement Unit" datasheet CS-23015
+#            (2023), p. 2, LN-200S performance table.
+#   [NDL-IM1] Karlgaard, Lugo, Shidner, Hines, Amzajerdian et al., "Navigation Doppler Lidar
+#            Performance Assessment and Trajectory Reconstruction of the Intuitive Machines IM-1
+#            Lunar Landing", AAS/AIAA Astrodynamics Specialist Conference 2025, p. 4
+#            (NTRS 20250007036): 3 beams, 20 Hz, 2 m to 5 km, flight-calibrated noise
+#            sigma_range = 1.2e-4 * range + 0.16 m, sigma_velocity = 1.11e-6 * range + 1.4e-3 m/s.
+#   [D-6849] Rozas, Cunningham, "Apollo Experience Report - Lunar Module Landing Radar and
+#            Rendezvous Radar", NASA TN D-6849 (1972), Table I: altimeter is a single FM-CW beam.
+#   [GNC-REF] Grumman, "Apollo News Reference: Guidance, Navigation and Control", p. GN-4:
+#            landing radar altitude capability 10 to 25,000 ft.
+#   [A10-DPS] Seto (TRW), "Apollo 10 LM-4 Descent Propulsion System Final Flight Evaluation",
+#            NASA CR-101869 (1969), p. 11: gauging accuracy 2.7 % (oxidizer) and 3.5 % (fuel).
+imu:
+  gyro_bias_deg_per_h: 1.0                       # [LN200] bias repeatability, 1 sigma; constant per episode
+  angle_random_walk_deg_per_sqrt_h: 0.07         # [LN200] "< 0.07"
+  accelerometer_bias_micro_g: 300.0              # [LN200] bias repeatability, 1 sigma; constant per episode
+  accelerometer_noise_micro_g_per_sqrt_hz: 35.0  # [LN200] (velocity random walk 0.021 m/s/sqrt(h))
+  # Output: delta-velocity and delta-angle per 20 ms control step (the LN-200S data rate is 400 Hz).
+radar_altimeter:
+  rate_hz: 20.0                 # model choice: no public update rate for the Apollo altimeter; NDL rate [NDL-IM1]
+  minimum_range_m: 3.05         # [GNC-REF] 10 ft
+  maximum_range_m: 7620.0       # [GNC-REF] 25,000 ft
+  range_noise_m: 0.16           # model choice: no public accuracy for the Apollo altimeter; NDL range channel [NDL-IM1]
+  range_noise_per_m: 1.2e-4     # [NDL-IM1]
+  beams:                        # [D-6849] one beam; along the thrust axis (model choice: no lever arm, antenna at the c.g.)
+    - {off_axis_deg: 0.0, azimuth_deg: 0.0}
+doppler_velocimeter:
+  rate_hz: 20.0                 # [NDL-IM1]
+  minimum_range_m: 2.0          # [NDL-IM1]
+  maximum_range_m: 5000.0       # [NDL-IM1]
+  range_noise_m: 0.16           # [NDL-IM1]
+  range_noise_per_m: 1.2e-4     # [NDL-IM1]
+  velocity_noise_mps: 1.4e-3    # [NDL-IM1]
+  velocity_noise_per_m: 1.11e-6 # [NDL-IM1]
+  # Model choice: three beams 25 deg from the thrust axis, 120 deg apart. The NDL beam angles
+  # depend on the vehicle (on IM-1 57.5 to 80 deg from its centerline, [NDL-IM1]).
+  beams:
+    - {off_axis_deg: 25.0, azimuth_deg: 0.0}
+    - {off_axis_deg: 25.0, azimuth_deg: 120.0}
+    - {off_axis_deg: 25.0, azimuth_deg: 240.0}
+propellant_gauge:
+  rate_hz: 1.0                  # model choice
+  accuracy_fraction: 0.035      # [A10-DPS] 3.5 % (fuel, the larger of the two), of the propellant load at start

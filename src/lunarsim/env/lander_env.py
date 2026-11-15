@@ -146,6 +146,8 @@ class LanderEnv(DirectRLEnv):
                 "lander_preset": lander_preset,
                 "episode_length_seconds": self.scenario.episode_length_seconds,
                 "control_step_duration": self.scenario.control_step_duration,
+                # Navigation knows how its sensors are mounted (beam directions, ranges).
+                "sensor_suite_parameters": dict(self.scenario.slots[SlotName.SENSORS].parameters),
             },
         )
         binding_classes = self.scenario.binding_classes()

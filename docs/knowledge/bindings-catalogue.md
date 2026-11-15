@@ -19,13 +19,16 @@ summary: Every binding that exists, per slot, with its file and what it does; th
 | surface | `procedural` | `slots/surface/procedural.py` | Random height field through `TerrainImporter` (±0.15 m, 0.5 m cells). **Smoke-tested only**; no height lookup, so height above ground is measured from z = 0 |
 | surface | `measured_terrain` | `slots/surface/measured_terrain.py` | Apollo 17 height map plus craters and rocks; one target per environment per reset; exact height lookup ([[measured-terrain-surface]]) |
 | sensors | `none` | `slots/sensors/none.py` | No sensors |
+| sensors | `terminal_suite` | `slots/sensors/terminal_suite.py`, `sensor_models.py` | IMU, radar altimeter, Doppler velocimeter, propellant gauge, probe switches ([[sensors-and-ekf]]) |
 | faults | `none` | `slots/faults/none.py` | No faults |
+| nav | `ekf` | `slots/navigation/ekf.py`, `error_state_kalman_filter.py` | 15-state error-state filter on IMU, altimeter, Doppler; never reads truth ([[sensors-and-ekf]]) |
 | nav | `truth` | `slots/navigation/truth.py` | Copies `TruthState` into `NavEstimate` (16 values, including the probe contact light), zero covariance |
 | actuators | `none` | `slots/actuators/none.py` | Zero wrench |
 | actuators | `engine_rcs_pulse` | `slots/actuators/engine_rcs_pulse.py`, `propulsion_models.py` | `DescentEngineModel` (throttle range, slew, lag, 0.5 s straight-line thrust tail-off after shutdown, propellant) and `ReactionControlPulseModel` (16 jets, minimum pulse, valve delay); engine starts at hover throttle; gimbal ignored |
 | metrics | `none` | `slots/metrics/none.py` | Never ends an episode |
 | metrics | `touchdown` | `slots/metrics/touchdown.py` | See [[metrics-and-run-records]] |
 | agent | `zero`, `attitude_hold`, `hover_hold`, `vertical_descent`, `zem_zev` | `agents/classical/` | See [[classical-agents]] |
+| agent | `ppo_mlp` | `agents/rsl_rl/ppo_policy_agent.py` | Flies an exported PPO policy ([[ppo-landing-agent]]) |
 
 ## Scenario files (`configs/scenarios/`)
 
@@ -34,11 +37,12 @@ summary: Every binding that exists, per slot, with its file and what it does; th
 - `s1_terminal_truth.yaml`: start terminal_box, plant physx_site, surface flat, nav truth, agent
   zem_zev, actuators engine_rcs_pulse, metrics touchdown, lander apollo_lunar_module; 64 envs,
   spacing 30 m, episode 90 s.
+- `s2_terminal_ekf.yaml`: S1 with `sensors: terminal_suite`, `nav: ekf`, `start.nav_error` 1 m / 0.2 m/s / 0.1°.
 - `apollo17_terminal_truth.yaml`: as S1 with surface `apollo17_taurus_littrow`
   (`measured_terrain`); spacing 1 m, first spawn 40 m up; needs the downloaded height maps.
 
 Not yet built from the design list: start `orbit_elements`, `pdi_state`, `from_log`; surface
-`bekker`, plume; all real sensors; faults; EKF navigations; RL agents. The design's
+`bekker`, plume; `lidar_cheap` and cameras; faults; `ekf_fdi`, `ekf_late_fusion`; recurrent and other RL agents. The design's
 `dem_tile` is covered by `measured_terrain` for one site.
 
 - part of: [[slot-loop-architecture]]

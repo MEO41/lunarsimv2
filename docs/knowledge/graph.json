@@ -217,6 +217,15 @@
       "path": "rules-from-the-user.md"
     },
     {
+      "id": "sensors-and-ekf",
+      "title": "Sensors and EKF (milestone 2)",
+      "type": "component",
+      "status": "current",
+      "updated": "2026-11-15",
+      "summary": "The terminal_suite sensor binding (IMU, radar altimeter, Doppler velocimeter, propellant gauge, probe switches), the ekf navigation, scenario S2 and the consistency results.",
+      "path": "sensors-and-ekf.md"
+    },
+    {
       "id": "session-history",
       "title": "Session history",
       "type": "history",
@@ -347,12 +356,22 @@
     },
     {
       "source": "bindings-catalogue",
+      "target": "sensors-and-ekf",
+      "relation": "mentions"
+    },
+    {
+      "source": "bindings-catalogue",
       "target": "metrics-and-run-records",
       "relation": "mentions"
     },
     {
       "source": "bindings-catalogue",
       "target": "classical-agents",
+      "relation": "mentions"
+    },
+    {
+      "source": "bindings-catalogue",
+      "target": "ppo-landing-agent",
       "relation": "mentions"
     },
     {
@@ -448,6 +467,11 @@
     {
       "source": "decisions-log",
       "target": "ppo-landing-agent",
+      "relation": "mentions"
+    },
+    {
+      "source": "decisions-log",
+      "target": "sensors-and-ekf",
       "relation": "mentions"
     },
     {
@@ -662,6 +686,11 @@
     },
     {
       "source": "milestone-roadmap-and-status",
+      "target": "sensors-and-ekf",
+      "relation": "mentions"
+    },
+    {
+      "source": "milestone-roadmap-and-status",
       "target": "measured-terrain-surface",
       "relation": "mentions"
     },
@@ -844,6 +873,26 @@
       "source": "rules-from-the-user",
       "target": "decisions-log",
       "relation": "design authority"
+    },
+    {
+      "source": "sensors-and-ekf",
+      "target": "lander-preset-apollo-lm",
+      "relation": "mentions"
+    },
+    {
+      "source": "sensors-and-ekf",
+      "target": "slot-loop-architecture",
+      "relation": "part of"
+    },
+    {
+      "source": "sensors-and-ekf",
+      "target": "classical-agents",
+      "relation": "feeds"
+    },
+    {
+      "source": "sensors-and-ekf",
+      "target": "ppo-landing-agent",
+      "relation": "feeds"
     },
     {
       "source": "session-history",

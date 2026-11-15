@@ -65,7 +65,9 @@ class TouchdownMetrics(BindingBase):
     ``nozzle_failure_clearance_m``.
     """
 
-    requires = frozenset({MessageKey.TRUTH_STATE, MessageKey.START_STATE, MessageKey.SURFACE_GEOMETRY})
+    requires = frozenset(
+        {MessageKey.TRUTH_STATE, MessageKey.START_STATE, MessageKey.SURFACE_GEOMETRY, MessageKey.NAVIGATION_ESTIMATE}
+    )
     provides = frozenset({MessageKey.EPISODE_EVENTS})
     reads_truth = True
 
@@ -129,6 +131,10 @@ class TouchdownMetrics(BindingBase):
         # State one control step ago (the approach state when contact is first seen).
         self.previous = {name: zeros() for name in ("vertical_speed", "horizontal_speed", "tilt", "tilt_rate")}
         self.previous_position = zeros(3)
+        self.previous_velocity = zeros(3)
+        # Navigation error (estimate minus truth) at the approach step of the first contact.
+        self.touchdown_navigation_position_error = zeros(3)
+        self.touchdown_navigation_velocity_error = zeros(3)
         self.touchdown = {name: zeros() for name in ("vertical_speed", "horizontal_speed", "tilt", "tilt_rate")}
         self.touchdown_position = zeros(3)
         self.start = {
@@ -170,6 +176,9 @@ class TouchdownMetrics(BindingBase):
         self.previous["tilt"][env_ids] = tilt
         self.previous["tilt_rate"][env_ids] = start.angular_velocity[env_ids].to(torch.float32).norm(dim=1)
         self.previous_position[env_ids] = position
+        self.previous_velocity[env_ids] = velocity
+        self.touchdown_navigation_position_error[env_ids] = 0.0
+        self.touchdown_navigation_velocity_error[env_ids] = 0.0
         self.has_contact[env_ids] = False
         self.contact_time[env_ids] = 0.0
         self.settled_duration[env_ids] = 0.0
@@ -247,6 +256,16 @@ class TouchdownMetrics(BindingBase):
         for name in self.touchdown:
             self.touchdown[name] = torch.where(first_contact, self.previous[name], self.touchdown[name])
         self.touchdown_position = torch.where(first_contact.unsqueeze(1), self.previous_position, self.touchdown_position)
+        if bus.has(MessageKey.NAVIGATION_ESTIMATE):
+            # The estimate on the bus was made in the previous control step: the approach step.
+            estimate = bus.read(MessageKey.NAVIGATION_ESTIMATE, self).mean
+            contact_column = first_contact.unsqueeze(1)
+            self.touchdown_navigation_position_error = torch.where(
+                contact_column, estimate[:, 0:3] - self.previous_position, self.touchdown_navigation_position_error
+            )
+            self.touchdown_navigation_velocity_error = torch.where(
+                contact_column, estimate[:, 3:6] - self.previous_velocity, self.touchdown_navigation_velocity_error
+            )
         self.contact_time = torch.where(first_contact, truth.time, self.contact_time)
         self.has_contact |= first_contact
 
@@ -275,6 +294,7 @@ class TouchdownMetrics(BindingBase):
         self.previous["tilt"] = tilt
         self.previous["tilt_rate"] = tilt_rate
         self.previous_position = truth.position.clone()
+        self.previous_velocity = truth.velocity.clone()
         events = EpisodeEvents(
             terminated=terminated,
             truncated=truncated,
@@ -346,6 +366,10 @@ class TouchdownMetrics(BindingBase):
             "minimum_nozzle_clearance_m": self.minimum_nozzle_clearance,
             "touchdown_ground_slope_deg": self.touchdown_ground_slope * degrees,
             "touchdown_ground_relief_m": self.touchdown_ground_relief,
+            "navigation_horizontal_position_error_m": self.touchdown_navigation_position_error[:, :2].norm(dim=1),
+            "navigation_vertical_position_error_m": self.touchdown_navigation_position_error[:, 2],
+            "navigation_horizontal_velocity_error_mps": self.touchdown_navigation_velocity_error[:, :2].norm(dim=1),
+            "navigation_vertical_velocity_error_mps": self.touchdown_navigation_velocity_error[:, 2],
             "probe_contact_time_s": self.probe_contact_time,
             "footpad_height_at_probe_contact_m": self.footpad_height_at_probe_contact,
             "propellant_used_kg": propellant_used,

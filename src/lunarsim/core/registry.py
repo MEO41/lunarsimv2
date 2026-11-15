@@ -40,6 +40,11 @@ SLOT_STEP_ORDER = (
 )
 
 
+# Keys that their provider writes during initialisation and at every reset, before any step
+# runs (the surface's site origins and ground lookup). Readers anywhere in the step may use them.
+KEYS_WRITTEN_BEFORE_THE_FIRST_STEP = frozenset({MessageKey.SURFACE_GEOMETRY})
+
+
 class ObservationBuilderDeclaration:
     """Declares what the environment's observation builder reads and writes, for the loop check."""
 
@@ -97,7 +102,8 @@ def check_slot_loop(bindings: Mapping[str, Any]) -> None:
     1. Every slot has a binding, and the binding says it belongs to that slot.
     2. Requires/provides: walking the step order, every key that a binding requires has a
        provider earlier in the walk. A slot that appears twice (the plant) provides from its
-       first position and has its requirements checked at its last position.
+       first position and has its requirements checked at its last position. Keys in
+       ``KEYS_WRITTEN_BEFORE_THE_FIRST_STEP`` count as available from the start.
     3. Truth access: a binding that requires ``TruthState`` sets ``reads_truth=True``, and only
        truth-side slots (start, plant, surface, sensors, metrics) and ``nav: truth`` may set it.
     """
@@ -114,7 +120,9 @@ def check_slot_loop(bindings: Mapping[str, Any]) -> None:
             )
 
     last_position = {slot: index for index, slot in enumerate(SLOT_STEP_ORDER)}
-    available_keys: set[str] = set()
+    available_keys: set[str] = {
+        key for binding in all_bindings.values() for key in binding.provides if key in KEYS_WRITTEN_BEFORE_THE_FIRST_STEP
+    }
     for index, slot in enumerate(SLOT_STEP_ORDER):
         binding = all_bindings[slot]
         if index == last_position[slot]:

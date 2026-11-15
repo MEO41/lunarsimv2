@@ -1,0 +1,30 @@
+# @package _global_
+# S2 Terminal touchdown with sensors and EKF (scenario catalogue, section S2): S1 with the
+# sensor chain on. The agent sees the EKF estimate; with training, the critic sees the truth.
+defaults:
+  - /start: terminal_box
+  - /plant: physx_site
+  - /surface: flat
+  - /sensors: terminal_suite
+  - /faults: none
+  - /nav: ekf
+  - /agent: zem_zev
+  - /actuators: engine_rcs_pulse
+  - /metrics: touchdown
+  - /training: none
+  - /landers@lander: apollo_lunar_module
+  - _self_
+
+name: s2_terminal_ekf
+seed: 0
+start:
+  nav_error:                 # error of the first estimate, one sigma per axis
+    position_m: 1.0          # design S2
+    velocity_mps: 0.2        # design S2
+    attitude_deg: 0.1        # model choice
+env:
+  num_envs: 64
+  env_spacing_m: 30.0
+  physics_step_s: 0.005
+  physics_steps_per_control_step: 4
+  episode_length_s: 90.0

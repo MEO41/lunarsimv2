@@ -6,6 +6,7 @@ import torch
 from lunarsim.core.binding import BindingBase, SlotName
 from lunarsim.core.message_types import Frame, MessageKey, TruthState
 from lunarsim.core.registry import register_binding
+from lunarsim.slots.start.initial_navigation_error import InitialNavigationError
 
 
 @register_binding(SlotName.START, "fixed")
@@ -13,10 +14,20 @@ class FixedStart(BindingBase):
     """Writes one fixed start state for all environments.
 
     Parameters: ``position_m`` (3 values, site frame), ``velocity_mps`` (3 values),
-    ``mass_kg`` (optional; the plant uses the asset's own mass when it is missing).
+    ``mass_kg`` (optional; the plant uses the asset's own mass when it is missing), ``nav_error``
+    (first navigation estimate error, see ``initial_navigation_error.py``).
     """
 
-    provides = frozenset({MessageKey.START_STATE})
+    provides = frozenset({MessageKey.START_STATE, MessageKey.INITIAL_NAVIGATION_STATE})
+
+    def __init__(self, parameters, context) -> None:
+        """Prepare the first-estimate errors (parameters ``nav_error``)."""
+        super().__init__(parameters, context)
+        self.navigation_error = InitialNavigationError(self.parameters.get("nav_error"), self.number_of_environments, self.device)
+
+    def reset(self, env_ids, gen) -> None:
+        """Draw new first-estimate errors for the given environments."""
+        self.navigation_error.reset(env_ids, gen)
 
     def step(self, bus, dt: float) -> None:
         """Write the start state. The plant reads it for the environments that reset."""
@@ -36,3 +47,4 @@ class FixedStart(BindingBase):
             contact=torch.zeros(count, 0, device=self.device),
         )
         bus.write(MessageKey.START_STATE, state, self)
+        self.navigation_error.write(bus, state, self)

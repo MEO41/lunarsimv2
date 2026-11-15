@@ -39,6 +39,8 @@ class MessageKey:
     """Names of the messages on the :class:`~lunarsim.core.message_bus.MessageBus`."""
 
     START_STATE = "start_state"  # TruthState sampled by the start slot, used by the plant at reset
+    # TruthState-shaped first navigation estimate (start state plus a sampled error), for the filter
+    INITIAL_NAVIGATION_STATE = "initial_navigation_state"
     SURFACE_GEOMETRY = "surface_geometry"  # SurfaceGeometry: site origins and ground heights (truth side)
     TRUTH_STATE = "truth_state"
     NAVIGATION_ESTIMATE = "navigation_estimate"

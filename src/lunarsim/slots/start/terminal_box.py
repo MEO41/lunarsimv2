@@ -12,6 +12,7 @@ from lunarsim.assets.lander_preset import LanderPreset
 from lunarsim.core.binding import BindingBase, SlotName
 from lunarsim.core.message_types import Frame, MessageKey, TruthState
 from lunarsim.core.registry import register_binding
+from lunarsim.slots.start.initial_navigation_error import InitialNavigationError
 from lunarsim.core.rotation_math import quaternion_from_axis_angle
 
 
@@ -31,9 +32,10 @@ class TerminalBoxStart(BindingBase):
     - ``v_horizontal_mps``: each of the two horizontal velocity components.
     - ``tilt_deg``: tilt angle from the vertical; the tilt direction is uniform in azimuth.
     - ``horizontal_position_m`` (optional, default ``[0, 0]``): each horizontal position component.
+    - ``nav_error`` (optional): error of the first navigation estimate, see ``initial_navigation_error.py``.
     """
 
-    provides = frozenset({MessageKey.START_STATE})
+    provides = frozenset({MessageKey.START_STATE, MessageKey.INITIAL_NAVIGATION_STATE})
 
     def __init__(self, parameters, context) -> None:
         """Allocate the sampled start state of every environment."""
@@ -47,6 +49,7 @@ class TerminalBoxStart(BindingBase):
         self.orientation = torch.tensor([1.0, 0.0, 0.0, 0.0], device=self.device).repeat(count, 1)
         self.mass = torch.full((count,), preset.mass_at_start, device=self.device)
         self.fixed_start_states: tuple[Tensor, Tensor, Tensor] | None = None
+        self.navigation_error = InitialNavigationError(self.parameters.get("nav_error"), count, self.device)
 
     def set_fixed_start_states(self, position: Tensor, velocity: Tensor, orientation_quaternion: Tensor) -> None:
         """Use the given per-environment states at every reset instead of sampling.
@@ -71,6 +74,7 @@ class TerminalBoxStart(BindingBase):
             self.position[env_ids] = position[env_ids]
             self.velocity[env_ids] = velocity[env_ids]
             self.orientation[env_ids] = orientation[env_ids]
+            self.navigation_error.reset(env_ids, gen)
             return
         count = len(env_ids)
         parameters = self.parameters
@@ -93,6 +97,8 @@ class TerminalBoxStart(BindingBase):
         self.velocity[env_ids] = torch.stack((horizontal_velocity_x, horizontal_velocity_y, vertical_speed), dim=1)
         tilt_axis = torch.stack((torch.cos(tilt_azimuth), torch.sin(tilt_azimuth), torch.zeros_like(tilt)), dim=1)
         self.orientation[env_ids] = quaternion_from_axis_angle(tilt_axis, tilt)
+        # Drawn from its own generator, after the start state: the start states do not change.
+        self.navigation_error.reset(env_ids, gen)
 
     def step(self, bus, dt: float) -> None:
         """Write the sampled start state. The plant reads it for the environments that reset."""
@@ -108,3 +114,4 @@ class TerminalBoxStart(BindingBase):
             contact=torch.zeros(count, 0, device=self.device),
         )
         bus.write(MessageKey.START_STATE, state, self)
+        self.navigation_error.write(bus, state, self)

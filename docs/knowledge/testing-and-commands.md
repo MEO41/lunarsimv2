@@ -15,8 +15,8 @@ Activate the Isaac environment first ([[workstation-setup-and-machines]]).
 
 | Command | What | Needs GPU |
 | --- | --- | --- |
-| `python -m pytest tests/unit -q` | 101 CPU tests (core, preset, controllers, records, figures, terrain, knowledge graph) | no |
-| `python scripts/run_isaac_tests.py` | `tests/physics` + `tests/smoke` (14 files), one simulator process per file; the terrain test is skipped without the height maps | yes |
+| `python -m pytest tests/unit -q` | 128 CPU tests (core, preset, controllers, records, figures, terrain, knowledge graph, reward, action adapter, engine cut-off, EKF on a synthetic flight) | no |
+| `python scripts/run_isaac_tests.py` | `tests/physics` + `tests/smoke` (17 files, including the probe test, the EKF gate test and the PPO smoke test), one simulator process per file; the terrain test is skipped without the height maps | yes |
 | `python scripts/run_isaac_tests.py physics` | one folder | yes |
 | `python scripts/run_isaac_tests.py tests/smoke/test_null_loop_environment.py` | one file | yes |
 | `python scripts/check_installation.py` | versions against `requirements-pinned.txt`, CUDA check | yes |
@@ -30,6 +30,9 @@ python scripts/download_height_maps.py                                          
 python scripts/run_scenario.py scenario=m0_null_loop num_envs=1024 steps=100      # add --viz kit for a window
 python scripts/evaluate_agent.py scenario=apollo17_terminal_truth num_envs=4096 run_name=terrain_seed0 seed=0
 python scripts/evaluate_agent.py scenario=s1_terminal_truth num_envs=4096 run_name=zem_zev_seed0 seed=0
+python scripts/evaluate_agent.py scenario=s2_terminal_ekf num_envs=4096 run_name=s2_zem_zev_seed0 seed=0   # S2: sensors + EKF
+python scripts/train_ppo.py scenario=s1_terminal_truth num_envs=4096 seed=0 run_name=ppo_mlp_s1_seed0    # M1b, on minsky
+python scripts/evaluate_agent.py scenario=s1_terminal_truth agent=ppo_mlp agent.policy_path=runs/ppo_mlp_s1_seed0/policy.pt num_envs=4096 seed=1000 run_name=...
 python scripts/benchmark_environment.py scenario=s1_terminal_truth num_envs=1024 steps=500
 python scripts/render_lander_image.py --enable_cameras output=docs/figures/lander_at_rest.png
 python scripts/run_drop_test.py drops=1000 drop_height_m=5 run_name=drop_test_5m

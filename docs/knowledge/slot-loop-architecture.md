@@ -63,7 +63,9 @@ start → plant → sensors → faults → nav → [observation builder] → age
 contact, footpad_height_above_ground, body_contact, surface_probe_contact), `SurfaceGeometry` (site_origin per env,
 height_field; written by the surface, read by plant and metrics), `Measurement`, `NavEstimate`, `Observation`, `Command` (`from_action_tensor`,
 `to_action_tensor`), `Wrench` (force, torque and the extra `mass_flow_rate`), `EpisodeEvents`.
-Message keys include `start_state` (start slot → plant at reset) and `surface_geometry`
+Message keys include `start_state` (start slot → plant at reset), `initial_navigation_state`
+(start slot → filter at reset: start state plus the sampled first-estimate error), the sensor
+messages `measurement.<name>`, and `surface_geometry`
 (surface → plant and metrics; written once in `initialize`, site origins updated at reset). Design short names map to
 descriptive code names: t→time, r→position, v→velocity, q→orientation_quaternion,
 w→angular_velocity, cov→covariance, rcs→reaction_control_jets.
@@ -79,6 +81,9 @@ w→angular_velocity, cov→covariance, rcs→reaction_control_jets.
 - SITE frame origin per environment comes from the surface (`SurfaceGeometry.site_origin`), not
   from the clone grid.
 - Random numbers: one root seed, one generator per slot (`core/random_generators.py`).
+- Loop check: `surface_geometry` counts as available before the first step
+  (`KEYS_WRITTEN_BEFORE_THE_FIRST_STEP` in `core/registry.py`), because the surface writes it at
+  start-up and at every reset; sensors and the filter read it.
 
 - implements: [[project-goal-and-design-documents]]
 - runs on: [[physx-contact-settings]]

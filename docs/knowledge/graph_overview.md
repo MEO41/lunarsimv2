@@ -25,6 +25,7 @@ flowchart LR
     physx_contact_settings["PhysX contact settings"]
     ppo_landing_agent["PPO landing agent (milestone 1b)"]
     replay_recording_and_rendering["Replay recording and rendering"]
+    sensors_and_ekf["Sensors and EKF (milestone 2)"]
     slot_loop_architecture["Slot loop architecture"]
   end
   subgraph decision
@@ -101,6 +102,9 @@ flowchart LR
   replay_recording_and_rendering -- "used by" --> drop_test_results
   rules_from_the_user -- "design authority" --> project_goal_and_design_documents
   rules_from_the_user -- "design authority" --> decisions_log
+  sensors_and_ekf -- "part of" --> slot_loop_architecture
+  sensors_and_ekf -- "feeds" --> classical_agents
+  sensors_and_ekf -- "feeds" --> ppo_landing_agent
   session_history -- "leads to" --> milestone_roadmap_and_status
   slot_loop_architecture -- "implements" --> project_goal_and_design_documents
   slot_loop_architecture -- "runs on" --> physx_contact_settings
@@ -139,6 +143,7 @@ flowchart LR
 | [PhysX contact settings](physx-contact-settings.md) | component | current | Solver and contact settings from the contact-rest study, why PGS and not TGS, and the measured residuals. |
 | [PPO landing agent (milestone 1b)](ppo-landing-agent.md) | component | current | The ppo_mlp agent, its rsl_rl adapter, the landing reward, the training script, and how the design reached a policy that learns. |
 | [Replay recording and rendering](replay-recording-and-rendering.md) | component | current | How runs are recorded frame by frame and rendered later as videos or stills, on a physics-free stage, with footpad force arrows. |
+| [Sensors and EKF (milestone 2)](sensors-and-ekf.md) | component | current | The terminal_suite sensor binding (IMU, radar altimeter, Doppler velocimeter, propellant gauge, probe switches), the ekf navigation, scenario S2 and the consistency results. |
 | [Slot loop architecture](slot-loop-architecture.md) | component | current | The nine slots, the message bus with its truth guard, the hook order of one control step, timing and message fields. |
 | [Decisions log](decisions-log.md) | decision | current | Every decision taken so far, with date and reason; the place to add new ones. |
 | [Footpad contact check on real terrain](contact-check-results.md) | result | current | Free-fall drops on eight kinds of ground; at rest every footpad's contact-sensor force agrees with its gap to the terrain lookup (32 of 32). |
