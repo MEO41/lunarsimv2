@@ -23,12 +23,14 @@ flowchart LR
     measured_terrain_surface["Measured terrain surface (Apollo 17)"]
     metrics_and_run_records["Touchdown metric and run records"]
     physx_contact_settings["PhysX contact settings"]
+    replay_recording_and_rendering["Replay recording and rendering"]
     slot_loop_architecture["Slot loop architecture"]
   end
   subgraph decision
     decisions_log["Decisions log"]
   end
   subgraph result
+    contact_check_results["Footpad contact check on real terrain"]
     drop_test_results["Drop test on steep terrain"]
     milestone_1a_results["Milestone 1a results"]
     speed_benchmarks["Speed benchmarks"]
@@ -65,6 +67,8 @@ flowchart LR
   bindings_catalogue -- "uses" --> lander_preset_apollo_lm
   classical_agents -- "flies on" --> slot_loop_architecture
   classical_agents -- "judged by" --> metrics_and_run_records
+  contact_check_results -- "measured on" --> measured_terrain_surface
+  contact_check_results -- "see also" --> drop_test_results
   drop_test_results -- "measured on" --> measured_terrain_surface
   drop_test_results -- "compares with" --> terrain_results
   isaac_lab_quirks -- "applies to" --> workstation_setup_and_machines
@@ -89,6 +93,8 @@ flowchart LR
   physx_contact_settings -- "recorded in" --> decisions_log
   project_goal_and_design_documents -- "governs" --> milestone_roadmap_and_status
   project_goal_and_design_documents -- "governs" --> slot_loop_architecture
+  replay_recording_and_rendering -- "used by" --> contact_check_results
+  replay_recording_and_rendering -- "used by" --> drop_test_results
   rules_from_the_user -- "design authority" --> project_goal_and_design_documents
   rules_from_the_user -- "design authority" --> decisions_log
   session_history -- "leads to" --> milestone_roadmap_and_status
@@ -127,8 +133,10 @@ flowchart LR
 | [Measured terrain surface (Apollo 17)](measured-terrain-surface.md) | component | current | The measured_terrain surface binding - real NASA height map, craters and rocks from published laws, one landing target per environment, exact GPU height lookup. |
 | [Touchdown metric and run records](metrics-and-run-records.md) | component | current | How a landing is judged (outcome codes, detection settings) and what every run writes to disk, plus the figure and summary tools. |
 | [PhysX contact settings](physx-contact-settings.md) | component | current | Solver and contact settings from the contact-rest study, why PGS and not TGS, and the measured residuals. |
+| [Replay recording and rendering](replay-recording-and-rendering.md) | component | current | How runs are recorded frame by frame and rendered later as videos or stills, on a physics-free stage, with footpad force arrows. |
 | [Slot loop architecture](slot-loop-architecture.md) | component | current | The nine slots, the message bus with its truth guard, the hook order of one control step, timing and message fields. |
 | [Decisions log](decisions-log.md) | decision | current | Every decision taken so far, with date and reason; the place to add new ones. |
+| [Footpad contact check on real terrain](contact-check-results.md) | result | current | Free-fall drops on eight kinds of ground; at rest every footpad's contact-sensor force agrees with its gap to the terrain lookup (32 of 32). |
 | [Drop test on steep terrain](drop-test-results.md) | result | current | 1,000 engine-off drops from 5 m on a massif flank of the Apollo 17 map - where the lander stands, slides and tips over. |
 | [Milestone 1a results](milestone-1a-results.md) | result | current | Test counts, physics validation, controller results and the ZEM/ZEV full-box success rate with its failure breakdown (RTX 5060, flat ground). |
 | [Speed benchmarks](speed-benchmarks.md) | result | current | Environment steps per second and GPU memory against environment count, per GPU (goal G4). |

@@ -33,8 +33,11 @@ python scripts/evaluate_agent.py scenario=s1_terminal_truth num_envs=4096 run_na
 python scripts/benchmark_environment.py scenario=s1_terminal_truth num_envs=1024 steps=500
 python scripts/render_lander_image.py --enable_cameras output=docs/figures/lander_at_rest.png
 python scripts/run_drop_test.py drops=1000 drop_height_m=5 run_name=drop_test_5m
-python scripts/record_landing_videos.py record landings=3072                      # then:
-python scripts/record_landing_videos.py render                                   # runs/landing_videos/landings.mp4
+python scripts/record_landing_videos.py landings=3072                             # then:
+python scripts/render_replay.py replay=runs/landing_videos/landings.npz mode=video
+python scripts/contact_check.py                                                   # then:
+python scripts/render_replay.py replay=runs/contact_check/contacts.npz mode=stills
+python scripts/render_replay.py replay=runs/drop_test_5m/flips.npz mode=video
 lunarsim figures runs/<run_name>
 lunarsim summary runs/<run_name>
 lunarsim knowledge-graph            # rebuild graph.json and graph_overview.md

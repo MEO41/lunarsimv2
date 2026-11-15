@@ -57,5 +57,8 @@ Newest at the bottom. "User" means the user decided; the others were proposed, e
 | 2026-11-15 | Contact-rest slide bound 0.1 → 0.02 m; procedural test averages the leg forces over 1 s with 3 % | Bounds were tuned under the wrong friction; single samples have 1.5 % solver noise |
 | 2026-11-15 | Drop test on a massif flank 10.16 km W, 0.62 km S of the LM; sites even over 2.5° slope bins | User asked for 1,000 drops from 5 m to see tip-overs on steep slopes ([[drop-test-results]]) |
 | 2026-11-15 | Landing videos by recording poses, then replaying them on camera in a second process | User asked for 5 successes and 5 failures, body contacts first; a rerun would not reproduce the same episodes |
+| 2026-11-15 | One recorder and one renderer for all videos and stills (`replay_recording.py`, `replay_rendering.py`, `render_replay.py`) | Landings, drops and contact checks share them ([[replay-recording-and-rendering]]) |
+| 2026-11-15 | Drop test: tip-over limit of the metric raised to 150° for this test; "tipped over" = final tilt above 45° | User asked to see flips; stopping at 45° cut them off |
+| 2026-11-15 | Contact check rule: loaded pad needs |gap| < 3 cm, free pad must not be inside the ground | Contact offset 2 cm; result 32/32 ([[contact-check-results]]) |
 
 Decisions still open: [[pending-user-decisions]].

@@ -1,0 +1,33 @@
+spot,name,leg,force_n,gap_m,touching,agrees
+1,"flattest spot",1,1724.6,0.0000,True,True
+1,"flattest spot",2,4258.4,0.0000,True,True
+1,"flattest spot",3,1639.2,-0.0000,True,True
+1,"flattest spot",4,4287.9,-0.0000,True,True
+2,"steepest footprint (9.8 deg plane)",1,3569.1,-0.0006,True,True
+2,"steepest footprint (9.8 deg plane)",2,2009.4,-0.0000,True,True
+2,"steepest footprint (9.8 deg plane)",3,2716.3,-0.0000,True,True
+2,"steepest footprint (9.8 deg plane)",4,3556.8,-0.0000,True,True
+3,"middle of a 9.8 m crater",1,6238.6,0.0000,True,True
+3,"middle of a 9.8 m crater",2,0.0,0.1509,False,True
+3,"middle of a 9.8 m crater",3,5535.7,0.0000,True,True
+3,"middle of a 9.8 m crater",4,411.8,-0.0000,True,True
+4,"rim of that crater (leg 3 inside)",1,0.0,0.4329,False,True
+4,"rim of that crater (leg 3 inside)",2,5361.4,-0.0000,True,True
+4,"rim of that crater (leg 3 inside)",3,748.4,-0.0009,True,True
+4,"rim of that crater (leg 3 inside)",4,5894.3,-0.0037,True,True
+5,"leg 1 on a 0.89 m tall rock",1,5466.8,0.0012,True,True
+5,"leg 1 on a 0.89 m tall rock",2,0.0,1.0807,False,True
+5,"leg 1 on a 0.89 m tall rock",3,5358.2,-0.0013,True,True
+5,"leg 1 on a 0.89 m tall rock",4,1066.3,-0.0000,True,True
+6,"a 1.60 m tall rock under the descent stage",1,774.1,0.0000,True,True
+6,"a 1.60 m tall rock under the descent stage",2,0.0,0.4073,False,True
+6,"a 1.60 m tall rock under the descent stage",3,0.0,0.3511,False,True
+6,"a 1.60 m tall rock under the descent stage",4,821.9,-0.0000,True,True
+7,"leg 2 in a 2.2 m crater (0.44 m deep)",1,5813.5,-0.0007,True,True
+7,"leg 2 in a 2.2 m crater (0.44 m deep)",2,1101.6,-0.0000,True,True
+7,"leg 2 in a 2.2 m crater (0.44 m deep)",3,5088.0,-0.0004,True,True
+7,"leg 2 in a 2.2 m crater (0.44 m deep)",4,0.0,0.3595,False,True
+8,"roughest spot",1,5210.4,0.0000,True,True
+8,"roughest spot",2,1198.8,0.0000,True,True
+8,"roughest spot",3,4076.0,-0.0000,True,True
+8,"roughest spot",4,1700.8,-0.0000,True,True

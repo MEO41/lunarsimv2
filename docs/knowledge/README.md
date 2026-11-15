@@ -23,9 +23,9 @@ notes summarise them and point to them.
 | rule | [[rules-from-the-user]] |
 | design | [[project-goal-and-design-documents]] |
 | milestone | [[milestone-roadmap-and-status]] |
-| component | [[slot-loop-architecture]], [[bindings-catalogue]], [[measured-terrain-surface]], [[lander-preset-apollo-lm]], [[lander-articulation-model]], [[physx-contact-settings]], [[classical-agents]], [[metrics-and-run-records]], [[knowledge-graph-tooling]] |
+| component | [[slot-loop-architecture]], [[bindings-catalogue]], [[measured-terrain-surface]], [[lander-preset-apollo-lm]], [[lander-articulation-model]], [[physx-contact-settings]], [[classical-agents]], [[metrics-and-run-records]], [[replay-recording-and-rendering]], [[knowledge-graph-tooling]] |
 | decision | [[decisions-log]] |
-| result | [[milestone-1a-results]], [[terrain-results]], [[drop-test-results]], [[speed-benchmarks]] |
+| result | [[milestone-1a-results]], [[terrain-results]], [[drop-test-results]], [[contact-check-results]], [[speed-benchmarks]] |
 | issue | [[open-issues]] |
 | plan | [[terrain-integration-plan]] (done), [[pending-user-decisions]] |
 | research | [[apollo-lm-geometry-research]], [[lunar-surface-statistics-research]], [[apollo17-height-maps]], [[apollo-lander-modeling-folder]], [[sources-bibliography]] |

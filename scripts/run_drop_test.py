@@ -16,8 +16,14 @@ Site selection: the footprint slope (plane fitted through the ground under the 4
 is computed on a 4 m grid over the terrain; sites are then drawn evenly from 2.5 degree slope
 bins, so steep ground is well represented. Headings are uniform. Both use ``seed``.
 
+The fall is free: no agent output, no engine and no jets (``agent: zero``, ``actuators: none``).
+A lander that tilts is not stopped at 45 degrees (the metric's limit is raised to 150 degrees for
+this test), so it can roll over and come to rest; "tipped over" means a final tilt above 45 deg.
+
 Writes ``runs/<run_name>/``: ``manifest.yaml``, ``episodes.parquet`` (touchdown records plus
-site columns) and ``drop_test.png`` (final tilt against slope, and tip-over share per slope bin).
+site columns), ``drop_test.png`` (final tilt against slope, and tip-over share per slope bin) and
+``flips.npz``: the recorded tip-overs (``record_clips``, default 6, spread over slope) with their
+footpad contacts, for ``scripts/render_replay.py replay=runs/<run_name>/flips.npz mode=video``.
 """
 
 import argparse
@@ -42,11 +48,13 @@ from lunarsim.env.lander_env_cfg import build_lander_env_cfg  # noqa: E402
 from lunarsim.env.scenario_loader import load_scenario  # noqa: E402
 from lunarsim.tools.episode_records import EPISODES_FILE_NAME  # noqa: E402
 from lunarsim.tools.episode_runner import build_agent, collect_episodes  # noqa: E402
+from lunarsim.tools.replay_recording import ReplayRecorder  # noqa: E402
 from lunarsim.tools.run_manifest import write_manifest  # noqa: E402
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 SLOPE_BIN_DEGREES = 2.5
 SITE_GRID_SPACING_M = 4.0
+TIPPED_OVER_ABOVE_DEG = 45.0
 SITE_EDGE_MARGIN_M = 40.0
 FOOTPRINT_SAMPLE_RINGS = (0.0, 0.5, 1.0)
 FOOTPRINT_SAMPLES_PER_RING = 8
@@ -109,7 +117,7 @@ def plot_drop_test(episodes, path: Path, drop_height: float) -> None:
     for label, mask, color in groups:
         left.scatter(episodes.loc[mask, "site_slope_deg"], episodes.loc[mask, "final_tilt_deg"], s=9, color=color,
                      label=f"{label} ({int(mask.sum())})", alpha=0.8, linewidths=0)
-    left.axhline(45.0, color="#888888", lw=0.8, ls="--")
+    left.axhline(TIPPED_OVER_ABOVE_DEG, color="#888888", lw=0.8, ls="--")
     left.set_xlabel("footprint slope at the site (deg)")
     left.set_ylabel("final tilt (deg)")
     left.set_title(f"a   {len(episodes)} drops from {drop_height:g} m, engine off", loc="left")
@@ -130,13 +138,13 @@ def plot_drop_test(episodes, path: Path, drop_height: float) -> None:
     right.set_xlabel("footprint slope at the site (deg)")
     right.set_ylabel("tipped over (%)")
     right.set_ylim(0, 105)
-    right.set_title("b   tip-over share per 2.5 deg bin (numbers: drops)", loc="left")
+    right.set_title("b   tipped over (final tilt > 45 deg) per 2.5 deg bin", loc="left")
     figure.savefig(path, dpi=150)
 
 
 def main() -> None:
     """Pick the sites, drop the landers, write the run directory and the figure."""
-    options = {"drops": "1000", "drop_height_m": "5.0", "run_name": "drop_test_5m", "seed": "0"}
+    options = {"drops": "1000", "drop_height_m": "5.0", "run_name": "drop_test_5m", "seed": "0", "record_clips": "6"}
     overrides = []
     for argument in script_arguments:
         key = argument.split("=", 1)[0]
@@ -146,7 +154,7 @@ def main() -> None:
             overrides.append(argument)
     drops, drop_height = int(options["drops"]), float(options["drop_height_m"])
     scenario = load_scenario(
-        "apollo17_drop_test", [f"num_envs={drops}", f"seed={options['seed']}", *overrides]
+        "apollo17_drop_test", [f"num_envs={drops}", f"seed={options['seed']}", "metrics.tip_over_tilt_deg=150", *overrides]
     )
     environment = LanderEnv(build_lander_env_cfg(scenario, device=arguments.device))
     device = environment.device
@@ -169,9 +177,11 @@ def main() -> None:
     start.set_fixed_start_states(position, torch.zeros(drops, 3, device=device), orientation)
 
     agent = build_agent(environment)
+    recorder = ReplayRecorder(environment, every_n_steps=2, include_contacts=int(options["record_clips"]) > 0)
     start_time = time.perf_counter()
     episodes = collect_episodes(
-        environment, agent, episodes_per_environment=1, maximum_steps=int(1.2 * environment.max_episode_length) + 10
+        environment, agent, episodes_per_environment=1, maximum_steps=int(1.2 * environment.max_episode_length) + 10,
+        after_step=recorder.record,
     )
     elapsed = time.perf_counter() - start_time
     episodes = episodes.sort_values("environment_index").reset_index(drop=True)
@@ -181,6 +191,7 @@ def main() -> None:
     episodes["site_slope_deg"] = site_slope[index]
     episodes["heading_deg"] = numpy.degrees(heading.cpu().numpy()[index])
     episodes["slide_m"] = numpy.hypot(episodes["final_position_x_m"], episodes["final_position_y_m"])
+    episodes["tipped_over"] = episodes["final_tilt_deg"] > TIPPED_OVER_ABOVE_DEG
 
     run_directory = REPOSITORY_ROOT / "runs" / options["run_name"]
     write_manifest(
@@ -191,6 +202,24 @@ def main() -> None:
     )
     episodes.to_parquet(run_directory / EPISODES_FILE_NAME, index=False)
     plot_drop_test(episodes, run_directory / "drop_test.png", drop_height)
+    clip_count = int(options["record_clips"])
+    tipped_rows = episodes[episodes["tipped_over"]].sort_values("site_slope_deg")
+    if clip_count > 0 and len(tipped_rows) > 0:
+        picks = tipped_rows.iloc[numpy.linspace(0, len(tipped_rows) - 1, min(clip_count, len(tipped_rows))).round().astype(int)]
+        indices = picks["environment_index"].astype(int).tolist()
+        titles = [
+            f"{number + 1}/{len(indices)}  TIPPED OVER: free fall from {drop_height:g} m, engine off, no jets, no control"
+            for number in range(len(indices))
+        ]
+        details = [
+            f"footprint slope {row.site_slope_deg:.1f} deg   heading {row.heading_deg:.0f} deg   "
+            f"final tilt {row.final_tilt_deg:.0f} deg   slide {row.slide_m:.1f} m"
+            for row in picks.itertuples()
+        ]
+        recorder.save(
+            run_directory / "flips.npz", indices, "apollo17_drop_test", [f"seed={options['seed']}"], titles, details,
+            frames_per_second=25.0, notes="drop test tip-overs",
+        )
     tipped = episodes["tipped_over"]
     print(f"[drop_test] run directory: {run_directory}  wall time {elapsed:.0f} s")
     print(f"[drop_test] drops {len(episodes)}; tipped over {int(tipped.sum())}; "

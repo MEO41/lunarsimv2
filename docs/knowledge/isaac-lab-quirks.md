@@ -41,6 +41,12 @@ summary: Behaviours of this Isaac Sim 6.0.1 / Isaac Lab 3.0 develop build that c
 - **Static triangle-mesh ground:** a convex footpad that starts almost fully inside the terrain
   mesh can be pushed out downward. Start landers well above the ground (the terrain test drops
   from 1.5 m; `terminal_box` starts at 5 m or more).
+- **Rendering written poses:** after `write_root_pose_to_sim_index` and a physics step, PhysX has
+  the new pose but the camera (replicator render product) still drew the lander at its spawn
+  pose in this setup. Renders are therefore made on a physics-free stage
+  ([[replay-recording-and-rendering]]). `AppLauncher` here has no `--enable_cameras` flag: set
+  `arguments.enable_cameras = True` in code. A camera image needs `simulation_app.update()`
+  after the change, sometimes several.
 - `TerrainImporter` (`isaaclab.terrains`) supports `generator`, `usd` and `plane`, and has
   `import_mesh` for a trimesh; useful for the real terrain.
 

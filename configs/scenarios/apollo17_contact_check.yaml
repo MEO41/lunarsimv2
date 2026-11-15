@@ -1,0 +1,38 @@
+# @package _global_
+# Contact check: landers fall freely (engine off, no reaction-control jets, no agent) onto chosen
+# spots of the Apollo 17 detail patch - flat ground, slopes, craters, rocks - and come to rest.
+# Run with scripts/contact_check.py, which picks the spots and the drop heights.
+defaults:
+  - /start: terminal_box
+  - /plant: physx_site
+  - /surface: apollo17_taurus_littrow
+  - /sensors: none
+  - /faults: none
+  - /nav: truth
+  - /agent: zero
+  - /actuators: none
+  - /metrics: touchdown
+  - /landers@lander: apollo_lunar_module
+  - _self_
+
+name: apollo17_contact_check
+seed: 0
+env:
+  num_envs: 8
+  env_spacing_m: 1.0
+  physics_step_s: 0.005
+  physics_steps_per_control_step: 4
+  episode_length_s: 20.0
+
+start:
+  altitude_m: [1.0, 1.0]
+  v_vertical_mps: [0.0, 0.0]
+  v_horizontal_mps: [0.0, 0.0]
+  tilt_deg: [0.0, 0.0]
+
+plant:
+  spawn_height_m: 40.0
+
+metrics:
+  settle_hold_s: 2.0          # rest for 2 s before the episode ends, so the last frame is at rest
+  tip_over_tilt_deg: 150.0    # do not stop a lander that tilts: let it come to rest

@@ -46,6 +46,15 @@
       "path": "classical-agents.md"
     },
     {
+      "id": "contact-check-results",
+      "title": "Footpad contact check on real terrain",
+      "type": "result",
+      "status": "current",
+      "updated": "2026-11-15",
+      "summary": "Free-fall drops on eight kinds of ground; at rest every footpad's contact-sensor force agrees with its gap to the terrain lookup (32 of 32).",
+      "path": "contact-check-results.md"
+    },
+    {
       "id": "decisions-log",
       "title": "Decisions log",
       "type": "decision",
@@ -179,6 +188,15 @@
       "updated": "2026-11-14",
       "summary": "What LunarSim v2 is for, which documents are the authority, the ten scenarios and the six goals.",
       "path": "project-goal-and-design-documents.md"
+    },
+    {
+      "id": "replay-recording-and-rendering",
+      "title": "Replay recording and rendering",
+      "type": "component",
+      "status": "current",
+      "updated": "2026-11-15",
+      "summary": "How runs are recorded frame by frame and rendered later as videos or stills, on a physics-free stage, with footpad force arrows.",
+      "path": "replay-recording-and-rendering.md"
     },
     {
       "id": "rules-from-the-user",
@@ -354,6 +372,16 @@
       "relation": "judged by"
     },
     {
+      "source": "contact-check-results",
+      "target": "measured-terrain-surface",
+      "relation": "measured on"
+    },
+    {
+      "source": "contact-check-results",
+      "target": "drop-test-results",
+      "relation": "see also"
+    },
+    {
       "source": "decisions-log",
       "target": "rules-from-the-user",
       "relation": "mentions"
@@ -395,6 +423,16 @@
     },
     {
       "source": "decisions-log",
+      "target": "replay-recording-and-rendering",
+      "relation": "mentions"
+    },
+    {
+      "source": "decisions-log",
+      "target": "contact-check-results",
+      "relation": "mentions"
+    },
+    {
+      "source": "decisions-log",
       "target": "pending-user-decisions",
       "relation": "mentions"
     },
@@ -426,6 +464,11 @@
     {
       "source": "isaac-lab-quirks",
       "target": "apollo-lander-modeling-folder",
+      "relation": "mentions"
+    },
+    {
+      "source": "isaac-lab-quirks",
+      "target": "replay-recording-and-rendering",
       "relation": "mentions"
     },
     {
@@ -732,6 +775,21 @@
       "source": "project-goal-and-design-documents",
       "target": "slot-loop-architecture",
       "relation": "governs"
+    },
+    {
+      "source": "replay-recording-and-rendering",
+      "target": "isaac-lab-quirks",
+      "relation": "mentions"
+    },
+    {
+      "source": "replay-recording-and-rendering",
+      "target": "contact-check-results",
+      "relation": "used by"
+    },
+    {
+      "source": "replay-recording-and-rendering",
+      "target": "drop-test-results",
+      "relation": "used by"
     },
     {
       "source": "rules-from-the-user",

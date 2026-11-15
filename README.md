@@ -53,10 +53,25 @@ On terrain, 27 of 12,288 landings fail because a stage hits a rock. Full numbers
 
 ![Drop test](docs/drop_test/drop_test_5m.png)
 
-*1,000 drops from 5 m with the engine off, on a steep part of the same height map. (a) Final tilt
-against the slope under the footprint; tipped-over landers stop at the 45° limit of the metric.
-(b) Share of tip-overs per slope bin. Below 20° no lander tips; above 22° (friction 0.4) most
-slide, and from 30° on many tip over. Details: [docs/knowledge/drop-test-results.md](docs/knowledge/drop-test-results.md).*
+*1,000 free-fall drops from 5 m (no engine, no jets, no control) on a steep part of the same
+height map. (a) Final tilt against the slope under the footprint. (b) Share of landers that end
+on their side (final tilt above 45°) per slope bin. Below 20° no lander tips; above 22°
+(friction 0.4) most slide, and from 30° on many roll over. Details:
+[docs/knowledge/drop-test-results.md](docs/knowledge/drop-test-results.md).*
+
+### Footpad contact check
+
+Eight landers fall freely onto chosen ground (flat, steep, crater, crater rim, rocks) and come to
+rest. For every footpad the contact-sensor force is compared with the gap between the dish and
+the ground: all 32 agree (loaded pads within ±0.4 cm, free pads 15–108 cm clear). Green arrows:
+sensor force, 1 m per 3 kN. Run `python scripts/contact_check.py`, then
+`python scripts/render_replay.py replay=runs/contact_check/contacts.npz mode=stills`.
+
+![Leg 1 on a rock](docs/contact_check/contact_05.png)
+
+*Leg 1 rests on a 0.89 m rock (5.47 kN, gap +0.1 cm); leg 2 hangs 1.08 m above a dip with no
+force. All stills and the table: [docs/contact_check](docs/contact_check),
+[docs/knowledge/contact-check-results.md](docs/knowledge/contact-check-results.md).*
 
 ## Results of milestone 1a
 

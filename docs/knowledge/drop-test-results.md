@@ -24,22 +24,28 @@ figure `docs/drop_test/drop_test_5m.png`, run `runs/drop_test_5m` (git-ignored).
 - Each lander: upright, at rest, engine off, random heading, footpad plane 5 m above the ground
   below the c.g.; impact at about 4 m/s (above the 3.05 m/s design limit). Friction 0.4.
 
-## Results (wall time 109 s on the RTX 5060)
+## Results (rerun 2026-11-15 with recording; wall time 170 s on the RTX 5060)
+
+The fall is free: no agent output, no engine, no jets (`agent: zero`, `actuators: none`). A
+lander that tilts is not stopped at 45° any more (the metric's limit is 150° in this test), so
+it can roll over and come to rest; "tipped over" means a final tilt above 45°.
 
 | Footprint slope | Drops | At rest on its legs | Tipped over | Median slide |
 | --- | --- | --- | --- | --- |
-| 0–5° | 124 | 100 % | 0 % | 0.14 m |
-| 5–10° | 124 | 100 % | 0 % | 0.67 m |
+| 0–5° | 124 | 100 % | 0 % | 0.1 m |
+| 5–10° | 124 | 100 % | 0 % | 0.7 m |
 | 10–15° | 124 | 94 % | 0 % | 2.8 m |
 | 15–20° | 124 | 53 % | 0 % | 11 m |
-| 20–25° | 124 | 11 % | 2 % | 24 m |
-| 25–30° | 124 | 4 % | 2 % | 29 m |
-| 30–35° | 122 | 7 % | 17 % | 30 m |
-| 35–40° | 122 | 2 % | 40 % | 43 m |
-| > 40° | 12 | 0 % | 42 % | 52 m |
+| 20–25° | 124 | 11 % | 2.4 % | 24 m |
+| 25–30° | 124 | 4 % | 0.8 % | 29 m |
+| 30–35° | 122 | 7 % | 11.5 % | 32 m |
+| 35–40° | 122 | 6 % | 27 % | 51 m |
+| > 40° | 12 | 0 % | 25 % | 53 m |
 
-Totals: 460 at rest, 460 still sliding when the 15 s settle limit ran out, 80 tipped over
-(the episode ends at 45° tilt), 0 body strikes while upright.
+Totals: 464 at rest, 486 still sliding when the 15 s settle limit ran out, 54 tipped over
+(final tilt median 104°, up to 151°). The first run (stopped at 45°) counted 80: some landers
+pass 45° and fall back onto their legs. Video of 6 tip-overs, with the footpad contact arrows:
+`runs/drop_test_5m/flips.mp4` (from `flips.npz` via `scripts/render_replay.py`).
 
 ## What it means
 
