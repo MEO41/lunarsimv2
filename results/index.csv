@@ -26,6 +26,8 @@ flat_lm_corrected_zem_zev_seed2,evaluation,2026-11-14T23:06:19+00:00,d26d7a40749
 m1a_zem_zev_full_box_seed0,evaluation,2026-11-14T14:23:18+00:00,009762ca6b0c67bea3c2d245b2fcce39ff1fbdaf,False,s1_terminal_truth,zem_zev,truth,0,4096,96.9,
 m1a_zem_zev_full_box_seed1,evaluation,2026-11-14T14:24:51+00:00,009762ca6b0c67bea3c2d245b2fcce39ff1fbdaf,False,s1_terminal_truth,zem_zev,truth,1,4096,96.51,
 m1a_zem_zev_full_box_seed2,evaluation,2026-11-14T14:26:24+00:00,009762ca6b0c67bea3c2d245b2fcce39ff1fbdaf,False,s1_terminal_truth,zem_zev,truth,2,4096,96.9,
+ppo_gru_s3_seed0,training,2026-11-15T17:05:02+00:00,cbd0937f90ddbd0432a46b49d826a9924d8af802,False,s3_faults,ppo_mlp (gru),ekf_fdi,0,,,95.45
+ppo_gru_s3_seed1,training,2026-11-15T17:05:48+00:00,cbd0937f90ddbd0432a46b49d826a9924d8af802,False,s3_faults,ppo_mlp (gru),ekf_fdi,1,,,89.46
 ppo_mlp_s1_seed0,training,2026-11-15T09:59:46+00:00,2c28c608ccf4747acbed8147dbbab8485bb8f5b1,False,s1_terminal_truth,ppo_mlp (mlp),truth,0,,,96.23
 ppo_mlp_s1_seed1,training,2026-11-15T10:01:34+00:00,2c28c608ccf4747acbed8147dbbab8485bb8f5b1,False,s1_terminal_truth,ppo_mlp (mlp),truth,1,,,97.35
 ppo_mlp_s1_seed2,training,2026-11-15T10:04:07+00:00,2c28c608ccf4747acbed8147dbbab8485bb8f5b1,False,s1_terminal_truth,ppo_mlp (mlp),truth,2,,,96.17
