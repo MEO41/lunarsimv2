@@ -1,0 +1,24 @@
+run: grid_ppo_attention_seed2
+kind: evaluation
+started_utc: '2026-11-15T21:16:42+00:00'
+code_commit: f3e21194e6e3b39d6566c104abfe3d9b9d5cb9bd
+uncommitted_changes: false
+scenario: s3_faults
+agent: ppo_mlp (attention)
+navigation: ekf_fdi
+seed: 1000
+command_line: scripts/evaluate_agent.py num_envs=4096 seed=1000 episodes_per_env=1
+  scenario=s3_faults fault_grid=true agent=ppo_attention agent.policy_path=runs/ppo_attention_s3_seed2/policy.pt
+  run_name=grid_ppo_attention_seed2
+resumed_from: ''
+episodes: 4096
+success_percent: 88.5
+final_training_success_percent: ''
+outcomes:
+  success: 3625
+  hard_horizontal: 350
+  tilt_rate_at_contact: 67
+  tilt_at_contact: 43
+  hard_vertical: 11
+touchdown_vertical_speed_mps_mean: -0.934
+propellant_used_kg_mean: 66.3
