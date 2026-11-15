@@ -12,3 +12,4 @@ process_noise:
   angle_random_walk_deg_per_sqrt_h: 0.07          # LN-200S
   accelerometer_bias_random_walk_mps2_per_sqrt_s: 1.0e-5  # model choice (the IMU model has constant biases)
   gyro_bias_random_walk_deg_per_h_per_sqrt_s: 0.01        # model choice
+compile: true   # torch.compile the filter's hot functions on the GPU (launch-bound otherwise)

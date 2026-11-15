@@ -33,15 +33,38 @@ from lunarsim.slots.sensors.terminal_suite import DOPPLER_VELOCIMETER_KEY, IMU_K
 SENSOR_KEYS = (RADAR_ALTIMETER_KEY, DOPPLER_VELOCIMETER_KEY)
 
 
+class StoredMessage:
+    """One message to fuse in a stored step; ``has_samples`` is False when no environment has a valid sample."""
+
+    def __init__(self, value: Tensor, valid: Tensor, stamp: Tensor, covariance: Tensor, has_samples: bool) -> None:
+        """Keep the tensors and the flag."""
+        self.value, self.valid, self.stamp, self.covariance, self.has_samples = value, valid, stamp, covariance, has_samples
+
+    def merge(self, value: Tensor, valid: Tensor, stamp: Tensor, covariance: Tensor) -> None:
+        """Add the samples of other environments (where ``valid``) to this message."""
+        row = valid.unsqueeze(1)
+        self.value = torch.where(row, value, self.value)
+        self.covariance = torch.where(row, covariance, self.covariance)
+        self.stamp = torch.where(valid, stamp, self.stamp)
+        self.valid = self.valid | valid
+        self.has_samples = True
+
+
 class StepRecord:
-    """Inputs of one control step: IMU sample, on-time and inserted late messages per aided sensor."""
+    """Inputs of one control step: the IMU sample, and per aided sensor the on-time and the late message."""
 
     def __init__(self) -> None:
         """Start empty."""
         self.imu_value: Tensor | None = None
         self.imu_valid: Tensor | None = None
-        # Per aided sensor: list of (value, valid, stamp, covariance) to fuse in this step.
-        self.messages: list[list[tuple[Tensor, Tensor, Tensor, Tensor]]] = [[], []]
+        # Per aided sensor: the on-time message and the late samples inserted into this step (one
+        # merged message, or None), fused in this order.
+        self.on_time: list[StoredMessage | None] = [None, None]
+        self.late: list[StoredMessage | None] = [None, None]
+
+    def messages(self, sensor: int) -> list[StoredMessage]:
+        """Return the messages of a sensor that hold at least one valid sample."""
+        return [message for message in (self.on_time[sensor], self.late[sensor]) if message is not None and message.has_samples]
 
 
 @register_binding(SlotName.NAVIGATION, "ekf_late_fusion")
@@ -67,9 +90,9 @@ class LateFusionKalmanFilterNavigation(ExtendedKalmanFilterNavigation):
                 continue
             if record.imu_valid is not None:
                 record.imu_valid[env_ids] = False
-            for messages in record.messages:
-                for _, valid, _, _ in messages:
-                    valid[env_ids] = False
+            for message in (*record.on_time, *record.late):
+                if message is not None:
+                    message.valid[env_ids] = False
         for index, snapshot in enumerate(self.snapshots):
             if snapshot is not None:
                 self.snapshots[index] = self._overwrite(snapshot, env_ids)
@@ -81,13 +104,13 @@ class LateFusionKalmanFilterNavigation(ExtendedKalmanFilterNavigation):
         state = self.filter
         return (
             state.position.clone(), state.velocity.clone(), state.orientation.clone(), state.accelerometer_bias.clone(),
-            state.gyro_bias.clone(), state.covariance.clone(), self.body_rates.clone(), self.last_fused_stamp.clone(),
+            state.gyro_bias.clone(), state.scaled_covariance.clone(), self.body_rates.clone(), self.last_fused_stamp.clone(),
         )
 
     def _restore(self, snapshot: tuple, where: Tensor) -> None:
         """Restore the snapshot for the environments in ``where``."""
         state = self.filter
-        names = ("position", "velocity", "orientation", "accelerometer_bias", "gyro_bias", "covariance")
+        names = ("position", "velocity", "orientation", "accelerometer_bias", "gyro_bias", "scaled_covariance")
         for name, saved in zip(names, snapshot[:6]):
             current = getattr(state, name)
             mask = where.view(-1, *([1] * (current.dim() - 1)))
@@ -131,7 +154,9 @@ class LateFusionKalmanFilterNavigation(ExtendedKalmanFilterNavigation):
             late = message.valid & (depth >= 1)
             usable = late & (depth <= min(self.newest - 1, self.length - 1)) & (message.stamp > self.last_fused_stamp[:, sensor])
             on_time = message.valid & ~late
-            record.messages[sensor].append((message.value.clone(), on_time, message.stamp.clone(), message.covariance.clone()))
+            record.on_time[sensor] = StoredMessage(
+                message.value.clone(), on_time, message.stamp.clone(), message.covariance.clone(), bool(on_time.any())
+            )
             if bool(usable.any()):
                 late_samples.append((sensor, message, depth, usable))
                 oldest_depth = torch.maximum(oldest_depth, torch.where(usable, depth, torch.zeros_like(depth)))
@@ -140,12 +165,17 @@ class LateFusionKalmanFilterNavigation(ExtendedKalmanFilterNavigation):
         if not late_samples:
             self._run_step(record, geometry, dt)
         else:
-            for sensor, message, depth, usable in late_samples:
-                for back in torch.unique(depth[usable]).tolist():
-                    chosen = usable & (depth == back)
-                    capture = self.records[(self.newest - back) % self.length]
-                    capture.messages[sensor].append((message.value.clone(), chosen, message.stamp.clone(), message.covariance.clone()))
             depth = int(oldest_depth.max())
+            for sensor, message, sample_depth, usable in late_samples:
+                for back in range(1, depth + 1):
+                    chosen = usable & (sample_depth == back)
+                    capture = self.records[(self.newest - back) % self.length]
+                    if capture.late[sensor] is None:
+                        capture.late[sensor] = StoredMessage(
+                            message.value.clone(), chosen, message.stamp.clone(), message.covariance.clone(), True
+                        )
+                    else:
+                        capture.late[sensor].merge(message.value, chosen, message.stamp, message.covariance)
             replaying = oldest_depth > 0
             start_snapshot = self.snapshots[(self.newest - depth - 1) % self.length]
             if start_snapshot is not None:
@@ -169,15 +199,14 @@ class LateFusionKalmanFilterNavigation(ExtendedKalmanFilterNavigation):
 
         During a replay (``replay_mask``), only the replaying environments change.
         """
-        if replay_mask is None:
-            self.propagate_with(record.imu_value, record.imu_valid, dt)
-            for value, valid, stamp, covariance in record.messages[0]:
-                self.fuse_altimeter(geometry, value, valid, stamp, covariance)
-            for value, valid, stamp, covariance in record.messages[1]:
-                self.fuse_doppler(geometry, value, valid, stamp, covariance)
-            return
-        self.propagate_with(record.imu_value, record.imu_valid & replay_mask, dt)
-        for value, valid, stamp, covariance in record.messages[0]:
-            self.fuse_altimeter(geometry, value, valid & replay_mask, stamp, covariance)
-        for value, valid, stamp, covariance in record.messages[1]:
-            self.fuse_doppler(geometry, value, valid & replay_mask, stamp, covariance)
+        def mask(valid: Tensor) -> Tensor:
+            """Restrict a validity mask to the replaying environments during a replay."""
+            return valid if replay_mask is None else valid & replay_mask
+
+        self.propagate_with(record.imu_value, mask(record.imu_valid), dt)
+        # Messages without any valid sample are skipped (in S4 every Doppler sample is late, so
+        # the on-time Doppler message of a stored step is empty).
+        for message in record.messages(0):
+            self.fuse_altimeter(geometry, message.value, mask(message.valid), message.stamp, message.covariance)
+        for message in record.messages(1):
+            self.fuse_doppler(geometry, message.value, mask(message.valid), message.stamp, message.covariance)

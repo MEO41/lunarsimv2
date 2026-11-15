@@ -33,6 +33,11 @@ summary: The terminal_suite sensor binding (IMU, radar altimeter, Doppler veloci
 
 ## Filter
 
+Since 2026-11-15 the covariance is kept scaled by the initial sigmas (`scaled_covariance`, diagonal
+starts at 1) in float32, and the filter's hot functions are compiled with `torch.compile` on the
+GPU (`nav.compile`, default true; CPU tests stay eager): one step 4.7 → 1.5 ms at 1,024 landers.
+The physical covariance is the `covariance` property (float64, on demand).
+
 Error state [dp, dv, dθ, accelerometer bias, gyro bias]; process noise from the IMU numbers;
 bias random walks 1e-5 m/s²/√s and 0.01°/h/√s (**model choice**). Initial sigma 1 m, 0.2 m/s,
 0.1° (design S2 for the first two), IMU bias repeatability for the biases. Onboard map = the

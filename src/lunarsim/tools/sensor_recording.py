@@ -128,7 +128,7 @@ class SensorRecorder:
         self._keep("estimated_position", state.position)
         self._keep("estimated_velocity", state.velocity)
         self._keep("estimated_orientation", state.orientation)
-        self._keep("estimated_covariance_diagonal", torch.diagonal(state.covariance, dim1=1, dim2=2))
+        self._keep("estimated_covariance_diagonal", torch.diagonal(state.scaled_covariance, dim1=1, dim2=2) * state.scale**2)
         self._keep("estimated_biases", torch.cat((state.accelerometer_bias, state.gyro_bias), dim=1))
         self._keep("true_biases", torch.cat((suite.imu.accelerometer_bias, suite.imu.gyro_bias), dim=1))
 

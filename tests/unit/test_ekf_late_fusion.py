@@ -78,7 +78,7 @@ def test_without_delays_late_fusion_is_the_ekf():
     plain, _ = fly(ExtendedKalmanFilterNavigation, delayed=False)
     late, navigation = fly(LateFusionKalmanFilterNavigation, delayed=False)
     assert navigation.replays == 0
-    assert torch.allclose(plain[-1][1], late[-1][1], atol=1e-6)
+    assert torch.allclose(plain[-1][1], late[-1][1], atol=1e-4)  # float32: different rounding paths
 
 
 def test_late_fusion_beats_treating_late_data_as_new():

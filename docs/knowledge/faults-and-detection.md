@@ -93,7 +93,27 @@ had a false alarm.
   | used as new (`ekf`) | 86.43 % | 49, 298 mm/s | 16.3 mm/s | 84 s |
   | dropped (`ekf_fdi`) | 95.90 % | 194, 500 mm/s | 208 mm/s | 101 s |
 
-  Late fusion is about 6-7 times slower here (a replay of up to 10 steps at almost every step).
+  Late fusion was about 6-7 times slower (a replay of up to 10 steps at almost every step).
+
+### Late-fusion speed (2026-11-15)
+
+Filter alone, 1,024 landers, RTX 5060, ms per control step (`ekf` / `ekf_late_fusion`):
+
+| Change | `ekf` | `ekf_late_fusion` |
+| --- | --- | --- |
+| start | 4.7 | 102 |
+| one merged late message per sensor and stored step; empty messages skipped | 4.7 | 41 |
+| scaled float32 covariance (float64 was 1/64 speed on consumer GPUs) | 3.7 | 32 |
+| `torch.compile` of the filter's hot functions (690 small kernels per step were launch-bound) | **1.5** | **11.6** |
+
+S4 environment at 1,024 landers: late fusion 8,390 → about 23,000-29,000 env steps/s, close to
+`ekf` in S4 (about 32,000-35,000). Whole-environment benchmarks on the development desktop vary
+by up to ±30 % between runs; the filter-only times are stable. Accuracy unchanged: synthetic
+NEES 9.44, late fusion 9.49, recorded-truth NEES 9.86.
+
+Tried and dropped: Larsen's method (1998), a correction carried through stored step maps without
+replay. It diverged (velocity error 10^8 m/s), because it is exact only when delayed
+measurements do not overlap; in S4 every Doppler sample is late and they always overlap.
 
 ## Held-out fault grid (paper 1)
 

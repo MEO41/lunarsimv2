@@ -85,5 +85,7 @@ Newest at the bottom. "User" means the user decided; the others were proposed, e
 | 2026-11-15 | Policy observation in S3 = 16 navigation values + filter health (failed flag, data age per aided sensor); history of 32 decision steps (3.2 s) | Design S3 ("the agent gets the flag and the data age"; history_len 32) |
 | 2026-11-15 | `ekf_late_fusion` replays from stored inputs (0.6 s buffer), batched over environments | Design S4; CPU test: late fusion as accurate as no delay |
 | 2026-11-15 | Paper 1 test = fixed fault grid (80 cells, onsets 5-40 m, mid sizes, seed 1000) | Every agent meets the same faults; design: "held-out test set" |
+| 2026-11-15 | Filter covariance scaled by the initial sigmas and float32; filter compiled with `torch.compile` on the GPU | Consumer GPUs run float64 at 1/64 speed and the step was launch-bound; NEES unchanged (9.86 on recorded truth) |
+| 2026-11-15 | Late fusion keeps the exact replay (merged late messages, empty ones skipped); Larsen's method rejected | Larsen diverged with overlapping delays; replay now 11.6 ms vs 102 ms per step |
 
 Decisions still open: [[pending-user-decisions]].

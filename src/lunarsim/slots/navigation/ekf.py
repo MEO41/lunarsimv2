@@ -19,8 +19,8 @@ milestone 6). Outputs that the filter does not estimate:
 - contact light: the probe switches.
 
 Parameters: ``initial_sigma`` (position_m, velocity_mps, attitude_deg, accelerometer_bias_micro_g,
-gyro_bias_deg_per_h) and ``process_noise`` (the IMU's random walks plus bias random walks), see
-``configs/nav/ekf.yaml``.
+gyro_bias_deg_per_h), ``process_noise`` (the IMU's random walks plus bias random walks) and
+``compile`` (default true: ``torch.compile`` on the GPU), see ``configs/nav/ekf.yaml``.
 """
 
 from __future__ import annotations
@@ -104,13 +104,15 @@ class ExtendedKalmanFilterNavigation(BindingBase):
         self.filter = ErrorStateKalmanFilter(
             count,
             device,
-            {
+            scale=self.initial_sigmas,
+            process_noise={
                 "velocity_random_walk": float(noise["accelerometer_noise_micro_g_per_sqrt_hz"]) * 1e-6 * STANDARD_GRAVITY,
                 "angle_random_walk": float(noise["angle_random_walk_deg_per_sqrt_h"]) * degree / 60.0,
                 "accelerometer_bias_random_walk": float(noise["accelerometer_bias_random_walk_mps2_per_sqrt_s"]),
                 "gyro_bias_random_walk": float(noise["gyro_bias_random_walk_deg_per_h_per_sqrt_s"]) * degree / 3600.0,
             },
         )
+        self._compile_filter(bool(self.parameters.get("compile", True)))
         suite = context.shared_data.get("sensor_suite_parameters") or {}
         self.altimeter_directions = beam_directions(suite["radar_altimeter"]["beams"], device)
         self.altimeter_maximum_range = float(suite["radar_altimeter"]["maximum_range_m"])
@@ -124,6 +126,20 @@ class ExtendedKalmanFilterNavigation(BindingBase):
         # filter's own clock (time since the episode start), for the data age in ``health``.
         self.last_fused_stamp = torch.zeros(count, len(AIDED_SENSORS), device=device)
         self.time = torch.zeros(count, device=device)
+
+    def _compile_filter(self, wanted: bool) -> None:
+        """Compile the filter's hot functions with ``torch.compile`` on the GPU (parameter ``compile``).
+
+        One filter step launches about 690 small GPU kernels; at 1,024 environments the launches,
+        not the arithmetic, take most of the time (3.7 ms per step, 1.1 ms of GPU work).
+        Compiling fuses them: propagation 0.94 -> 0.14 ms, update 0.50 -> 0.22 ms (RTX 5060). The
+        first steps of a run pay a few seconds of compilation. CPU runs (unit tests) stay eager.
+        """
+        if not wanted or str(self.device).startswith("cpu"):
+            return
+        state = self.filter
+        for name in ("propagate", "update", "normalised_innovation", "predict_line_of_sight_velocities", "predict_ranges"):
+            setattr(state, name, torch.compile(getattr(state, name), dynamic=False))
 
     def reset(self, env_ids: Tensor, gen: torch.Generator) -> None:
         """Start the given environments from the start slot's first estimate."""
@@ -216,7 +232,7 @@ class ExtendedKalmanFilterNavigation(BindingBase):
             ),
             dim=1,
         )
-        diagonal = torch.diagonal(state.covariance, dim1=1, dim2=2).to(torch.float32)  # (N, 15)
+        diagonal = torch.diagonal(state.scaled_covariance, dim1=1, dim2=2) * state.scale**2  # (N, 15), physical
         layout = NavigationStateLayout
         variance = torch.zeros(mean.shape[0], layout.DIMENSION, device=self.device)
         variance[:, layout.POSITION] = diagonal[:, 0:3]

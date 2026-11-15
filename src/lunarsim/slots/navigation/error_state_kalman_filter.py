@@ -14,7 +14,7 @@ as a small rotation in the body frame (q_true = q * exp(dtheta)). Formulation af
 - :meth:`predict_ranges` and :meth:`predict_line_of_sight_velocities` build the predictions and
   Jacobians of body-fixed beams on the onboard map (the surface's ground lookup).
 
-Covariances are float64; states are float32 like the rest of the simulator.
+The covariance is scaled and float32 (see ``ErrorStateKalmanFilter``); states are float32 like the rest of the simulator.
 """
 
 from __future__ import annotations
@@ -63,13 +63,23 @@ def quaternion_exponential(rotation_vector: Tensor) -> Tensor:
 
 
 class ErrorStateKalmanFilter:
-    """Holds and advances the estimate of every environment."""
+    """Holds and advances the estimate of every environment.
 
-    def __init__(self, count: int, device, process_noise: dict[str, float]) -> None:
+    **Scaled covariance.** The covariance is kept in units of a fixed scale per error-state
+    component (the initial sigmas): ``scaled_covariance = D^-1 P D^-1`` with ``D = diag(scale)``,
+    so its diagonal starts at 1 and stays well conditioned although the physical variances span
+    about 12 orders of magnitude (position ~1 m^2, gyro bias ~1e-11 rad^2/s^2). All covariance
+    arithmetic then runs in float32 (consumer GPUs run float64 at about 1/64 of the float32
+    speed; float64 made one filter step about 4.7 ms at 1,024 environments). The physical
+    covariance is available as ``covariance`` (float64, computed on demand).
+    """
+
+    def __init__(self, count: int, device, process_noise: dict[str, float], scale: Tensor | None = None) -> None:
         """Allocate the states; ``process_noise`` gives the white-noise densities in SI units.
 
         Keys: ``velocity_random_walk`` (m/s/sqrt(s)), ``angle_random_walk`` (rad/sqrt(s)),
         ``accelerometer_bias_random_walk`` (m/s^2/sqrt(s)), ``gyro_bias_random_walk`` (rad/s/sqrt(s)).
+        ``scale`` (15,) is the unit of each error-state component in the covariance (default 1).
         """
         self.device = device
         self.position = torch.zeros(count, 3, device=device)
@@ -77,10 +87,25 @@ class ErrorStateKalmanFilter:
         self.orientation = torch.tensor([1.0, 0.0, 0.0, 0.0], device=device).repeat(count, 1)
         self.accelerometer_bias = torch.zeros(count, 3, device=device)
         self.gyro_bias = torch.zeros(count, 3, device=device)
-        self.covariance = torch.eye(ERROR_STATE_DIMENSION, dtype=torch.float64, device=device).repeat(count, 1, 1)
+        self.scale = (torch.ones(ERROR_STATE_DIMENSION, device=device) if scale is None else scale.to(device).float()).clone()
+        self.identity = torch.eye(ERROR_STATE_DIMENSION, device=device)
+        self.scaled_covariance = self.identity.repeat(count, 1, 1)
         self.gravity = torch.tensor([0.0, 0.0, -MOON_SURFACE_GRAVITY], device=device)
         self.process_noise = {name: float(value) for name, value in process_noise.items()}
-        self.identity = torch.eye(ERROR_STATE_DIMENSION, dtype=torch.float64, device=device)
+        # Scaling of matrices: F_s = F * scale_j / scale_i, H_s = H * scale_j.
+        self.transition_scale = self.scale.unsqueeze(0) / self.scale.unsqueeze(1)
+
+    @property
+    def covariance(self) -> Tensor:
+        """Return the physical covariance (N, 15, 15), float64."""
+        scale = self.scale.to(torch.float64)
+        return self.scaled_covariance.to(torch.float64) * scale.unsqueeze(1) * scale.unsqueeze(0)
+
+    @covariance.setter
+    def covariance(self, value: Tensor) -> None:
+        """Set the covariance from physical units."""
+        scale = self.scale.to(value.dtype)
+        self.scaled_covariance = (value / scale.unsqueeze(1) / scale.unsqueeze(0)).float()
 
     def initialize(self, env_ids: Tensor, position: Tensor, velocity: Tensor, orientation: Tensor, sigmas: Tensor) -> None:
         """Start the given environments from an estimate with a diagonal covariance (sigmas: (15,))."""
@@ -89,7 +114,7 @@ class ErrorStateKalmanFilter:
         self.orientation[env_ids] = orientation
         self.accelerometer_bias[env_ids] = 0.0
         self.gyro_bias[env_ids] = 0.0
-        self.covariance[env_ids] = torch.diag(sigmas.to(torch.float64) ** 2)
+        self.scaled_covariance[env_ids] = torch.diag((sigmas.to(self.device).float() / self.scale) ** 2)
 
     def propagate(self, delta_velocity: Tensor, delta_angle: Tensor, dt: float, active: Tensor) -> None:
         """Advance the environments where ``active`` by one IMU sample of length ``dt``."""
@@ -104,45 +129,54 @@ class ErrorStateKalmanFilter:
 
         count = self.position.shape[0]
         transition = self.identity.repeat(count, 1, 1)
-        eye3 = torch.eye(3, dtype=torch.float64, device=self.device)
-        rotation64 = rotation.to(torch.float64)
+        eye3 = torch.eye(3, device=self.device)
         transition[:, POSITION, VELOCITY] = eye3 * dt
-        transition[:, VELOCITY, ATTITUDE] = -rotation64 @ skew(corrected_velocity.to(torch.float64))
-        transition[:, VELOCITY, ACCELEROMETER_BIAS] = -rotation64 * dt
-        transition[:, ATTITUDE, ATTITUDE] = rotation_matrix(quaternion_exponential(corrected_angle)).to(torch.float64).transpose(1, 2)
+        transition[:, VELOCITY, ATTITUDE] = -rotation @ skew(corrected_velocity)
+        transition[:, VELOCITY, ACCELEROMETER_BIAS] = -rotation * dt
+        transition[:, ATTITUDE, ATTITUDE] = rotation_matrix(quaternion_exponential(corrected_angle)).transpose(1, 2)
         transition[:, ATTITUDE, GYRO_BIAS] = -eye3 * dt
+        transition = transition * self.transition_scale
         noise = self.process_noise
         diagonal = torch.cat(
             (
-                torch.zeros(3, dtype=torch.float64, device=self.device),
-                torch.full((3,), noise["velocity_random_walk"] ** 2 * dt, dtype=torch.float64, device=self.device),
-                torch.full((3,), noise["angle_random_walk"] ** 2 * dt, dtype=torch.float64, device=self.device),
-                torch.full((3,), noise["accelerometer_bias_random_walk"] ** 2 * dt, dtype=torch.float64, device=self.device),
-                torch.full((3,), noise["gyro_bias_random_walk"] ** 2 * dt, dtype=torch.float64, device=self.device),
+                torch.zeros(3, device=self.device),
+                torch.full((3,), noise["velocity_random_walk"] ** 2 * dt, device=self.device),
+                torch.full((3,), noise["angle_random_walk"] ** 2 * dt, device=self.device),
+                torch.full((3,), noise["accelerometer_bias_random_walk"] ** 2 * dt, device=self.device),
+                torch.full((3,), noise["gyro_bias_random_walk"] ** 2 * dt, device=self.device),
             )
-        )
-        covariance = transition @ self.covariance @ transition.transpose(1, 2) + torch.diag(diagonal)
+        ) / self.scale**2
+        covariance = transition @ self.scaled_covariance @ transition.transpose(1, 2) + torch.diag(diagonal)
 
         mask = active.unsqueeze(1)
         self.position = torch.where(mask, position, self.position)
         self.velocity = torch.where(mask, velocity, self.velocity)
         self.orientation = torch.where(mask, orientation, self.orientation)
-        self.covariance = torch.where(active.view(-1, 1, 1), 0.5 * (covariance + covariance.transpose(1, 2)), self.covariance)
+        self.scaled_covariance = torch.where(
+            active.view(-1, 1, 1), 0.5 * (covariance + covariance.transpose(1, 2)), self.scaled_covariance
+        )
+
+    def _prepare(self, residual: Tensor, jacobian: Tensor, variance: Tensor, use: Tensor) -> tuple[Tensor, Tensor, Tensor]:
+        """Return residual, scaled Jacobian and variance with unused entries neutralised (float32)."""
+        residual = torch.where(use, residual, torch.zeros_like(residual)).float()
+        variance = torch.where(use, variance, torch.full_like(variance, IGNORED_VARIANCE)).float()
+        jacobian = torch.where(use.unsqueeze(-1), jacobian, torch.zeros_like(jacobian)).float() * self.scale
+        return residual, jacobian, variance
 
     def update(self, residual: Tensor, jacobian: Tensor, variance: Tensor, use: Tensor) -> None:
         """Fuse scalar measurements: residual (N, m), jacobian (N, m, 15), variance (N, m), use (N, m) bool."""
-        residual = torch.where(use, residual, torch.zeros_like(residual)).to(torch.float64)
-        variance = torch.where(use, variance, torch.full_like(variance, IGNORED_VARIANCE)).to(torch.float64)
-        jacobian = torch.where(use.unsqueeze(-1), jacobian, torch.zeros_like(jacobian)).to(torch.float64)
-        covariance = self.covariance
+        residual, jacobian, variance = self._prepare(residual, jacobian, variance, use)
+        covariance = self.scaled_covariance
         innovation_covariance = jacobian @ covariance @ jacobian.transpose(1, 2) + torch.diag_embed(variance)
-        gain = torch.linalg.solve(innovation_covariance, jacobian @ covariance).transpose(1, 2)  # (N, 15, m)
-        correction = (gain @ residual.unsqueeze(-1)).squeeze(-1)
+        gain = torch.linalg.solve(innovation_covariance, jacobian @ covariance).transpose(1, 2)  # (N, 15, m), scaled
+        correction = (gain @ residual.unsqueeze(-1)).squeeze(-1) * self.scale
         keep = self.identity - gain @ jacobian
-        covariance = keep @ covariance @ keep.transpose(1, 2) + gain @ torch.diag_embed(variance) @ gain.transpose(1, 2)
+        covariance = keep @ covariance @ keep.transpose(1, 2) + (gain * variance.unsqueeze(1)) @ gain.transpose(1, 2)
         any_used = use.any(dim=1)
-        self.covariance = torch.where(any_used.view(-1, 1, 1), 0.5 * (covariance + covariance.transpose(1, 2)), self.covariance)
-        correction = torch.where(any_used.unsqueeze(1), correction, torch.zeros_like(correction)).to(torch.float32)
+        self.scaled_covariance = torch.where(
+            any_used.view(-1, 1, 1), 0.5 * (covariance + covariance.transpose(1, 2)), self.scaled_covariance
+        )
+        correction = torch.where(any_used.unsqueeze(1), correction, torch.zeros_like(correction))
         self.inject(correction)
 
     def normalised_innovation(self, residual: Tensor, jacobian: Tensor, variance: Tensor, use: Tensor) -> tuple[Tensor, Tensor]:
@@ -151,12 +185,10 @@ class ErrorStateKalmanFilter:
         Only the used entries count: the others get a huge variance and no residual, so they add
         nothing. S = H P H^T + R is the innovation covariance of the used entries.
         """
-        residual = torch.where(use, residual, torch.zeros_like(residual)).to(torch.float64)
-        variance = torch.where(use, variance, torch.full_like(variance, IGNORED_VARIANCE)).to(torch.float64)
-        jacobian = torch.where(use.unsqueeze(-1), jacobian, torch.zeros_like(jacobian)).to(torch.float64)
-        innovation_covariance = jacobian @ self.covariance @ jacobian.transpose(1, 2) + torch.diag_embed(variance)
+        residual, jacobian, variance = self._prepare(residual, jacobian, variance, use)
+        innovation_covariance = jacobian @ self.scaled_covariance @ jacobian.transpose(1, 2) + torch.diag_embed(variance)
         solved = torch.linalg.solve(innovation_covariance, residual.unsqueeze(-1)).squeeze(-1)
-        return (residual * solved).sum(dim=1).to(torch.float32), use.sum(dim=1)
+        return (residual * solved).sum(dim=1), use.sum(dim=1)
 
     def inject(self, correction: Tensor) -> None:
         """Add an error-state correction (N, 15) to the nominal state."""
