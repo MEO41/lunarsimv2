@@ -37,6 +37,7 @@ flowchart LR
     drop_test_results["Drop test on steep terrain"]
     milestone_1a_results["Milestone 1a results"]
     milestone_1b_results["Milestone 1b results, PPO against ZEM/ZEV"]
+    paper_one_results["Paper 1 results, sensor faults (S3 fault grid)"]
     speed_benchmarks["Speed benchmarks"]
     terrain_results["Results with the LM-accurate lander and real terrain"]
   end
@@ -97,6 +98,9 @@ flowchart LR
   milestone_roadmap_and_status -- "follows" --> project_goal_and_design_documents
   milestone_roadmap_and_status -- "built" --> measured_terrain_surface
   milestone_roadmap_and_status -- "history" --> session_history
+  paper_one_results -- "part of" --> milestone_roadmap_and_status
+  paper_one_results -- "uses" --> faults_and_detection
+  paper_one_results -- "uses" --> ppo_landing_agent
   physx_contact_settings -- "used by" --> lander_articulation_model
   physx_contact_settings -- "recorded in" --> decisions_log
   ppo_landing_agent -- "flies on" --> slot_loop_architecture
@@ -157,6 +161,7 @@ flowchart LR
 | [Drop test on steep terrain](drop-test-results.md) | result | current | 1,000 engine-off drops from 5 m on a massif flank of the Apollo 17 map - where the lander stands, slides and tips over. |
 | [Milestone 1a results](milestone-1a-results.md) | result | current | Test counts, physics validation, controller results and the ZEM/ZEV full-box success rate with its failure breakdown (RTX 5060, flat ground). |
 | [Milestone 1b results, PPO against ZEM/ZEV](milestone-1b-results.md) | result | current | The M1b gate - five PPO seeds (600 iterations, RTX 5090) against ZEM/ZEV on the same 4,096 held-out starts, in S1 and flown on the EKF estimate in S2. |
+| [Paper 1 results, sensor faults (S3 fault grid)](paper-one-results.md) | result | draft | First pass of paper 1 - ZEM/ZEV with ekf and ekf_fdi, and PPO with MLP, GRU and attention encoders (600 iterations) on the held-out fault grid; the memory encoders were still learning, so they continue to 1,500 iterations. |
 | [Speed benchmarks](speed-benchmarks.md) | result | current | Environment steps per second and GPU memory against environment count, per GPU (goal G4). |
 | [Results with the LM-accurate lander and real terrain](terrain-results.md) | result | current | ZEM/ZEV success on flat ground with the corrected lander (97.53 %) and on the Apollo 17 terrain with craters and rocks (96.78 %), with failure causes and ground statistics. |
 | [Open issues](open-issues.md) | issue | open | Known weak points of the model and the code, with what each one affects. |

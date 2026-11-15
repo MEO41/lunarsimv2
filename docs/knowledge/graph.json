@@ -181,6 +181,15 @@
       "path": "open-issues.md"
     },
     {
+      "id": "paper-one-results",
+      "title": "Paper 1 results, sensor faults (S3 fault grid)",
+      "type": "result",
+      "status": "draft",
+      "updated": "2026-11-15",
+      "summary": "First pass of paper 1 - ZEM/ZEV with ekf and ekf_fdi, and PPO with MLP, GRU and attention encoders (600 iterations) on the held-out fault grid; the memory encoders were still learning, so they continue to 1,500 iterations.",
+      "path": "paper-one-results.md"
+    },
+    {
       "id": "pending-user-decisions",
       "title": "Pending user decisions",
       "type": "plan",
@@ -504,6 +513,11 @@
     },
     {
       "source": "decisions-log",
+      "target": "paper-one-results",
+      "relation": "mentions"
+    },
+    {
+      "source": "decisions-log",
       "target": "pending-user-decisions",
       "relation": "mentions"
     },
@@ -749,6 +763,11 @@
     },
     {
       "source": "milestone-roadmap-and-status",
+      "target": "paper-one-results",
+      "relation": "mentions"
+    },
+    {
+      "source": "milestone-roadmap-and-status",
       "target": "measured-terrain-surface",
       "relation": "mentions"
     },
@@ -811,6 +830,36 @@
       "source": "open-issues",
       "target": "milestone-1a-results",
       "relation": "mentions"
+    },
+    {
+      "source": "paper-one-results",
+      "target": "faults-and-detection",
+      "relation": "mentions"
+    },
+    {
+      "source": "paper-one-results",
+      "target": "workstation-setup-and-machines",
+      "relation": "mentions"
+    },
+    {
+      "source": "paper-one-results",
+      "target": "rules-from-the-user",
+      "relation": "mentions"
+    },
+    {
+      "source": "paper-one-results",
+      "target": "milestone-roadmap-and-status",
+      "relation": "part of"
+    },
+    {
+      "source": "paper-one-results",
+      "target": "faults-and-detection",
+      "relation": "uses"
+    },
+    {
+      "source": "paper-one-results",
+      "target": "ppo-landing-agent",
+      "relation": "uses"
     },
     {
       "source": "pending-user-decisions",

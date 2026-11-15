@@ -98,6 +98,7 @@ def summarise(run: Path, kind: str, manifest: dict, curve: pandas.DataFrame | No
         "navigation": scenario.get("nav", {}).get("binding", ""),
         "seed": manifest.get("root_seed", ""),
         "command_line": " ".join(str(manifest.get("command_line", "")).split()),
+        "resumed_from": (manifest.get("extra") or {}).get("resumed_from") or "",
         "episodes": "",
         "success_percent": "",
         "final_training_success_percent": "",

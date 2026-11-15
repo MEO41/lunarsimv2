@@ -10,8 +10,16 @@ others. Writes into ``runs/<run_name>/``: ``manifest.yaml`` (scenario, seeds, PP
 state), rsl_rl checkpoints ``model_<iteration>.pt`` and TensorBoard logs, and ``policy.pt`` (the
 exported actor, flown by ``agent=ppo_mlp agent.policy_path=runs/<run_name>/policy.pt``).
 
-Script arguments: ``run_name=`` (required), ``max_iterations=`` (default from the agent file).
-Every other ``key=value`` is a Hydra override of the scenario.
+Script arguments: ``run_name=`` (required), ``max_iterations=`` (default from the agent file),
+``resume_from=<checkpoint>`` (continue an earlier training: networks, optimiser and iteration
+count come from the checkpoint, and training runs on until iteration ``max_iterations``; the
+scenario overrides must be those of the earlier run). Every other ``key=value`` is a Hydra
+override of the scenario.
+
+Continue a run in a new run directory, so the earlier results stay as they were::
+
+    python scripts/train_ppo.py scenario=s3_faults agent=ppo_gru num_envs=4096 seed=0 \
+        run_name=ppo_gru_s3_seed0_to1500 max_iterations=1500 resume_from=runs/ppo_gru_s3_seed0/model_600.pt
 """
 
 import argparse
@@ -42,7 +50,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 
 def main() -> None:
     """Train, save checkpoints, export the actor and write the manifest."""
-    options = {"run_name": None, "max_iterations": None}
+    options = {"run_name": None, "max_iterations": None, "resume_from": None}
     remaining = []
     for argument in scenario_arguments:
         key, _, value = argument.partition("=")
@@ -75,15 +83,24 @@ def main() -> None:
         run_directory,
         scenario,
         environment.random_generators.seeds(),
-        extra={"kind": "ppo_training", "runner": copy.deepcopy(configuration)},
+        extra={"kind": "ppo_training", "runner": copy.deepcopy(configuration), "resumed_from": options["resume_from"]},
     )
     runner = OnPolicyRunner(vector_environment, configuration, log_dir=str(run_directory), device="cuda:0")
+    if options["resume_from"]:
+        runner.load(options["resume_from"], map_location="cuda:0")
+        # A checkpoint stores the index of its last finished iteration (model_600.pt holds 599),
+        # so the continued run starts at the next one.
+        runner.current_learning_iteration += 1
+        print(f"[lunarsim] resumed from {options['resume_from']} at iteration {runner.current_learning_iteration}")
+    remaining_iterations = int(ppo["max_iterations"]) - runner.current_learning_iteration
+    if remaining_iterations <= 0:
+        raise SystemExit(f"max_iterations={ppo['max_iterations']} is not above the checkpoint's iteration {runner.current_learning_iteration}")
     start = time.time()
-    runner.learn(num_learning_iterations=int(ppo["max_iterations"]), init_at_random_ep_len=False)
+    runner.learn(num_learning_iterations=remaining_iterations, init_at_random_ep_len=False)
     wall_time = time.time() - start
     runner.save(str(run_directory / f"model_{ppo['max_iterations']}.pt"))
     export_policy(runner.alg.actor, run_directory / "policy.pt", policy_kind(ppo))
-    print(f"[lunarsim] trained {ppo['max_iterations']} iterations in {wall_time:.0f} s; policy: {run_directory / 'policy.pt'}")
+    print(f"[lunarsim] trained to iteration {ppo['max_iterations']} ({remaining_iterations} iterations) in {wall_time:.0f} s; policy: {run_directory / 'policy.pt'}")
     print(f"[lunarsim] truth reads: {environment.bus.truth_read_log}")
     environment.close()
 
