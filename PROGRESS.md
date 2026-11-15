@@ -26,9 +26,24 @@ Last update: 2026-11-15
   milestone 1a errors found and fixed (M1A_REPORT.md section 10). ZEM/ZEV: 97.53 % on flat
   ground, 96.78 % on Apollo 17. Drop test: 1,000 drops from 5 m on steep ground.
 - Landing video of chosen successes and failures: `scripts/record_landing_videos.py`.
+- **Apollo probe-mode engine cut-off** (1.727 m probes, contact light), engine tail-off 0.5 s,
+  nozzle failure switch; observation has 16 values.
+- **Milestone 1b gate passed.** `ppo_mlp` with rsl_rl (10 Hz decisions, throttle + wanted tilt
+  through the attitude controller, landing reward). Five seeds, 600 iterations, on the RTX 5090
+  (`minsky`): PPO 97.95 % ± 0.44 vs ZEM/ZEV 97.68 % on the same 4,096 held-out starts
+  (`docs/knowledge/milestone-1b-results.md`, `docs/m1b/`).
+- **Milestone 2 gate passed.** Sensor suite (LN-200S IMU, radar altimeter, NDL Doppler,
+  propellant gauge, probes, flash LiDAR), error-state EKF, S2: NEES 9.78 on recorded truth;
+  ZEM/ZEV 97.46 % on the estimate vs 97.66 % on truth. Visual sensor check: free falls, every
+  sensor matches its stated noise (`docs/sensor_check/`).
+- **Milestone 3 built (training running).** Seeded fault schedule, `ekf_fdi`, `ekf_late_fusion`,
+  `faults: delay`, `fault_response` metric, `ppo_gru`, `ppo_attention`, scenarios S3 and S4,
+  held-out fault grid. ZEM/ZEV under one fault per landing: 95.4 % with `ekf_fdi`, 75.9 % with
+  the plain `ekf`.
 
 ## In progress
-- Nothing. M1b (RL on S1) is not started.
+- On `minsky`: S2 PPO training (M2: S1 policy vs S2 policy), then paper 1 training (MLP, GRU,
+  attention in S3, 5 seeds each) and the fault-grid evaluation (`scripts/minsky/queue_paper_one.sh`).
 
 ## Waiting for the user
 - Open questions: `docs/knowledge/pending-user-decisions.md`.
@@ -58,4 +73,5 @@ Last update: 2026-11-15
 | 2026-11-14 | Project memory lives in `docs/knowledge/`, checked by a CPU test | Context must survive moves between machines and sessions |
 | 2026-11-15 | Observation has 15 values (height above the ground below) | User decision; agents land on uneven ground |
 | 2026-11-15 | Real terrain from public height maps that are downloaded, not committed | User; see docs/knowledge/apollo17-height-maps.md |
+| 2026-11-15 | Later decisions (probe mode, M1b, M2, M3) are kept in `docs/knowledge/decisions-log.md` | One place for decisions |
 | 2026-11-15 | Lander default material friction 1.0 ("multiply"), so the surface's 0.4 acts | The default 0.5 halved the friction |

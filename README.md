@@ -73,6 +73,21 @@ sensor force, 1 m per 3 kN. Run `python scripts/contact_check.py`, then
 force. All stills and the table: [docs/contact_check](docs/contact_check),
 [docs/knowledge/contact-check-results.md](docs/knowledge/contact-check-results.md).*
 
+## Status (2026-11-15)
+
+| Milestone | Status |
+| --- | --- |
+| M0 slot loop, M1a lander and ZEM/ZEV | gates passed |
+| M1b PPO on S1 | **gate passed**: PPO 97.95 % ± 0.44 (5 seeds) vs ZEM/ZEV 97.68 % on the same held-out starts |
+| M2 sensors and EKF | **gate passed**: NEES 9.78 on recorded truth; S2 and a visual sensor check |
+| M3 faults and memory agents | built; paper 1 training running |
+
+![M1b: PPO vs ZEM/ZEV](docs/m1b/ppo_vs_zem_zev_s1_terminal_truth.png)
+
+![Sensor check: every sensor against its stated noise](docs/sensor_check/normalised_residuals.png)
+
+Details and every number with its source: `docs/knowledge/README.md`.
+
 ## Results of milestone 1a
 
 The classical ZEM/ZEV agent on scenario S1 (true state, flat ground, Apollo LM preset). Full
