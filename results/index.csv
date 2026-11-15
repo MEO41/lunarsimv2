@@ -36,6 +36,9 @@ ppo_mlp_s2_seed1,training,2026-11-15T12:30:36+00:00,d78db18c397cf6b7c6644ef82c00
 ppo_mlp_s2_seed2,training,2026-11-15T12:31:22+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,2,,,96.93
 ppo_mlp_s2_seed3,training,2026-11-15T12:32:07+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,3,,,96.99
 ppo_mlp_s2_seed4,training,2026-11-15T12:32:52+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,4,,,97.25
+ppo_mlp_s3_seed0,training,2026-11-15T16:09:18+00:00,542574fce270c13deba9d524228bd83ff7bc5922,False,s3_faults,ppo_mlp (mlp),ekf_fdi,0,,,96.72
+ppo_mlp_s3_seed1,training,2026-11-15T16:10:04+00:00,542574fce270c13deba9d524228bd83ff7bc5922,False,s3_faults,ppo_mlp (mlp),ekf_fdi,1,,,97.1
+ppo_mlp_s3_seed2,training,2026-11-15T16:10:49+00:00,542574fce270c13deba9d524228bd83ff7bc5922,False,s3_faults,ppo_mlp (mlp),ekf_fdi,2,,,95.27
 probe_check_apollo17,evaluation,2026-11-15T09:03:24+00:00,a37932d87c4bc0a994861dc43a40136f5d30bc2e,True,apollo17_terminal_truth,zem_zev,truth,0,1024,96.58,
 probe_tuning_flat_steady,evaluation,2026-11-15T08:46:41+00:00,baf4bc8196c1234e9c213f28e86dfe6486083629,True,s1_terminal_truth,zem_zev,truth,0,1024,97.66,
 s2_zem_zev_check,evaluation,2026-11-15T10:14:09+00:00,2c28c608ccf4747acbed8147dbbab8485bb8f5b1,True,s2_terminal_ekf,zem_zev,ekf,0,1024,97.46,

@@ -1,0 +1,15 @@
+run: ppo_mlp_s3_seed0
+kind: training
+started_utc: '2026-11-15T16:09:18+00:00'
+code_commit: 542574fce270c13deba9d524228bd83ff7bc5922
+uncommitted_changes: false
+scenario: s3_faults
+agent: ppo_mlp (mlp)
+navigation: ekf_fdi
+seed: 0
+command_line: scripts/train_ppo.py scenario=s3_faults agent=ppo_mlp num_envs=4096
+  seed=0 run_name=ppo_mlp_s3_seed0
+episodes: ''
+success_percent: ''
+final_training_success_percent: 96.72
+iterations: 600
