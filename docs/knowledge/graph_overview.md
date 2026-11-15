@@ -36,6 +36,7 @@ flowchart LR
     contact_check_results["Footpad contact check on real terrain"]
     drop_test_results["Drop test on steep terrain"]
     milestone_1a_results["Milestone 1a results"]
+    milestone_1b_results["Milestone 1b results, PPO against ZEM/ZEV"]
     speed_benchmarks["Speed benchmarks"]
     terrain_results["Results with the LM-accurate lander and real terrain"]
   end
@@ -91,6 +92,8 @@ flowchart LR
   milestone_1a_results -- "measured with" --> classical_agents
   milestone_1a_results -- "judged by" --> metrics_and_run_records
   milestone_1a_results -- "speed" --> speed_benchmarks
+  milestone_1b_results -- "compares" --> classical_agents
+  milestone_1b_results -- "follows" --> milestone_1a_results
   milestone_roadmap_and_status -- "follows" --> project_goal_and_design_documents
   milestone_roadmap_and_status -- "built" --> measured_terrain_surface
   milestone_roadmap_and_status -- "history" --> session_history
@@ -153,6 +156,7 @@ flowchart LR
 | [Footpad contact check on real terrain](contact-check-results.md) | result | current | Free-fall drops on eight kinds of ground; at rest every footpad's contact-sensor force agrees with its gap to the terrain lookup (32 of 32). |
 | [Drop test on steep terrain](drop-test-results.md) | result | current | 1,000 engine-off drops from 5 m on a massif flank of the Apollo 17 map - where the lander stands, slides and tips over. |
 | [Milestone 1a results](milestone-1a-results.md) | result | current | Test counts, physics validation, controller results and the ZEM/ZEV full-box success rate with its failure breakdown (RTX 5060, flat ground). |
+| [Milestone 1b results, PPO against ZEM/ZEV](milestone-1b-results.md) | result | current | The M1b gate - five PPO seeds (600 iterations, RTX 5090) against ZEM/ZEV on the same 4,096 held-out starts, in S1 and flown on the EKF estimate in S2. |
 | [Speed benchmarks](speed-benchmarks.md) | result | current | Environment steps per second and GPU memory against environment count, per GPU (goal G4). |
 | [Results with the LM-accurate lander and real terrain](terrain-results.md) | result | current | ZEM/ZEV success on flat ground with the corrected lander (97.53 %) and on the Apollo 17 terrain with craters and rocks (96.78 %), with failure causes and ground statistics. |
 | [Open issues](open-issues.md) | issue | open | Known weak points of the model and the code, with what each one affects. |

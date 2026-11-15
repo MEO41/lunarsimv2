@@ -82,3 +82,52 @@ def outcome_counts(groups: dict[str, list[Path | str]]) -> pandas.DataFrame:
         merged = pandas.concat([first_episodes(directory) for directory in directories])
         table[label] = merged["outcome"].value_counts()
     return pandas.DataFrame(table).fillna(0).astype(int)
+
+
+def comparison_figure(groups: dict[str, list[Path | str]], output: Path | str, title: str) -> Path:
+    """Draw success (all, low-and-fast, other starts; one dot per run), touchdown speed and propellant."""
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    colors = ("#5f6b7a", "#1f6fd1", "#e07b00", "#2e9e5b", "#7b4fc4")
+    figure, axes = plt.subplots(1, 3, figsize=(16, 5))
+    regions = (("all starts", None), ("low and fast", True), ("other starts", False))
+    width = 0.8 / len(groups)
+    for index, (label, directories) in enumerate(groups.items()):
+        frames = [first_episodes(directory) for directory in directories]
+        for region_index, (_, hard) in enumerate(regions):
+            rates = []
+            for frame in frames:
+                chosen = frame if hard is None else frame[low_and_fast(frame) == hard]
+                rates.append(100.0 * chosen["success"].mean())
+            position = region_index + (index - (len(groups) - 1) / 2) * width
+            axes[0].bar(position, numpy.mean(rates), width * 0.9, color=colors[index], label=label if region_index == 0 else None)
+            axes[0].scatter([position] * len(rates), rates, color="black", s=10, zorder=3)
+            axes[0].text(position, numpy.mean(rates) + 0.3, f"{numpy.mean(rates):.1f}", ha="center", fontsize=8)
+        merged = pandas.concat(frames)
+        landed = merged[merged["had_contact"]]
+        axes[1].hist(landed["touchdown_vertical_speed_mps"].abs(), bins=numpy.linspace(0, 3.2, 65), histtype="step", linewidth=1.6, color=colors[index], density=True, label=label)
+        axes[2].hist(merged["propellant_used_kg"], bins=numpy.linspace(0, 300, 61), histtype="step", linewidth=1.6, color=colors[index], density=True, label=label)
+    axes[0].set_xticks(range(len(regions)), [name for name, _ in regions])
+    axes[0].set_ylim(80, 101)
+    axes[0].set_ylabel("success (%)")
+    axes[0].set_title("Success on the same held-out starts (dots: one run each)", fontsize=10, loc="left")
+    axes[1].axvline(3.048, color="#999999", linestyle=":", linewidth=1)
+    axes[1].set_xlabel("vertical speed at first contact (m/s); limit 3.05 m/s")
+    axes[1].set_title("Touchdown vertical speed", fontsize=10, loc="left")
+    axes[2].set_xlabel("propellant used (kg)")
+    axes[2].set_title("Propellant used per landing", fontsize=10, loc="left")
+    for axis in axes:
+        axis.grid(color="#dddddd", linewidth=0.6)
+        axis.legend(fontsize=8, frameon=False)
+        for side in ("top", "right"):
+            axis.spines[side].set_visible(False)
+    figure.suptitle(title, fontsize=12, x=0.01, ha="left")
+    figure.tight_layout(rect=(0, 0, 1, 0.94))
+    output = Path(output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    figure.savefig(output, dpi=120)
+    plt.close(figure)
+    return output

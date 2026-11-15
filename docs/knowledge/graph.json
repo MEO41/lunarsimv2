@@ -154,6 +154,15 @@
       "path": "milestone-1a-results.md"
     },
     {
+      "id": "milestone-1b-results",
+      "title": "Milestone 1b results, PPO against ZEM/ZEV",
+      "type": "result",
+      "status": "current",
+      "updated": "2026-11-15",
+      "summary": "The M1b gate - five PPO seeds (600 iterations, RTX 5090) against ZEM/ZEV on the same 4,096 held-out starts, in S1 and flown on the EKF estimate in S2.",
+      "path": "milestone-1b-results.md"
+    },
+    {
       "id": "milestone-roadmap-and-status",
       "title": "Milestone roadmap and status",
       "type": "milestone",
@@ -704,13 +713,28 @@
       "relation": "speed"
     },
     {
+      "source": "milestone-1b-results",
+      "target": "ppo-landing-agent",
+      "relation": "mentions"
+    },
+    {
+      "source": "milestone-1b-results",
+      "target": "classical-agents",
+      "relation": "compares"
+    },
+    {
+      "source": "milestone-1b-results",
+      "target": "milestone-1a-results",
+      "relation": "follows"
+    },
+    {
       "source": "milestone-roadmap-and-status",
       "target": "milestone-1a-results",
       "relation": "mentions"
     },
     {
       "source": "milestone-roadmap-and-status",
-      "target": "ppo-landing-agent",
+      "target": "milestone-1b-results",
       "relation": "mentions"
     },
     {
