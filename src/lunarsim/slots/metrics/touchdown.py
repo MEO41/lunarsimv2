@@ -135,6 +135,11 @@ class TouchdownMetrics(BindingBase):
         # Navigation error (estimate minus truth) at the approach step of the first contact.
         self.touchdown_navigation_position_error = zeros(3)
         self.touchdown_navigation_velocity_error = zeros(3)
+        # Running navigation error statistics over the flight before the first contact (nav_error).
+        self.navigation_position_error_squared_sum = zeros()
+        self.navigation_velocity_error_squared_sum = zeros()
+        self.navigation_maximum_height_error = zeros()
+        self.navigation_error_steps = zeros()
         self.touchdown = {name: zeros() for name in ("vertical_speed", "horizontal_speed", "tilt", "tilt_rate")}
         self.touchdown_position = zeros(3)
         self.start = {
@@ -179,6 +184,10 @@ class TouchdownMetrics(BindingBase):
         self.previous_velocity[env_ids] = velocity
         self.touchdown_navigation_position_error[env_ids] = 0.0
         self.touchdown_navigation_velocity_error[env_ids] = 0.0
+        self.navigation_position_error_squared_sum[env_ids] = 0.0
+        self.navigation_velocity_error_squared_sum[env_ids] = 0.0
+        self.navigation_maximum_height_error[env_ids] = 0.0
+        self.navigation_error_steps[env_ids] = 0.0
         self.has_contact[env_ids] = False
         self.contact_time[env_ids] = 0.0
         self.settled_duration[env_ids] = 0.0
@@ -266,6 +275,15 @@ class TouchdownMetrics(BindingBase):
             self.touchdown_navigation_velocity_error = torch.where(
                 contact_column, estimate[:, 3:6] - self.previous_velocity, self.touchdown_navigation_velocity_error
             )
+            flying = ~self.has_contact & ~first_contact
+            position_error = estimate[:, 0:3] - self.previous_position
+            velocity_error = estimate[:, 3:6] - self.previous_velocity
+            self.navigation_position_error_squared_sum += torch.where(flying, (position_error**2).sum(dim=1), 0.0)
+            self.navigation_velocity_error_squared_sum += torch.where(flying, (velocity_error**2).sum(dim=1), 0.0)
+            self.navigation_maximum_height_error = torch.where(
+                flying, torch.maximum(self.navigation_maximum_height_error, position_error[:, 2].abs()), self.navigation_maximum_height_error
+            )
+            self.navigation_error_steps += flying.float()
         self.contact_time = torch.where(first_contact, truth.time, self.contact_time)
         self.has_contact |= first_contact
 
@@ -370,6 +388,9 @@ class TouchdownMetrics(BindingBase):
             "navigation_vertical_position_error_m": self.touchdown_navigation_position_error[:, 2],
             "navigation_horizontal_velocity_error_mps": self.touchdown_navigation_velocity_error[:, :2].norm(dim=1),
             "navigation_vertical_velocity_error_mps": self.touchdown_navigation_velocity_error[:, 2],
+            "navigation_position_error_rms_m": torch.sqrt(self.navigation_position_error_squared_sum / self.navigation_error_steps.clamp_min(1.0)),
+            "navigation_velocity_error_rms_mps": torch.sqrt(self.navigation_velocity_error_squared_sum / self.navigation_error_steps.clamp_min(1.0)),
+            "navigation_maximum_height_error_m": self.navigation_maximum_height_error,
             "probe_contact_time_s": self.probe_contact_time,
             "footpad_height_at_probe_contact_m": self.footpad_height_at_probe_contact,
             "propellant_used_kg": propellant_used,
@@ -377,8 +398,13 @@ class TouchdownMetrics(BindingBase):
             "outcome_code": outcome,
             "success": outcome == OUTCOME_CODE["success"],
         }
+        columns.update(self.extra_record_columns())
         self._finished_records.append({name: values[finished].cpu() for name, values in columns.items()})
         self.episode_number += finished.long()
+
+    def extra_record_columns(self) -> dict[str, Tensor]:
+        """Return additional per-environment record columns; subclasses add their own (fault_response)."""
+        return {}
 
     def drain_episode_records(self) -> dict[str, Tensor]:
         """Return all records stored since the last call (one row per finished episode) and clear them."""

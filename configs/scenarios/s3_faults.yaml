@@ -1,0 +1,32 @@
+# @package _global_
+# S3 Sensor failures, intermittent and persistent (scenario catalogue, section S3): S2 with one
+# seeded fault per episode on the radar altimeter or the Doppler velocimeter. Classical baseline
+# row: agent zem_zev with nav ekf_fdi. The learned rows (ppo_mlp, ppo_gru, ppo_attention) swap
+# the agent; every agent with the same seed meets the same faults.
+defaults:
+  - /start: terminal_box
+  - /plant: physx_site
+  - /surface: flat
+  - /sensors: terminal_suite
+  - /faults: schedule
+  - /nav: ekf_fdi
+  - /agent: zem_zev
+  - /actuators: engine_rcs_pulse
+  - /metrics: fault_response
+  - /training: none
+  - /landers@lander: apollo_lunar_module
+  - _self_
+
+name: s3_faults
+seed: 0
+start:
+  nav_error:
+    position_m: 1.0
+    velocity_mps: 0.2
+    attitude_deg: 0.1
+env:
+  num_envs: 64
+  env_spacing_m: 30.0
+  physics_step_s: 0.005
+  physics_steps_per_control_step: 4
+  episode_length_s: 90.0

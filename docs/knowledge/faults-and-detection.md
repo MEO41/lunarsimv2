@@ -44,5 +44,33 @@ estimate's `health` has two columns per aided sensor: failed flag and data age (
   mis-isolated: with a 1 m first-estimate error the filter may reject the good sensor. With the
   design's ranges (start 5-50 m, onset 5-40 m) this is common, so the metric records it.
 
+## `metrics: fault_response` and navigation error records
+
+`slots/metrics/fault_response.py`: the touchdown metric plus `fault_type`, `fault_target`,
+`fault_onset_altitude_m`, `fault_onset_time_s`, `fault_present_at_start`, `fault_detected`,
+`fault_detection_delay_s` (onset to the filter's failed flag), `false_alarm`,
+`fault_corrupting_steps`. Every touchdown record now also has `navigation_position_error_rms_m`,
+`navigation_velocity_error_rms_mps` and `navigation_maximum_height_error_m` (before contact).
+
+## First S3 results (2026-11-15, RTX 5060, ZEM/ZEV, 1,024 landings, seed 0, one fault each)
+
+| Fault | Landings | ZEM/ZEV + `ekf_fdi` | ZEM/ZEV + plain `ekf` |
+| --- | --- | --- | --- |
+| all | 1,024 | **95.41 %** | **75.88 %** |
+| stuck | 148 | 93.9 % | 20.9 % |
+| drift | 118 | 94.9 % | 59.3 % |
+| bias | 137 | 90.5 % | 73.0 % |
+| scale | 140 | 91.4 % | 85.0 % |
+| outlier spike | 122 | 100.0 % | 91.0 % |
+| delay spike | 122 | 95.9 % | 91.0 % |
+| dropout burst | 124 | 98.4 % | 98.4 % |
+| total loss | 113 | 100.0 % | 100.0 % |
+
+No faults (S2, same seed): 97.46 %. With `ekf_fdi`, mid-flight faults are declared after (median)
+0.12 s (bias, scale), 0.17 s (stuck), 0.48 s (total loss), 0.71 s (drift); outliers and delayed
+samples are rejected one by one, not declared; dropout bursts only when longer than 0.5 s. 37 %
+of the faults were present from the start (onset above the start altitude); 3.5 % of episodes
+had a false alarm.
+
 - part of: [[slot-loop-architecture]]
 - extends: [[sensors-and-ekf]]

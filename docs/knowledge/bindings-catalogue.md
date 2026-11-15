@@ -28,6 +28,7 @@ summary: Every binding that exists, per slot, with its file and what it does; th
 | actuators | `none` | `slots/actuators/none.py` | Zero wrench |
 | actuators | `engine_rcs_pulse` | `slots/actuators/engine_rcs_pulse.py`, `propulsion_models.py` | `DescentEngineModel` (throttle range, slew, lag, 0.5 s straight-line thrust tail-off after shutdown, propellant) and `ReactionControlPulseModel` (16 jets, minimum pulse, valve delay); engine starts at hover throttle; gimbal ignored |
 | metrics | `none` | `slots/metrics/none.py` | Never ends an episode |
+| metrics | `fault_response` | `slots/metrics/fault_response.py` | Touchdown plus fault onset, detection delay, false alarms ([[faults-and-detection]]) |
 | metrics | `touchdown` | `slots/metrics/touchdown.py` | See [[metrics-and-run-records]] |
 | agent | `zero`, `attitude_hold`, `hover_hold`, `vertical_descent`, `zem_zev` | `agents/classical/` | See [[classical-agents]] |
 | agent | `ppo_mlp` | `agents/rsl_rl/ppo_policy_agent.py` | Flies an exported PPO policy ([[ppo-landing-agent]]) |
@@ -40,6 +41,7 @@ summary: Every binding that exists, per slot, with its file and what it does; th
   zem_zev, actuators engine_rcs_pulse, metrics touchdown, lander apollo_lunar_module; 64 envs,
   spacing 30 m, episode 90 s.
 - `s2_terminal_ekf.yaml`: S1 with `sensors: terminal_suite`, `nav: ekf`, `start.nav_error` 1 m / 0.2 m/s / 0.1°.
+- `s3_faults.yaml`: S2 with `faults: schedule`, `nav: ekf_fdi`, `metrics: fault_response`; ZEM/ZEV baseline row.
 - `apollo17_terminal_truth.yaml`: as S1 with surface `apollo17_taurus_littrow`
   (`measured_terrain`); spacing 1 m, first spawn 40 m up; needs the downloaded height maps.
 

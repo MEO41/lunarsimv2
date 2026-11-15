@@ -10,6 +10,7 @@ from lunarsim.slots.actuators import engine_rcs_pulse as _actuators_engine_rcs_p
 from lunarsim.slots.actuators import none as _actuators_none  # noqa: F401
 from lunarsim.slots.faults import fault_schedule as _faults_schedule  # noqa: F401
 from lunarsim.slots.faults import none as _faults_none  # noqa: F401
+from lunarsim.slots.metrics import fault_response as _metrics_fault_response  # noqa: F401
 from lunarsim.slots.metrics import none as _metrics_none  # noqa: F401
 from lunarsim.slots.metrics import touchdown as _metrics_touchdown  # noqa: F401
 from lunarsim.slots.navigation import ekf as _navigation_ekf  # noqa: F401
