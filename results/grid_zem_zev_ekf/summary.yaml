@@ -1,0 +1,25 @@
+run: grid_zem_zev_ekf
+kind: evaluation
+started_utc: '2026-11-15T19:03:00+00:00'
+code_commit: cbd0937f90ddbd0432a46b49d826a9924d8af802
+uncommitted_changes: false
+scenario: s3_faults
+agent: zem_zev
+navigation: ekf
+seed: 1000
+command_line: scripts/evaluate_agent.py num_envs=4096 seed=1000 episodes_per_env=1
+  scenario=s3_faults fault_grid=true nav=ekf run_name=grid_zem_zev_ekf
+episodes: 4096
+success_percent: 78.64
+final_training_success_percent: ''
+outcomes:
+  success: 3221
+  tilt_at_contact: 232
+  tilt_rate_at_contact: 179
+  hard_vertical: 176
+  hard_horizontal: 149
+  tip_over: 120
+  out_of_bounds: 18
+  propellant_depleted: 1
+touchdown_vertical_speed_mps_mean: -1.552
+propellant_used_kg_mean: 108.1
