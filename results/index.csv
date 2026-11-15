@@ -1,0 +1,28 @@
+run,kind,started_utc,code_commit,uncommitted_changes,scenario,agent,navigation,seed,episodes,success_percent,final_training_success_percent
+eval_ppo_s1policy_seed0_s1_terminal_truth_heldout,evaluation,2026-11-15T12:23:46+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s1_terminal_truth,ppo_mlp (mlp),truth,1000,4096,97.88,
+eval_ppo_s1policy_seed0_s2_terminal_ekf_heldout,evaluation,2026-11-15T12:27:23+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,1000,4096,97.46,
+eval_ppo_s1policy_seed1_s1_terminal_truth_heldout,evaluation,2026-11-15T12:24:11+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s1_terminal_truth,ppo_mlp (mlp),truth,1000,4096,97.22,
+eval_ppo_s1policy_seed1_s2_terminal_ekf_heldout,evaluation,2026-11-15T12:27:56+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,1000,4096,97.02,
+eval_ppo_s1policy_seed2_s1_terminal_truth_heldout,evaluation,2026-11-15T12:24:37+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s1_terminal_truth,ppo_mlp (mlp),truth,1000,4096,98.29,
+eval_ppo_s1policy_seed2_s2_terminal_ekf_heldout,evaluation,2026-11-15T12:28:25+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,1000,4096,98.12,
+eval_ppo_s1policy_seed3_s1_terminal_truth_heldout,evaluation,2026-11-15T12:25:04+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s1_terminal_truth,ppo_mlp (mlp),truth,1000,4096,98.17,
+eval_ppo_s1policy_seed3_s2_terminal_ekf_heldout,evaluation,2026-11-15T12:28:57+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,1000,4096,98.14,
+eval_ppo_s1policy_seed4_s1_terminal_truth_heldout,evaluation,2026-11-15T12:25:30+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s1_terminal_truth,ppo_mlp (mlp),truth,1000,4096,98.22,
+eval_ppo_s1policy_seed4_s2_terminal_ekf_heldout,evaluation,2026-11-15T12:29:39+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,1000,4096,97.85,
+eval_ppo_s2policy_seed0_s2_terminal_ekf_heldout,evaluation,2026-11-15T15:22:17+00:00,c1cab0b3bc81d616e86168d492b09689f60674fb,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,1000,4096,98.36,
+eval_ppo_s2policy_seed1_s2_terminal_ekf_heldout,evaluation,2026-11-15T15:22:55+00:00,c1cab0b3bc81d616e86168d492b09689f60674fb,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,1000,4096,98.44,
+eval_ppo_s2policy_seed2_s2_terminal_ekf_heldout,evaluation,2026-11-15T15:23:34+00:00,c1cab0b3bc81d616e86168d492b09689f60674fb,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,1000,4096,98.24,
+eval_ppo_s2policy_seed3_s2_terminal_ekf_heldout,evaluation,2026-11-15T15:24:12+00:00,c1cab0b3bc81d616e86168d492b09689f60674fb,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,1000,4096,97.78,
+eval_ppo_s2policy_seed4_s2_terminal_ekf_heldout,evaluation,2026-11-15T15:24:50+00:00,c1cab0b3bc81d616e86168d492b09689f60674fb,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,1000,4096,98.44,
+eval_zem_zev_s1_terminal_truth_heldout,evaluation,2026-11-15T12:23:18+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s1_terminal_truth,zem_zev,truth,1000,4096,97.68,
+eval_zem_zev_s2_terminal_ekf_heldout,evaluation,2026-11-15T12:26:53+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,zem_zev,ekf,1000,4096,97.68,
+ppo_mlp_s1_seed0,training,2026-11-15T09:59:46+00:00,2c28c608ccf4747acbed8147dbbab8485bb8f5b1,False,s1_terminal_truth,ppo_mlp (mlp),truth,0,,,96.23
+ppo_mlp_s1_seed1,training,2026-11-15T10:01:34+00:00,2c28c608ccf4747acbed8147dbbab8485bb8f5b1,False,s1_terminal_truth,ppo_mlp (mlp),truth,1,,,97.35
+ppo_mlp_s1_seed2,training,2026-11-15T10:04:07+00:00,2c28c608ccf4747acbed8147dbbab8485bb8f5b1,False,s1_terminal_truth,ppo_mlp (mlp),truth,2,,,96.17
+ppo_mlp_s1_seed3,training,2026-11-15T10:02:14+00:00,2c28c608ccf4747acbed8147dbbab8485bb8f5b1,False,s1_terminal_truth,ppo_mlp (mlp),truth,3,,,97.38
+ppo_mlp_s1_seed4,training,2026-11-15T10:02:35+00:00,2c28c608ccf4747acbed8147dbbab8485bb8f5b1,False,s1_terminal_truth,ppo_mlp (mlp),truth,4,,,95.37
+ppo_mlp_s2_seed0,training,2026-11-15T12:29:50+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,0,,,96.6
+ppo_mlp_s2_seed1,training,2026-11-15T12:30:36+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,1,,,97.08
+ppo_mlp_s2_seed2,training,2026-11-15T12:31:22+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,2,,,96.93
+ppo_mlp_s2_seed3,training,2026-11-15T12:32:07+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,3,,,96.99
+ppo_mlp_s2_seed4,training,2026-11-15T12:32:52+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,4,,,97.25

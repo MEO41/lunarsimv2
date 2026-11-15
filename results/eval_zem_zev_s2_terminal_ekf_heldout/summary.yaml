@@ -1,0 +1,22 @@
+run: eval_zem_zev_s2_terminal_ekf_heldout
+kind: evaluation
+started_utc: '2026-11-15T12:26:53+00:00'
+code_commit: d78db18c397cf6b7c6644ef82c00d16d4925d357
+uncommitted_changes: false
+scenario: s2_terminal_ekf
+agent: zem_zev
+navigation: ekf
+seed: 1000
+command_line: scripts/evaluate_agent.py num_envs=4096 seed=1000 episodes_per_env=1
+  scenario=s2_terminal_ekf run_name=eval_zem_zev_s2_terminal_ekf_heldout
+episodes: 4096
+success_percent: 97.68
+final_training_success_percent: ''
+outcomes:
+  success: 4001
+  hard_horizontal: 69
+  hard_vertical: 10
+  tilt_rate_at_contact: 9
+  tilt_at_contact: 7
+touchdown_vertical_speed_mps_mean: -1.497
+propellant_used_kg_mean: 104.5

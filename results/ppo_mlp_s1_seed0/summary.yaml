@@ -1,0 +1,15 @@
+run: ppo_mlp_s1_seed0
+kind: training
+started_utc: '2026-11-15T09:59:46+00:00'
+code_commit: 2c28c608ccf4747acbed8147dbbab8485bb8f5b1
+uncommitted_changes: false
+scenario: s1_terminal_truth
+agent: ppo_mlp (mlp)
+navigation: truth
+seed: 0
+command_line: scripts/train_ppo.py scenario=s1_terminal_truth num_envs=4096 seed=0
+  run_name=ppo_mlp_s1_seed0
+episodes: ''
+success_percent: ''
+final_training_success_percent: 96.23
+iterations: 605

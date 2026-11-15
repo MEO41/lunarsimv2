@@ -1,0 +1,23 @@
+run: eval_ppo_s1policy_seed1_s1_terminal_truth_heldout
+kind: evaluation
+started_utc: '2026-11-15T12:24:11+00:00'
+code_commit: d78db18c397cf6b7c6644ef82c00d16d4925d357
+uncommitted_changes: false
+scenario: s1_terminal_truth
+agent: ppo_mlp (mlp)
+navigation: truth
+seed: 1000
+command_line: scripts/evaluate_agent.py num_envs=4096 seed=1000 episodes_per_env=1
+  scenario=s1_terminal_truth agent=ppo_mlp agent.policy_path=runs/ppo_mlp_s1_seed1/policy.pt
+  run_name=eval_ppo_s1policy_seed1_s1_terminal_truth_heldout
+episodes: 4096
+success_percent: 97.22
+final_training_success_percent: ''
+outcomes:
+  success: 3982
+  hard_horizontal: 85
+  tilt_at_contact: 13
+  hard_vertical: 9
+  tilt_rate_at_contact: 7
+touchdown_vertical_speed_mps_mean: -0.881
+propellant_used_kg_mean: 47.9

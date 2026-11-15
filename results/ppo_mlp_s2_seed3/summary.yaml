@@ -1,0 +1,15 @@
+run: ppo_mlp_s2_seed3
+kind: training
+started_utc: '2026-11-15T12:32:07+00:00'
+code_commit: d78db18c397cf6b7c6644ef82c00d16d4925d357
+uncommitted_changes: false
+scenario: s2_terminal_ekf
+agent: ppo_mlp (mlp)
+navigation: ekf
+seed: 3
+command_line: scripts/train_ppo.py scenario=s2_terminal_ekf num_envs=4096 seed=3 run_name=ppo_mlp_s2_seed3
+  max_iterations=600
+episodes: ''
+success_percent: ''
+final_training_success_percent: 96.99
+iterations: 600
