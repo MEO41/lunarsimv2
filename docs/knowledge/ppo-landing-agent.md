@@ -72,6 +72,9 @@ all three (hidden state or history kept per lander, cleared at reset). Tests: CP
 `test_history_models.py` (padding has no effect, exports equal the models), GPU smoke tests for
 GRU and attention in S3.
 
+Learning check, `ppo_gru` in S3 (1,024 envs, seed 0, faults on every episode): training success
+0.3 % at iteration 100, 10 % at 200, 71 % at 300, 78 % at 400 (stochastic policy).
+
 ## Training runs
 
 The five-seed runs (4,096 envs) run on `minsky` ([[workstation-setup-and-machines]]). They were

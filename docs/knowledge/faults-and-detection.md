@@ -85,6 +85,15 @@ had a false alarm.
   late data used as new (`ekf`) 27.9 mm/s; dropped (`ekf_fdi` age check) 483 mm/s (velocity
   unobserved); **late fusion 4.5 mm/s**, NEES 9.49.
 - Scenario `s4_late_fusion.yaml`; the design's `camera_cheap` sensor is not built (milestone 6).
+- **S4 in the simulator** (ZEM/ZEV, Doppler 50-200 ms late, 1,024 landings, seed 0):
+
+  | Late data | Success | Velocity error RMS (median, p95) | Horizontal velocity error at touchdown (median) | Wall time |
+  | --- | --- | --- | --- | --- |
+  | applied at capture time (`ekf_late_fusion`) | **97.46 %** (as without delay) | 27, 64 mm/s | 1.1 mm/s | 559 s |
+  | used as new (`ekf`) | 86.43 % | 49, 298 mm/s | 16.3 mm/s | 84 s |
+  | dropped (`ekf_fdi`) | 95.90 % | 194, 500 mm/s | 208 mm/s | 101 s |
+
+  Late fusion is about 6-7 times slower here (a replay of up to 10 steps at almost every step).
 
 ## Held-out fault grid (paper 1)
 
