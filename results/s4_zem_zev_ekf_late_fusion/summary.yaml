@@ -1,0 +1,21 @@
+run: s4_zem_zev_ekf_late_fusion
+kind: evaluation
+started_utc: '2026-11-15T13:22:27+00:00'
+code_commit: 8d40351fddff5c014aabbaddc1b2f3f9396f0520
+uncommitted_changes: false
+scenario: s4_late_fusion
+agent: zem_zev
+navigation: ekf_late_fusion
+seed: 0
+command_line: scripts/evaluate_agent.py scenario=s4_late_fusion num_envs=1024 run_name=s4_zem_zev_ekf_late_fusion
+  seed=0 nav=ekf_late_fusion
+episodes: 1024
+success_percent: 97.46
+final_training_success_percent: ''
+outcomes:
+  success: 998
+  hard_horizontal: 18
+  hard_vertical: 5
+  tilt_rate_at_contact: 3
+touchdown_vertical_speed_mps_mean: -1.51
+propellant_used_kg_mean: 106.1

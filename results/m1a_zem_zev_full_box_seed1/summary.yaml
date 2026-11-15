@@ -1,0 +1,22 @@
+run: m1a_zem_zev_full_box_seed1
+kind: evaluation
+started_utc: '2026-11-14T14:24:51+00:00'
+code_commit: 009762ca6b0c67bea3c2d245b2fcce39ff1fbdaf
+uncommitted_changes: false
+scenario: s1_terminal_truth
+agent: zem_zev
+navigation: truth
+seed: 1
+command_line: scripts/evaluate_agent.py scenario=s1_terminal_truth num_envs=4096 seed=1
+  run_name=m1a_zem_zev_full_box_seed1
+episodes: 4096
+success_percent: 96.51
+final_training_success_percent: ''
+outcomes:
+  success: 3953
+  hard_horizontal: 78
+  tilt_rate_at_contact: 39
+  hard_vertical: 21
+  tilt_at_contact: 5
+touchdown_vertical_speed_mps_mean: -0.943
+propellant_used_kg_mean: 108.4

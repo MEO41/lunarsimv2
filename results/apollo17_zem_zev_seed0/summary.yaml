@@ -1,0 +1,24 @@
+run: apollo17_zem_zev_seed0
+kind: evaluation
+started_utc: '2026-11-14T22:57:08+00:00'
+code_commit: d26d7a407492efb299c79c77630941b74f73f436
+uncommitted_changes: true
+scenario: apollo17_terminal_truth
+agent: zem_zev
+navigation: truth
+seed: 0
+command_line: scripts/evaluate_agent.py scenario=apollo17_terminal_truth num_envs=4096
+  run_name=apollo17_zem_zev_seed0 seed=0
+episodes: 4096
+success_percent: 96.51
+final_training_success_percent: ''
+outcomes:
+  success: 3953
+  hard_horizontal: 64
+  tilt_rate_at_contact: 28
+  body_contact: 21
+  hard_vertical: 20
+  tilt_at_contact: 8
+  not_settled: 2
+touchdown_vertical_speed_mps_mean: -0.714
+propellant_used_kg_mean: 108.1

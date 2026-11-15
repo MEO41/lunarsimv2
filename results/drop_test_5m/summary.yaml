@@ -1,0 +1,21 @@
+run: drop_test_5m
+kind: evaluation
+started_utc: '2026-11-15T00:01:57+00:00'
+code_commit: 4fe0f1e4317e967fcd2be468f441e7ffa959a0fc
+uncommitted_changes: true
+scenario: apollo17_drop_test
+agent: zero
+navigation: truth
+seed: 0
+command_line: scripts/run_drop_test.py drops=1000 run_name=drop_test_5m
+episodes: 1000
+success_percent: 1.5
+final_training_success_percent: ''
+outcomes:
+  hard_vertical: 717
+  not_settled: 248
+  success: 15
+  body_contact: 13
+  tip_over: 7
+touchdown_vertical_speed_mps_mean: -3.296
+propellant_used_kg_mean: 0.0

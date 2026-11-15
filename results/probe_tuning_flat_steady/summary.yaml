@@ -1,0 +1,21 @@
+run: probe_tuning_flat_steady
+kind: evaluation
+started_utc: '2026-11-15T08:46:41+00:00'
+code_commit: baf4bc8196c1234e9c213f28e86dfe6486083629
+uncommitted_changes: true
+scenario: s1_terminal_truth
+agent: zem_zev
+navigation: truth
+seed: 0
+command_line: scripts/evaluate_agent.py scenario=s1_terminal_truth num_envs=1024 run_name=probe_tuning_flat_steady
+  seed=0
+episodes: 1024
+success_percent: 97.66
+final_training_success_percent: ''
+outcomes:
+  success: 1000
+  hard_horizontal: 16
+  hard_vertical: 5
+  tilt_rate_at_contact: 3
+touchdown_vertical_speed_mps_mean: -1.517
+propellant_used_kg_mean: 104.6

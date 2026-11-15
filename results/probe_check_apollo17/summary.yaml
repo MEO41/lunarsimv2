@@ -1,0 +1,22 @@
+run: probe_check_apollo17
+kind: evaluation
+started_utc: '2026-11-15T09:03:24+00:00'
+code_commit: a37932d87c4bc0a994861dc43a40136f5d30bc2e
+uncommitted_changes: true
+scenario: apollo17_terminal_truth
+agent: zem_zev
+navigation: truth
+seed: 0
+command_line: scripts/evaluate_agent.py scenario=apollo17_terminal_truth num_envs=1024
+  run_name=probe_check_apollo17 seed=0
+episodes: 1024
+success_percent: 96.58
+final_training_success_percent: ''
+outcomes:
+  success: 989
+  hard_horizontal: 17
+  tilt_rate_at_contact: 7
+  body_contact: 6
+  hard_vertical: 5
+touchdown_vertical_speed_mps_mean: -1.352
+propellant_used_kg_mean: 104.1

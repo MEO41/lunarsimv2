@@ -1,0 +1,21 @@
+run: s4_zem_zev_ekf_fdi
+kind: evaluation
+started_utc: '2026-11-15T13:25:50+00:00'
+code_commit: 8d40351fddff5c014aabbaddc1b2f3f9396f0520
+uncommitted_changes: false
+scenario: s4_late_fusion
+agent: zem_zev
+navigation: ekf_fdi
+seed: 0
+command_line: scripts/evaluate_agent.py scenario=s4_late_fusion num_envs=1024 run_name=s4_zem_zev_ekf_fdi
+  seed=0 nav=ekf_fdi
+episodes: 1024
+success_percent: 95.9
+final_training_success_percent: ''
+outcomes:
+  success: 982
+  hard_horizontal: 33
+  hard_vertical: 5
+  tilt_rate_at_contact: 4
+touchdown_vertical_speed_mps_mean: -1.367
+propellant_used_kg_mean: 111.7

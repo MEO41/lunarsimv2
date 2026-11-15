@@ -1,0 +1,22 @@
+run: flat_lm_corrected_zem_zev_seed0
+kind: evaluation
+started_utc: '2026-11-14T22:53:16+00:00'
+code_commit: d26d7a407492efb299c79c77630941b74f73f436
+uncommitted_changes: true
+scenario: s1_terminal_truth
+agent: zem_zev
+navigation: truth
+seed: 0
+command_line: scripts/evaluate_agent.py scenario=s1_terminal_truth num_envs=4096 run_name=flat_lm_corrected_zem_zev_seed0
+  seed=0
+episodes: 4096
+success_percent: 97.66
+final_training_success_percent: ''
+outcomes:
+  success: 4000
+  hard_horizontal: 58
+  hard_vertical: 20
+  tilt_rate_at_contact: 11
+  tilt_at_contact: 7
+touchdown_vertical_speed_mps_mean: -0.947
+propellant_used_kg_mean: 107.9

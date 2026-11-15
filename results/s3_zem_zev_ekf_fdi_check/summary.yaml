@@ -1,0 +1,22 @@
+run: s3_zem_zev_ekf_fdi_check
+kind: evaluation
+started_utc: '2026-11-15T12:19:35+00:00'
+code_commit: 6f2413d7d26485d680c7613aa8ca53908cb666b0
+uncommitted_changes: true
+scenario: s3_faults
+agent: zem_zev
+navigation: ekf_fdi
+seed: 0
+command_line: scripts/evaluate_agent.py scenario=s3_faults num_envs=1024 run_name=s3_zem_zev_ekf_fdi_check
+  seed=0 nav=ekf_fdi
+episodes: 1024
+success_percent: 95.41
+final_training_success_percent: ''
+outcomes:
+  success: 977
+  hard_horizontal: 30
+  hard_vertical: 8
+  tilt_rate_at_contact: 5
+  tilt_at_contact: 4
+touchdown_vertical_speed_mps_mean: -1.503
+propellant_used_kg_mean: 105.2

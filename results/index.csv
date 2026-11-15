@@ -1,4 +1,8 @@
 run,kind,started_utc,code_commit,uncommitted_changes,scenario,agent,navigation,seed,episodes,success_percent,final_training_success_percent
+apollo17_zem_zev_seed0,evaluation,2026-11-14T22:57:08+00:00,d26d7a407492efb299c79c77630941b74f73f436,True,apollo17_terminal_truth,zem_zev,truth,0,4096,96.51,
+apollo17_zem_zev_seed1,evaluation,2026-11-14T23:04:02+00:00,d26d7a407492efb299c79c77630941b74f73f436,True,apollo17_terminal_truth,zem_zev,truth,1,4096,97.0,
+apollo17_zem_zev_seed2,evaluation,2026-11-14T23:11:21+00:00,d26d7a407492efb299c79c77630941b74f73f436,True,apollo17_terminal_truth,zem_zev,truth,2,4096,96.83,
+drop_test_5m,evaluation,2026-11-15T00:01:57+00:00,4fe0f1e4317e967fcd2be468f441e7ffa959a0fc,True,apollo17_drop_test,zero,truth,0,1000,1.5,
 eval_ppo_s1policy_seed0_s1_terminal_truth_heldout,evaluation,2026-11-15T12:23:46+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s1_terminal_truth,ppo_mlp (mlp),truth,1000,4096,97.88,
 eval_ppo_s1policy_seed0_s2_terminal_ekf_heldout,evaluation,2026-11-15T12:27:23+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,1000,4096,97.46,
 eval_ppo_s1policy_seed1_s1_terminal_truth_heldout,evaluation,2026-11-15T12:24:11+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s1_terminal_truth,ppo_mlp (mlp),truth,1000,4096,97.22,
@@ -16,6 +20,12 @@ eval_ppo_s2policy_seed3_s2_terminal_ekf_heldout,evaluation,2026-11-15T15:24:12+0
 eval_ppo_s2policy_seed4_s2_terminal_ekf_heldout,evaluation,2026-11-15T15:24:50+00:00,c1cab0b3bc81d616e86168d492b09689f60674fb,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,1000,4096,98.44,
 eval_zem_zev_s1_terminal_truth_heldout,evaluation,2026-11-15T12:23:18+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s1_terminal_truth,zem_zev,truth,1000,4096,97.68,
 eval_zem_zev_s2_terminal_ekf_heldout,evaluation,2026-11-15T12:26:53+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,zem_zev,ekf,1000,4096,97.68,
+flat_lm_corrected_zem_zev_seed0,evaluation,2026-11-14T22:53:16+00:00,d26d7a407492efb299c79c77630941b74f73f436,True,s1_terminal_truth,zem_zev,truth,0,4096,97.66,
+flat_lm_corrected_zem_zev_seed1,evaluation,2026-11-14T22:59:54+00:00,d26d7a407492efb299c79c77630941b74f73f436,True,s1_terminal_truth,zem_zev,truth,1,4096,97.53,
+flat_lm_corrected_zem_zev_seed2,evaluation,2026-11-14T23:06:19+00:00,d26d7a407492efb299c79c77630941b74f73f436,True,s1_terminal_truth,zem_zev,truth,2,4096,97.41,
+m1a_zem_zev_full_box_seed0,evaluation,2026-11-14T14:23:18+00:00,009762ca6b0c67bea3c2d245b2fcce39ff1fbdaf,False,s1_terminal_truth,zem_zev,truth,0,4096,96.9,
+m1a_zem_zev_full_box_seed1,evaluation,2026-11-14T14:24:51+00:00,009762ca6b0c67bea3c2d245b2fcce39ff1fbdaf,False,s1_terminal_truth,zem_zev,truth,1,4096,96.51,
+m1a_zem_zev_full_box_seed2,evaluation,2026-11-14T14:26:24+00:00,009762ca6b0c67bea3c2d245b2fcce39ff1fbdaf,False,s1_terminal_truth,zem_zev,truth,2,4096,96.9,
 ppo_mlp_s1_seed0,training,2026-11-15T09:59:46+00:00,2c28c608ccf4747acbed8147dbbab8485bb8f5b1,False,s1_terminal_truth,ppo_mlp (mlp),truth,0,,,96.23
 ppo_mlp_s1_seed1,training,2026-11-15T10:01:34+00:00,2c28c608ccf4747acbed8147dbbab8485bb8f5b1,False,s1_terminal_truth,ppo_mlp (mlp),truth,1,,,97.35
 ppo_mlp_s1_seed2,training,2026-11-15T10:04:07+00:00,2c28c608ccf4747acbed8147dbbab8485bb8f5b1,False,s1_terminal_truth,ppo_mlp (mlp),truth,2,,,96.17
@@ -26,3 +36,10 @@ ppo_mlp_s2_seed1,training,2026-11-15T12:30:36+00:00,d78db18c397cf6b7c6644ef82c00
 ppo_mlp_s2_seed2,training,2026-11-15T12:31:22+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,2,,,96.93
 ppo_mlp_s2_seed3,training,2026-11-15T12:32:07+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,3,,,96.99
 ppo_mlp_s2_seed4,training,2026-11-15T12:32:52+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,4,,,97.25
+probe_check_apollo17,evaluation,2026-11-15T09:03:24+00:00,a37932d87c4bc0a994861dc43a40136f5d30bc2e,True,apollo17_terminal_truth,zem_zev,truth,0,1024,96.58,
+probe_tuning_flat_steady,evaluation,2026-11-15T08:46:41+00:00,baf4bc8196c1234e9c213f28e86dfe6486083629,True,s1_terminal_truth,zem_zev,truth,0,1024,97.66,
+s2_zem_zev_check,evaluation,2026-11-15T10:14:09+00:00,2c28c608ccf4747acbed8147dbbab8485bb8f5b1,True,s2_terminal_ekf,zem_zev,ekf,0,1024,97.46,
+s3_zem_zev_ekf_fdi_check,evaluation,2026-11-15T12:19:35+00:00,6f2413d7d26485d680c7613aa8ca53908cb666b0,True,s3_faults,zem_zev,ekf_fdi,0,1024,95.41,
+s4_zem_zev_ekf,evaluation,2026-11-15T13:24:00+00:00,8d40351fddff5c014aabbaddc1b2f3f9396f0520,False,s4_late_fusion,zem_zev,ekf,0,1024,86.43,
+s4_zem_zev_ekf_fdi,evaluation,2026-11-15T13:25:50+00:00,8d40351fddff5c014aabbaddc1b2f3f9396f0520,False,s4_late_fusion,zem_zev,ekf_fdi,0,1024,95.9,
+s4_zem_zev_ekf_late_fusion,evaluation,2026-11-15T13:22:27+00:00,8d40351fddff5c014aabbaddc1b2f3f9396f0520,False,s4_late_fusion,zem_zev,ekf_late_fusion,0,1024,97.46,
