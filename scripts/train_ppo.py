@@ -31,7 +31,7 @@ import torch  # noqa: E402
 from rsl_rl.runners import OnPolicyRunner  # noqa: E402
 
 from lunarsim.agents.rsl_rl.lander_vector_environment import LanderVectorEnvironment  # noqa: E402
-from lunarsim.agents.rsl_rl.training_configuration import export_policy, runner_configuration  # noqa: E402
+from lunarsim.agents.rsl_rl.training_configuration import export_policy, policy_kind, runner_configuration  # noqa: E402
 from lunarsim.env.lander_env import LanderEnv  # noqa: E402
 from lunarsim.env.lander_env_cfg import build_lander_env_cfg  # noqa: E402
 from lunarsim.env.scenario_loader import load_scenario, split_command_line  # noqa: E402
@@ -82,7 +82,7 @@ def main() -> None:
     runner.learn(num_learning_iterations=int(ppo["max_iterations"]), init_at_random_ep_len=False)
     wall_time = time.time() - start
     runner.save(str(run_directory / f"model_{ppo['max_iterations']}.pt"))
-    export_policy(runner.alg.actor, run_directory / "policy.pt")
+    export_policy(runner.alg.actor, run_directory / "policy.pt", policy_kind(ppo))
     print(f"[lunarsim] trained {ppo['max_iterations']} iterations in {wall_time:.0f} s; policy: {run_directory / 'policy.pt'}")
     print(f"[lunarsim] truth reads: {environment.bus.truth_read_log}")
     environment.close()

@@ -80,6 +80,8 @@ class ExtendedKalmanFilterNavigation(BindingBase):
     )
     provides = frozenset({MessageKey.NAVIGATION_ESTIMATE})
     reads_truth = False
+    # Health columns of the estimate: failed flag and data age per aided sensor.
+    health_dimension = 2 * len(AIDED_SENSORS)
 
     def __init__(self, parameters, context) -> None:
         """Read the filter settings and the beam geometry of the sensor suite."""

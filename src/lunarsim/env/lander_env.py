@@ -102,6 +102,7 @@ class LanderEnv(DirectRLEnv):
             self.bindings[slot].initialize(self)
         self._zero_reward = torch.zeros(self.num_envs, device=self.device)
         self._training_truth_reader = _TrainingTruthReader()
+        self.include_navigation_health = bool((self.scenario.resolved.get("observation") or {}).get("include_navigation_health", False))
         training = dict(self.scenario.resolved.get("training") or {})
         self.critic_observation = str(training.get("critic_observation", "none"))
         if self.critic_observation not in ("none", "truth"):
@@ -245,7 +246,10 @@ class LanderEnv(DirectRLEnv):
         for slot in (SlotName.PLANT, SlotName.SENSORS, SlotName.FAULTS, SlotName.NAVIGATION):
             self.bindings[slot].step(self.bus, control_step_duration)
         estimate: NavEstimate = self.bus.read(MessageKey.NAVIGATION_ESTIMATE, self._observation_builder)
-        observation = Observation(policy=estimate.mean)
+        policy = estimate.mean
+        if getattr(self, "include_navigation_health", False):
+            policy = torch.cat((policy, estimate.health.to(policy.dtype)), dim=1)
+        observation = Observation(policy=policy)
         self.bus.write(MessageKey.OBSERVATION, observation, self._observation_builder)
         groups = {"policy": observation.policy}
         if getattr(self, "critic_observation", "none") == "truth":

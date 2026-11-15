@@ -44,6 +44,7 @@ from lunarsim.core.physical_constants import MOON_SURFACE_GRAVITY
 ACTION_DIMENSION_BY_MODE = {"attitude_commands": 3, "axis_commands": 4}
 MASS_OFFSET_KG = 7000.0
 MASS_SCALE_KG = 300.0
+MAXIMUM_DATA_AGE_S = 2.0  # model choice: a sensor silent for longer looks the same to the policy
 
 
 def observation_scale(device) -> tuple[Tensor, Tensor]:
@@ -85,8 +86,19 @@ class PolicyActionAdapter:
         return torch.where(action < 0.0, below, above)
 
     def scale_observation(self, observation: Tensor) -> Tensor:
-        """Return the scaled observation, (N, 16)."""
-        return (observation - self.offset) / self.scale
+        """Return the scaled observation: the 16 navigation values, then any health columns.
+
+        Health columns come in pairs per aided sensor: the failed flag (kept as 0 or 1) and the
+        data age in seconds (clipped to ``MAXIMUM_DATA_AGE_S``, so a long-lost sensor stays of
+        order one).
+        """
+        dimension = self.offset.shape[0]
+        navigation = (observation[:, :dimension] - self.offset) / self.scale
+        if observation.shape[1] == dimension:
+            return navigation
+        health = observation[:, dimension:].clone()
+        health[:, 1::2] = health[:, 1::2].clamp(max=MAXIMUM_DATA_AGE_S)
+        return torch.cat((navigation, health), dim=1)
 
     @classmethod
     def from_agent_parameters(cls, preset: LanderPreset, device, parameters: dict) -> PolicyActionAdapter:

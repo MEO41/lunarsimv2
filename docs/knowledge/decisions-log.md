@@ -81,5 +81,7 @@ Newest at the bottom. "User" means the user decided; the others were proposed, e
 | 2026-11-15 | The faults slot is truth-side (may read TruthState) | Onset at an altitude needs the true height; faults model the physical world like the sensors. The filter still never reads truth or `fault_status` |
 | 2026-11-15 | Fault menu and sizes as in `configs/faults/schedule.yaml` (model choices); one fault per episode on the whole altimeter or Doppler sensor | Design S3 lists types and targets but no sizes ([[faults-and-detection]]) |
 | 2026-11-15 | `ekf_fdi`: per-sensor chi-square gate 99.9 %, 3 rejections to fail, 10 passes to recover, 0.5 s loss, 0.06 s maximum sample age | Model choices; tested on the synthetic flight |
+| 2026-11-15 | Attention encoder built inside rsl_rl (custom `HistoryAttentionModel`), not skrl | User choice: all encoders share one PPO implementation, so paper 1 compares encoders only |
+| 2026-11-15 | Policy observation in S3 = 16 navigation values + filter health (failed flag, data age per aided sensor); history of 32 decision steps (3.2 s) | Design S3 ("the agent gets the flag and the data age"; history_len 32) |
 
 Decisions still open: [[pending-user-decisions]].

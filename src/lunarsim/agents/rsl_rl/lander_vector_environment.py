@@ -23,6 +23,7 @@ from rsl_rl.env import VecEnv
 from tensordict import TensorDict
 
 from lunarsim.core.message_types import MessageKey
+from lunarsim.agents.rsl_rl.decision_history import DecisionHistory
 from lunarsim.agents.rsl_rl.policy_action_adapter import PolicyActionAdapter
 from lunarsim.slots.metrics.touchdown import OUTCOME_CODE
 
@@ -49,8 +50,15 @@ class LanderVectorEnvironment(VecEnv):
         self.max_episode_length = int(math.ceil(environment.max_episode_length / self.policy_period_steps))
         self.recent_success = deque(maxlen=LOG_WINDOW_EPISODES)
         self.recent_terms = {name: deque(maxlen=LOG_WINDOW_EPISODES) for name in environment.reward_terms.term_names}
+        from lunarsim.agents.rsl_rl.training_configuration import policy_kind
+
+        ppo = dict(agent_parameters.get("ppo") or {})
+        self.kind = policy_kind(ppo)
+        self.history = None
+        if self.kind == "attention":
+            self.history = DecisionHistory(int(ppo["attention"]["history_length"]), self.num_envs, self.device)
         observations, _ = environment.reset()
-        self._observations = self._to_tensor_dictionary(observations)
+        self._observations = self._to_tensor_dictionary(observations, restarted=torch.ones(self.num_envs, dtype=torch.bool, device=self.device))
 
     @property
     def cfg(self):
@@ -67,10 +75,19 @@ class LanderVectorEnvironment(VecEnv):
         """Set the step counter (rsl_rl does this for random episode starts)."""
         self.environment.episode_length_buf = value
 
-    def _to_tensor_dictionary(self, observations: dict) -> TensorDict:
-        """Scale every observation group and pack the groups into a TensorDict."""
+    def _to_tensor_dictionary(self, observations: dict, restarted: torch.Tensor) -> TensorDict:
+        """Scale every observation group, add the decision history (attention), pack into a TensorDict.
+
+        ``restarted`` marks environments whose episode began since the last decision: their
+        history is cleared first.
+        """
         self._raw_policy_observation = observations["policy"]
         groups = {name: self.adapter.scale_observation(values) for name, values in observations.items()}
+        if self.history is not None:
+            from lunarsim.agents.rsl_rl.history_models import HISTORY_GROUP, HISTORY_MASK_GROUP
+
+            self.history.push(groups["policy"], restarted)
+            groups[HISTORY_GROUP], groups[HISTORY_MASK_GROUP] = self.history.groups()
         return TensorDict(groups, batch_size=[self.num_envs])
 
     def get_observations(self) -> TensorDict:
@@ -97,7 +114,7 @@ class LanderVectorEnvironment(VecEnv):
             if bool(just_ended.any()):
                 self._record_finished_episodes(just_ended)
             ended |= just_ended
-        self._observations = self._to_tensor_dictionary(observations)
+        self._observations = self._to_tensor_dictionary(observations, restarted=ended)
         log = {}
         if self.recent_success:
             log["/lunarsim/success_rate"] = sum(self.recent_success) / len(self.recent_success)
@@ -124,7 +141,7 @@ class LanderVectorEnvironment(VecEnv):
     def reset(self) -> tuple[TensorDict, dict]:
         """Reset all environments and return the first observations."""
         observations, extras = self.environment.reset()
-        self._observations = self._to_tensor_dictionary(observations)
+        self._observations = self._to_tensor_dictionary(observations, restarted=torch.ones(self.num_envs, dtype=torch.bool, device=self.device))
         return self._observations, extras
 
     def close(self) -> None:

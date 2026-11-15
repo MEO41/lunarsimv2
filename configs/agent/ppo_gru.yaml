@@ -1,0 +1,10 @@
+# PPO with a GRU in front of the same MLP head as ppo_mlp (milestone 3, design: ppo_gru).
+defaults:
+  - ppo_mlp
+  - _self_
+binding: ppo_mlp            # the same agent binding flies every kind; ppo.model picks the network
+ppo:
+  model: gru
+  recurrent:                # model choices
+    rnn_hidden_dim: 128
+    rnn_num_layers: 1

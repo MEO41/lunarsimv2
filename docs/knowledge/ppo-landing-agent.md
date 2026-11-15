@@ -53,6 +53,25 @@ on the same seed get the same first-episode starts).
 Tools: `scripts/export_policy.py` exports `policy.pt` from any checkpoint; `lunarsim compare`
 prints the comparison table (checks that all runs flew the same starts).
 
+## Policies with memory (milestone 3)
+
+`ppo.model` in the agent file picks the actor; everything else (PPO settings, MLP head
+256-256-128, Gaussian distribution, critic on truth, reward, 10 Hz decisions) is shared:
+
+| Agent file | `ppo.model` | Encoder in front of the MLP head |
+| --- | --- | --- |
+| `ppo_mlp.yaml` | `mlp` | none |
+| `ppo_gru.yaml` | `gru` | rsl_rl `RNNModel`, GRU 128, one layer |
+| `ppo_attention.yaml` | `attention` | `HistoryAttentionModel` (`agents/rsl_rl/history_models.py`): last 32 decisions (3.2 s), per-feature normaliser on real steps, projection to 64, learned positions, 2-layer 4-head transformer encoder, padding masked; newest step's output to the head (user decision 2026-11-15: custom in rsl_rl) |
+
+With `observation.include_navigation_health: true` (S3) the policy observation is the 16
+navigation values plus the filter's health (failed flag and data age per aided sensor), 20 in
+all. Exports (`export_policy_module`): MLP obs → action; GRU (obs, hidden) → (action, hidden),
+one hidden state per lander; attention (history, mask) → action. The `ppo_mlp` agent binding flies
+all three (hidden state or history kept per lander, cleared at reset). Tests: CPU
+`test_history_models.py` (padding has no effect, exports equal the models), GPU smoke tests for
+GRU and attention in S3.
+
 ## Training runs
 
 The five-seed runs (4,096 envs) run on `minsky` ([[workstation-setup-and-machines]]). They were

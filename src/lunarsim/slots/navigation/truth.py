@@ -18,6 +18,7 @@ class TruthNavigation(BindingBase):
     requires = frozenset({MessageKey.TRUTH_STATE})
     provides = frozenset({MessageKey.NAVIGATION_ESTIMATE})
     reads_truth = True
+    health_dimension = 0  # no sensors, no health columns
 
     def step(self, bus, dt: float) -> None:
         """Write the estimate: position, velocity, quaternion, body rates, mass, height above ground, probe contact."""

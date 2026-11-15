@@ -42,6 +42,19 @@ class LanderEnvCfg(DirectRLEnvCfg):
     scenario: dict = {}
 
 
+def observation_health_dimension(scenario: ScenarioConfig) -> int:
+    """Return how many health columns the policy observation gets (0 unless the scenario asks).
+
+    With ``observation.include_navigation_health: true`` the environment appends the navigation
+    estimate's health columns (per aided sensor: failed flag and data age) to the 16 values.
+    """
+    if not bool((scenario.resolved.get("observation") or {}).get("include_navigation_health", False)):
+        return 0
+    from lunarsim.core.binding import SlotName
+
+    return int(getattr(scenario.binding_classes()[SlotName.NAVIGATION], "health_dimension", 0))
+
+
 def build_lander_env_cfg(scenario: ScenarioConfig, device: str = "cuda:0") -> LanderEnvCfg:
     """Return the Isaac Lab config for ``scenario``."""
     configuration = LanderEnvCfg()
@@ -49,7 +62,7 @@ def build_lander_env_cfg(scenario: ScenarioConfig, device: str = "cuda:0") -> La
     configuration.decimation = scenario.physics_steps_per_control_step
     configuration.episode_length_s = scenario.episode_length_seconds
     configuration.action_space = Command.action_dimension(scenario.number_of_jets)
-    configuration.observation_space = NavigationStateLayout.DIMENSION
+    configuration.observation_space = NavigationStateLayout.DIMENSION + observation_health_dimension(scenario)
     configuration.sim.device = device
     configuration.sim.dt = scenario.physics_step_duration
     configuration.sim.render_interval = scenario.physics_steps_per_control_step

@@ -1,0 +1,15 @@
+# PPO with a transformer encoder over the last 32 decisions (3.2 s) in front of the same MLP head
+# as ppo_mlp (milestone 3, design: ppo_attention, history_len 32; user decision: custom encoder
+# inside rsl_rl so all encoders share one PPO implementation).
+defaults:
+  - ppo_mlp
+  - _self_
+binding: ppo_mlp
+ppo:
+  model: attention
+  attention:                # model choices
+    history_length: 32      # design S3: history_len 32 steps (here decision steps, 10 Hz)
+    model_dimension: 64
+    heads: 4
+    layers: 2
+    feedforward_dimension: 128

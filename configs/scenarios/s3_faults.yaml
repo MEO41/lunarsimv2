@@ -24,6 +24,10 @@ start:
     position_m: 1.0
     velocity_mps: 0.2
     attitude_deg: 0.1
+# The policy sees the filter's health columns (per aided sensor: failed flag, data age), design
+# S3: "The agent gets the flag and the data age in its observation".
+observation:
+  include_navigation_health: true
 env:
   num_envs: 64
   env_spacing_m: 30.0
