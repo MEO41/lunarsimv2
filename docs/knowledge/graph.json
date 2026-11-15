@@ -794,12 +794,12 @@
     },
     {
       "source": "open-issues",
-      "target": "isaac-lab-quirks",
+      "target": "workstation-setup-and-machines",
       "relation": "mentions"
     },
     {
       "source": "open-issues",
-      "target": "workstation-setup-and-machines",
+      "target": "isaac-lab-quirks",
       "relation": "mentions"
     },
     {

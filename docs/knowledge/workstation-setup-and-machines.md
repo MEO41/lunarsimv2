@@ -46,6 +46,26 @@ a new environment asks for the NVIDIA EULA on stdin, which blocks scripts: set
 source ~/lunarsim-workstation/env_isaaclab/bin/activate && export OMNI_KIT_ACCEPT_EULA=YES
 ```
 
+## Speed on `minsky` (benchmark 2026-11-15, `scripts/minsky/benchmark_5090.sh`)
+
+PPO training in S3 (`ppo_mlp`, 24 decisions per environment per iteration):
+
+| Setting | Seconds per iteration, each run | Env steps per second, all runs |
+|---|---|---|
+| 1 run, 4,096 landers | 4.0 | 122k |
+| 1 run, 16,384 landers | 9.4 | 208k |
+| 1 run, 32,768 landers | 27.2 | 145k |
+| 5 runs × 4,096, no MPS | 12.0–16.4 | 172k |
+| **5 runs × 4,096, CUDA MPS** | **6.3–7.5** | **350k** |
+| 2 runs × 16,384, CUDA MPS | 16.9–17.3 | 230k |
+
+Without MPS the runs take turns on the GPU (time-slicing); with MPS their kernels run at the
+same time. Environment only (S1, `zem_zev`): 126k env steps/s at 4,096 landers, 148k at 16,384,
+155k at 32,768, 248k at 65,536 (13.5 GB). Paper 1 trains with 5 × 4,096 under MPS (user
+decision 2026-11-15); start the daemon with `nvidia-cuda-mps-control -d` and the variables
+`CUDA_MPS_PIPE_DIRECTORY`, `CUDA_MPS_LOG_DIRECTORY` (see `scripts/minsky/queue_paper_one.sh`),
+stop it with `echo quit | nvidia-cuda-mps-control`.
+
 ## Pinned software (`requirements-pinned.txt`)
 
 Isaac Sim 6.0.1.0 (pip, `isaacsim[all,extscache]`, from pypi.nvidia.com); Isaac Lab 3.0.0,

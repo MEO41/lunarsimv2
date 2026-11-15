@@ -30,7 +30,7 @@ summary: Known weak points of the model and the code, with what each one affects
 | Start mass = Apollo 11 touchdown mass with remaining propellant | Starts with more propellant need a sourced number | Find a source when needed |
 | About 10 µm strut vibration, up to 5 mm/s velocity noise at rest | IMU model in M2 | Keep in mind |
 | `surface: procedural` smoke-tested only | Terrain studies | Replaced by the terrain plan |
-| Whole-environment speed on the development desktop varies by up to ±30 % between runs | Speed tables | Measure the speed table on the RTX 5090 (`scripts/minsky/benchmark_5090.sh`); report filter-only times for filter changes |
+| Whole-environment speed on the development desktop varies by up to ±30 % between runs | Speed tables | RTX 5090 table measured 2026-11-15 ([[workstation-setup-and-machines]]); report filter-only times for filter changes |
 | Isaac Lab 3.0 is a development branch; `isaaclab.sh` is deprecated | Upgrades, setup script | Pinned commit; [[isaac-lab-quirks]] |
 | `setup_workstation.sh` never run on a clean machine; it uses `--install core`, a guess | First setup on the RTX 5090 | Fix when it fails ([[workstation-setup-and-machines]]) |
 | Simulator process sometimes does not exit after tests, or stalls at launch | Test runs | Handled by `scripts/run_isaac_tests.py` (kill, shm clean-up, restart) |
