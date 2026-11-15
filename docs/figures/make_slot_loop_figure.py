@@ -40,7 +40,7 @@ diagram.box("surface", columns[1], rows[1], width, height, "Surface", role="mode
 diagram.box("actuators", columns[2], rows[1], width, height, "Actuators", role="process", sub="engine_rcs_pulse")
 diagram.box("start", columns[0], rows[2], width, height, "Start", role="model", sub="box + nav error")
 diagram.box("metrics", columns[2], rows[2], width, height, "Metrics", role="eval", sub="fault_response")
-diagram.image("render", str(FIGURE_DIRECTORY / "lander_at_rest.png"), columns[1], 47.2, width, crop=(250, 105, 1030, 585))
+diagram.image("render", str(FIGURE_DIRECTORY / "lander_at_rest.png"), columns[1], 47.2, width, crop=(250, 170, 1050, 662))
 
 diagram.arrow("check", (44.0, 55.0), out="right")
 diagram.arrow("start", "plant", out="top", inn="bottom", fo=0.3, fi=0.3)

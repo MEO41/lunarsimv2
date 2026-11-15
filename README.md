@@ -24,9 +24,11 @@ are made from these files alone.
 
 ![The lander at rest](docs/figures/lander_at_rest.png)
 
-*The Apollo LM preset at rest on flat ground (collision shapes of the simulator): a cylinder for
-the descent stage, a box for the ascent stage, dish footpads on spring-damper struts. The three
-surface probes and the nozzle have no collision shape and are not drawn.*
+*The Apollo LM preset at rest on the measured Apollo 17 terrain (2 m LROC height map with
+craters and rocks), sun 15° above the eastern horizon. The shapes are the simulator's collision
+shapes: a cylinder for the descent stage, a box for the ascent stage, dish footpads on
+spring-damper struts. The three surface probes and the nozzle have no collision shape and are
+not drawn.*
 
 ## Real terrain: Apollo 17 with craters and rocks
 

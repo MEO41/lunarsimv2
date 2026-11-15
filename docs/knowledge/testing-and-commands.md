@@ -37,7 +37,7 @@ python scripts/sensor_check.py && python scripts/plot_sensor_check.py && python 
 lunarsim compare zem_zev=runs/a ppo=runs/b,runs/c,runs/d                          # same held-out starts, low-and-fast split
 python scripts/export_policy.py run=runs/ppo_mlp_s1_seed0 checkpoint=model_500.pt   # policy.pt from any checkpoint, no Isaac
 python scripts/benchmark_environment.py scenario=s1_terminal_truth num_envs=1024 steps=500
-python scripts/render_lander_image.py --enable_cameras output=docs/figures/lander_at_rest.png
+python scripts/render_lander_image.py --enable_cameras replay=runs/contact_check/contacts.npz clip=1 output=docs/figures/lander_at_rest.png   # on the Apollo 17 terrain (needs the contact-check recording); without replay= on flat ground
 python scripts/run_drop_test.py drops=1000 drop_height_m=5 run_name=drop_test_5m
 python scripts/record_landing_videos.py landings=3072                             # then:
 python scripts/render_replay.py replay=runs/landing_videos/landings.npz mode=video

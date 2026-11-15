@@ -1,11 +1,15 @@
 # SPDX-License-Identifier: BSD-3-Clause
 """Render one picture of the lander at rest on the ground.
 
-Example::
+Examples::
 
     python scripts/render_lander_image.py --enable_cameras output=docs/figures/lander_at_rest.png
+    python scripts/render_lander_image.py --enable_cameras replay=runs/contact_check/contacts.npz clip=1 \
+        output=docs/figures/lander_at_rest.png
 
-The lander is dropped from 0.3 m with the engine off, settles for 6 s, and a camera takes one
+With ``replay=`` the lander is drawn on the measured Apollo 17 terrain, at rest where it settled in
+clip ``clip`` (1-based) of a recording made by ``scripts/contact_check.py``, under a sun 15 degrees
+above the eastern horizon; no physics runs. Without it, on flat ground: the lander is dropped from 0.3 m with the engine off, settles for 6 s, and a camera takes one
 picture. The picture shows the simple collision shapes that the simulator uses (a cylinder for
 the descent stage, a box for the ascent stage, a dish per footpad) and a thin visual cylinder for
 each strut. The surface probes and the nozzle have no shape and do not show.
@@ -34,12 +38,44 @@ from lunarsim.env.lander_env_cfg import build_lander_env_cfg  # noqa: E402
 from lunarsim.env.scenario_loader import load_scenario  # noqa: E402
 
 
+CAMERA_DIRECTION_FROM_LANDER = numpy.array([-0.63, -0.77])  # from the south-west, sun from the right
+CAMERA_DISTANCE_M = 21.0
+CAMERA_HEIGHT_ABOVE_LANDER_M = 4.0
+
+
+def render_on_terrain(replay_path: Path, clip: int, output_path: Path) -> None:
+    """Draw the lander at rest on the measured terrain from a recorded clip and save one picture."""
+    from lunarsim.tools.replay_rendering import ReplayRenderer
+    from pxr import UsdGeom
+
+    replay = numpy.load(replay_path)
+    columns = {str(name): index for index, name in enumerate(replay["columns"])}
+    renderer = ReplayRenderer(
+        simulation_app, str(replay["scenario_name"]), [str(value) for value in replay["scenario_overrides"]],
+        replay["frames"].shape[1], 1280, 800,
+    )
+    index = clip - 1
+    last = int(numpy.flatnonzero(replay["valid"][:, index]).max())
+    row = replay["frames"][last, index]
+    renderer.place(index, row, columns)
+    for root, *_ in renderer.arrows[index]:  # a picture of the lander, not of the contact forces
+        UsdGeom.Imageable(root).MakeInvisible()
+    centre = row[:3].astype(numpy.float64)
+    eye = numpy.array([*(centre[:2] + CAMERA_DISTANCE_M * CAMERA_DIRECTION_FROM_LANDER), centre[2] + CAMERA_HEIGHT_ABOVE_LANDER_M])
+    renderer.look(eye, centre - numpy.array([0.0, 0.0, 1.2]))
+    pixels = renderer.capture(settle_updates=40)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    Image.fromarray(pixels).save(output_path)
+    print(f"[lunarsim] wrote {output_path} (clip {clip}: {replay['clip_titles'][index]})", flush=True)
+
+
 def main() -> None:
-    """Settle one lander on flat ground and save one camera picture."""
-    output_path = Path("docs/figures/lander_at_rest.png")
-    for argument in other_arguments:
-        if argument.startswith("output="):
-            output_path = Path(argument.split("=", 1)[1])
+    """Save one camera picture of the lander at rest, on flat ground or (with ``replay=``) on the terrain."""
+    options = dict(argument.split("=", 1) for argument in other_arguments if "=" in argument)
+    output_path = Path(options.get("output", "docs/figures/lander_at_rest.png"))
+    if "replay" in options:
+        render_on_terrain(Path(options["replay"]), int(options.get("clip", "1")), output_path)
+        return
     scenario = load_scenario(
         "s1_terminal_truth",
         ["num_envs=1", "metrics=none", "actuators.initial_throttle=0.0", "start.altitude_m=[0.3,0.3]",
