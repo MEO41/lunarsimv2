@@ -1,0 +1,32 @@
+# @package _global_
+# S2 on the measured Apollo 17 terrain (the design's S2 row uses a DEM surface): sensors and EKF
+# over craters and rocks. The filter's onboard map is the surface's own ground lookup.
+defaults:
+  - /start: terminal_box
+  - /plant: physx_site
+  - /surface: apollo17_taurus_littrow
+  - /sensors: terminal_suite
+  - /faults: none
+  - /nav: ekf
+  - /agent: zem_zev
+  - /actuators: engine_rcs_pulse
+  - /metrics: touchdown
+  - /training: none
+  - /landers@lander: apollo_lunar_module
+  - _self_
+
+name: s2_apollo17_ekf
+seed: 0
+start:
+  nav_error:
+    position_m: 1.0          # design S2
+    velocity_mps: 0.2        # design S2
+    attitude_deg: 0.1        # model choice
+env:
+  num_envs: 64
+  env_spacing_m: 1.0         # sites come from the surface slot (see apollo17_terminal_truth)
+  physics_step_s: 0.005
+  physics_steps_per_control_step: 4
+  episode_length_s: 90.0
+plant:
+  spawn_height_m: 40.0

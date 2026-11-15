@@ -48,20 +48,26 @@ class TerminalBoxStart(BindingBase):
         self.velocity = torch.zeros(count, 3, device=self.device)
         self.orientation = torch.tensor([1.0, 0.0, 0.0, 0.0], device=self.device).repeat(count, 1)
         self.mass = torch.full((count,), preset.mass_at_start, device=self.device)
+        self.angular_velocity = torch.zeros(count, 3, device=self.device)
         self.fixed_start_states: tuple[Tensor, Tensor, Tensor] | None = None
         self.navigation_error = InitialNavigationError(self.parameters.get("nav_error"), count, self.device)
 
-    def set_fixed_start_states(self, position: Tensor, velocity: Tensor, orientation_quaternion: Tensor) -> None:
+    def set_fixed_start_states(
+        self, position: Tensor, velocity: Tensor, orientation_quaternion: Tensor, angular_velocity: Tensor | None = None
+    ) -> None:
         """Use the given per-environment states at every reset instead of sampling.
 
-        ``position`` is the centre-of-mass position (N, 3) in the site frame. This is how a run
-        replays a fixed list of start states (physics tests, held-out evaluation sets).
+        ``position`` is the centre-of-mass position (N, 3) in the site frame. ``angular_velocity``
+        (body rates, rad/s, optional, default zero) lets sensor checks start a lander turning.
+        This is how a run replays a fixed list of start states (physics tests, held-out sets).
         """
         self.fixed_start_states = (
             position.to(self.device).clone(),
             velocity.to(self.device).clone(),
             orientation_quaternion.to(self.device).clone(),
         )
+        rates = torch.zeros_like(self.fixed_start_states[0]) if angular_velocity is None else angular_velocity.to(self.device)
+        self.fixed_start_angular_velocity = rates.clone()
 
     def clear_fixed_start_states(self) -> None:
         """Go back to random sampling."""
@@ -74,6 +80,7 @@ class TerminalBoxStart(BindingBase):
             self.position[env_ids] = position[env_ids]
             self.velocity[env_ids] = velocity[env_ids]
             self.orientation[env_ids] = orientation[env_ids]
+            self.angular_velocity[env_ids] = self.fixed_start_angular_velocity[env_ids]
             self.navigation_error.reset(env_ids, gen)
             return
         count = len(env_ids)
@@ -97,6 +104,7 @@ class TerminalBoxStart(BindingBase):
         self.velocity[env_ids] = torch.stack((horizontal_velocity_x, horizontal_velocity_y, vertical_speed), dim=1)
         tilt_axis = torch.stack((torch.cos(tilt_azimuth), torch.sin(tilt_azimuth), torch.zeros_like(tilt)), dim=1)
         self.orientation[env_ids] = quaternion_from_axis_angle(tilt_axis, tilt)
+        self.angular_velocity[env_ids] = 0.0
         # Drawn from its own generator, after the start state: the start states do not change.
         self.navigation_error.reset(env_ids, gen)
 
@@ -109,7 +117,7 @@ class TerminalBoxStart(BindingBase):
             position=self.position.clone(),
             velocity=self.velocity.clone(),
             orientation_quaternion=self.orientation.clone(),
-            angular_velocity=torch.zeros(count, 3, device=self.device),
+            angular_velocity=self.angular_velocity.clone(),
             mass=self.mass.clone(),
             contact=torch.zeros(count, 0, device=self.device),
         )

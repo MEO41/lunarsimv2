@@ -51,6 +51,44 @@ the switches.
   (2.48 m p95) — the first-estimate error, which no S2 sensor observes; vertical 3.6 mm;
   velocity about 1 mm/s.
 
+- S2 on the Apollo 17 terrain (`s2_apollo17_ekf`, 1,024 landings, seed 0): ZEM/ZEV **96.00 %** on
+  the estimate against 96.58 % on truth, same 6 body strikes.
+
+## Speed (RTX 5060, `zem_zev` in the loop, env steps per second)
+
+| Scenario | 1,024 envs | 4,096 envs |
+| --- | --- | --- |
+| S1 truth | 55,063 | 129,102 |
+| S2 sensors + EKF | 40,132 | 98,107 |
+| S2 + LiDAR 32 × 32 | 39,177 | 87,072 |
+
+## Visual sensor check (2026-11-15, user request: "see a free fall lander and how the sensors respond")
+
+`scripts/sensor_check.py` drops four landers from 30 m on Apollo 17 terrain (engine off, no jets,
+no control): flattest spot (upright, at rest), crater rim (tilted 10°, drifting), steepest
+footprint (turning 3-5°/s), roughest spot (tilted, drifting, turning). `tools/sensor_recording.py`
+keeps truth, the noise-free expected reading of every sensor (ray cast from the true pose), the
+measured values and the filter. `scripts/plot_sensor_check.py` makes the figures
+(`docs/sensor_check/`), `scripts/render_sensor_check.py` the video (`runs/sensor_check/sensor_check.mp4`,
+beams drawn to the ground, LiDAR returns as points, live traces).
+
+| Sensor | (measured − expected) / stated σ: mean, standard deviation | Samples |
+| --- | --- | --- |
+| IMU delta-velocity | −0.009, 1.000 | 6,738 |
+| IMU delta-angle | +0.001, 0.990 | 6,738 |
+| Radar altimeter range | +0.025, 0.965 | 899 |
+| Doppler velocity | +0.011, 0.991 | 2,697 |
+| Doppler range | −0.022, 0.986 | 2,697 |
+| LiDAR range | +0.000, 0.999 | 458,752 |
+
+Every sensor matches its stated noise (ideal 0 and 1). Seen in the traces: specific force 0 in
+free fall, an impact spike near 100 m/s², then +1.62 m/s² at rest; gyros read the start rates;
+the contact light comes on at 1.727 m footpad height; the altimeter and Doppler stop at their
+minimum ranges (3.05 m, 2 m); filter errors stay inside ±3σ. The horizontal-velocity band of the
+filter grows to about ±25 mm/s in the fall because a tilt error and a horizontal velocity look
+alike to the Doppler beams at 9 m/s of descent; the real errors stay within ±3 mm/s. Over terrain
+with the perfect map the horizontal position error also shrinks (terrain-relative ranging).
+
 ## Deviations from the design
 
 - The design writes `sensors: [imu, radar_alt, doppler_vel]`; a slot holds one binding, so

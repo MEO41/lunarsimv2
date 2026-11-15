@@ -257,7 +257,7 @@
       "title": "Speed benchmarks",
       "type": "result",
       "status": "current",
-      "updated": "2026-11-14",
+      "updated": "2026-11-15",
       "summary": "Environment steps per second and GPU memory against environment count, per GPU (goal G4).",
       "path": "speed-benchmarks.md"
     },
