@@ -4,7 +4,7 @@ title: Paper 1 results, sensor faults (S3 fault grid)
 type: result
 status: open
 updated: 2026-11-15
-summary: First pass of paper 1 - ZEM/ZEV with ekf and ekf_fdi, and PPO with MLP, GRU and attention encoders (600 iterations) on the held-out fault grid; the memory encoders were still learning, so they continue to 1,500 iterations.
+summary: First pass of paper 1 - ZEM/ZEV with ekf and ekf_fdi, and PPO with MLP, GRU and attention encoders (5 seeds each, 600 iterations) on the held-out fault grid; the memory encoders were still learning, so they continue to 1,500 iterations.
 ---
 
 # Paper 1 results (first pass, 2026-11-15)
@@ -19,29 +19,30 @@ only scripts and notes).
 
 ## Success on the fault grid (%, mean over seeds)
 
-| Fault / sensor | ZEM/ZEV `ekf` | ZEM/ZEV `ekf_fdi` | PPO MLP (5) | PPO GRU (5) | PPO attention (2) |
+| Fault / sensor | ZEM/ZEV `ekf` | ZEM/ZEV `ekf_fdi` | PPO MLP (5) | PPO GRU (5) | PPO attention (5) |
 |---|---|---|---|---|---|
-| bias / Doppler | 46.7 | 94.9 | 97.2 | 87.6 | 90.8 |
-| bias / radar | 96.5 | 74.9 | 87.3 | 83.7 | 88.2 |
-| delay spike / Doppler | 90.2 | 98.0 | 97.8 | 90.5 | 89.8 |
-| delay spike / radar | 98.8 | 98.8 | 97.8 | 92.2 | 89.8 |
-| drift / Doppler | 42.0 | 97.6 | 97.6 | 88.5 | 92.7 |
-| drift / radar | 89.8 | 97.6 | 98.1 | 88.3 | 91.4 |
-| dropout burst / Doppler | 98.5 | 98.5 | 98.2 | 90.3 | 85.2 |
-| dropout burst / radar | 97.7 | 97.7 | 98.2 | 91.4 | 92.1 |
-| outlier spike / Doppler | 77.3 | 98.0 | 98.2 | 92.4 | 90.4 |
-| outlier spike / radar | 96.1 | 96.1 | 96.3 | 91.7 | 87.8 |
-| scale / Doppler | 81.6 | 96.9 | 96.6 | 89.0 | 93.5 |
-| scale / radar | 96.1 | 88.2 | 95.8 | 87.4 | 91.0 |
-| stuck / Doppler | 4.7 | 98.4 | 98.4 | 90.3 | 92.5 |
+| bias / Doppler | 46.7 | 94.9 | 97.2 | 87.6 | 89.1 |
+| bias / radar | 96.5 | 74.9 | 87.3 | 83.7 | 87.5 |
+| delay spike / Doppler | 90.2 | 98.0 | 97.8 | 90.5 | 88.9 |
+| delay spike / radar | 98.8 | 98.8 | 97.8 | 92.2 | 90.4 |
+| drift / Doppler | 42.0 | 97.6 | 97.6 | 88.5 | 90.5 |
+| drift / radar | 89.8 | 97.6 | 98.1 | 88.3 | 90.8 |
+| dropout burst / Doppler | 98.5 | 98.5 | 98.2 | 90.3 | 87.3 |
+| dropout burst / radar | 97.7 | 97.7 | 98.2 | 91.4 | 91.3 |
+| outlier spike / Doppler | 77.3 | 98.0 | 98.2 | 92.4 | 90.6 |
+| outlier spike / radar | 96.1 | 96.1 | 96.3 | 91.7 | 89.0 |
+| scale / Doppler | 81.6 | 96.9 | 96.6 | 89.0 | 91.8 |
+| scale / radar | 96.1 | 88.2 | 95.8 | 87.4 | 90.7 |
+| stuck / Doppler | 4.7 | 98.4 | 98.4 | 90.3 | 90.0 |
 | stuck / radar | 45.5 | 98.8 | 99.2 | 88.2 | 90.0 |
-| total loss / Doppler | 96.5 | 95.3 | 96.9 | 86.6 | 92.2 |
-| total loss / radar | 99.2 | 99.2 | 99.0 | 89.1 | 90.4 |
-| **all** | **78.6** | **95.6** | **97.0** | **89.2** | **90.5** |
+| total loss / Doppler | 96.5 | 95.3 | 96.9 | 86.6 | 89.8 |
+| total loss / radar | 99.2 | 99.2 | 99.0 | 89.1 | 90.0 |
+| **all** | **78.6** | **95.6** | **97.0** | **89.2** | **89.9** |
 
 Reference: ZEM/ZEV without faults (S2, same starts) 97.7 %. MLP per seed: 97.46, 97.66, 95.21,
-97.63, 97.27. GRU: 96.19, 90.72, 84.01, 91.89, 83.23. Attention: 88.84, 92.14 (seeds 2-4 stopped
-with CUDA out of memory, five attention trainings need about 55 GB; rerun two at a time).
+97.63, 97.27. GRU: 96.19, 90.72, 84.01, 91.89, 83.23. Attention: 88.84, 92.14, 88.50, 92.68, 87.16
+(seeds 2-4 first stopped with CUDA out of memory, five attention trainings need about 55 GB;
+rerun two at a time on `0e2f9d3`).
 
 ## What it shows so far
 
@@ -49,7 +50,7 @@ with CUDA out of memory, five attention trainings need about 55 GB; rerun two at
 - The MLP with the filter's health flags reaches 97.0 %, close to the no-fault reference, and
   recovers part of the one case where `ekf_fdi` hurts ZEM/ZEV (radar bias: the gate rejects the
   altimeter, 74.9 % against 96.5 % with plain `ekf`; MLP 87.3 %).
-- The GRU and attention policies are about 89-90 % on every fault type, also on easy ones: they
+- The GRU and attention policies are about 87-92 % on every fault type, also on easy ones: they
   had not finished learning. Training success (mean over seeds, last 20 iterations before):
 
 | Iteration | 100 | 200 | 300 | 400 | 500 | 600 |
