@@ -19,7 +19,11 @@ class SlotLoopError(ValueError):
 
 
 # Slots that model the physical world. They work with the true state by nature.
-TRUTH_SIDE_SLOTS = frozenset({SlotName.START, SlotName.PLANT, SlotName.SURFACE, SlotName.SENSORS, SlotName.METRICS})
+# The faults slot models the physical world (a sensor that breaks at some altitude), so it may
+# read the truth like the sensors (decision 2026-11-15, milestone 3).
+TRUTH_SIDE_SLOTS = frozenset(
+    {SlotName.START, SlotName.PLANT, SlotName.SURFACE, SlotName.SENSORS, SlotName.FAULTS, SlotName.METRICS}
+)
 # The only binding on the flight-software side that may read TruthState.
 TRUTH_NAVIGATION_NAME = "truth"
 

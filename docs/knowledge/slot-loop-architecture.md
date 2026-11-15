@@ -30,7 +30,7 @@ start → plant → sensors → faults → nav → [observation builder] → age
   binding. A binding may read only its `requires` keys and write only its `provides` keys; only
   `reads_truth=True` bindings may read `TruthState`. Truth reads are logged (`truth_read_log`).
 - `core/registry.py` checks before the run that the loop is closed and the truth rule holds.
-  `TRUTH_SIDE_SLOTS` = start, plant, surface, sensors, metrics; on the flight side only
+  `TRUTH_SIDE_SLOTS` = start, plant, surface, sensors, faults (since milestone 3), metrics; on the flight side only
   `nav: truth` may read truth. (Deviation from the design text; see [[decisions-log]].)
 
 ## One control step: Isaac Lab hooks (`env/lander_env.py`)

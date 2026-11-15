@@ -17,6 +17,7 @@ flowchart LR
   subgraph component
     bindings_catalogue["Bindings catalogue"]
     classical_agents["Classical agents"]
+    faults_and_detection["Faults and fault detection (milestone 3)"]
     knowledge_graph_tooling["Knowledge graph tooling"]
     lander_articulation_model["Lander articulation model"]
     lander_preset_apollo_lm["Lander preset, Apollo LM"]
@@ -73,6 +74,8 @@ flowchart LR
   contact_check_results -- "see also" --> drop_test_results
   drop_test_results -- "measured on" --> measured_terrain_surface
   drop_test_results -- "compares with" --> terrain_results
+  faults_and_detection -- "part of" --> slot_loop_architecture
+  faults_and_detection -- "extends" --> sensors_and_ekf
   isaac_lab_quirks -- "applies to" --> workstation_setup_and_machines
   knowledge_graph_tooling -- "required by" --> rules_from_the_user
   lander_articulation_model -- "built from" --> lander_preset_apollo_lm
@@ -135,6 +138,7 @@ flowchart LR
 | [Milestone roadmap and status](milestone-roadmap-and-status.md) | milestone | current | The eight milestones of the design, which gates have passed, and what comes next. |
 | [Bindings catalogue](bindings-catalogue.md) | component | current | Every binding that exists, per slot, with its file and what it does; the two scenario files. |
 | [Classical agents](classical-agents.md) | component | current | The four-step classical controller chain ending in ZEM/ZEV guidance, its parameters, and how it uses the observed height above ground. |
+| [Faults and fault detection (milestone 3)](faults-and-detection.md) | component | current | The seeded sensor-fault schedule (faults slot) and the ekf_fdi filter with chi-square gate, isolation and loss detection; test results. |
 | [Knowledge graph tooling](knowledge-graph-tooling.md) | component | current | How this knowledge graph is stored, checked and regenerated, and the rule to update it in the same commit as the work. |
 | [Lander articulation model](lander-articulation-model.md) | component | current | How the lander is built in USD from the preset - two stage shapes, four legs with dish footpads on prismatic spring struts - and its simplifications. |
 | [Lander preset, Apollo LM](lander-preset-apollo-lm.md) | component | current | The Apollo LM-5 preset with its sourced numbers, the body frame, the corrections of 2026-11-15, and the values that are model choices. |

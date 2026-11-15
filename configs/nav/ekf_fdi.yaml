@@ -1,0 +1,11 @@
+# The ekf filter plus fault detection and isolation (src/lunarsim/slots/navigation/ekf_fdi.py).
+defaults:
+  - ekf
+  - _self_
+binding: ekf_fdi
+detection:                         # all model choices
+  gate_probability: 0.999          # chi-square quantile of the gate (1 false rejection in 1,000 samples)
+  failure_after_rejections: 3      # rejected samples in a row that declare a sensor failed
+  recovery_after_acceptances: 10   # passing samples in a row that declare it healthy again (0.5 s at 20 Hz)
+  maximum_sample_age_s: 0.06       # older samples are late data and dropped (sensors sample every 50 ms)
+  loss_after_s: 0.5                # no valid sample for this long declares the sensor failed

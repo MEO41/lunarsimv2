@@ -20,7 +20,9 @@ summary: Every binding that exists, per slot, with its file and what it does; th
 | surface | `measured_terrain` | `slots/surface/measured_terrain.py` | Apollo 17 height map plus craters and rocks; one target per environment per reset; exact height lookup ([[measured-terrain-surface]]) |
 | sensors | `none` | `slots/sensors/none.py` | No sensors |
 | sensors | `terminal_suite` | `slots/sensors/terminal_suite.py`, `sensor_models.py` | IMU, radar altimeter, Doppler velocimeter, propellant gauge, probe switches; with `terminal_suite_with_lidar.yaml` also the cheap flash LiDAR ([[sensors-and-ekf]]) |
+| faults | `schedule` | `slots/faults/fault_schedule.py` | One seeded fault per episode on altimeter or Doppler ([[faults-and-detection]]) |
 | faults | `none` | `slots/faults/none.py` | No faults |
+| nav | `ekf_fdi` | `slots/navigation/ekf_fdi.py` | `ekf` plus age check, chi-square gate, isolation, loss ([[faults-and-detection]]) |
 | nav | `ekf` | `slots/navigation/ekf.py`, `error_state_kalman_filter.py` | 15-state error-state filter on IMU, altimeter, Doppler; never reads truth ([[sensors-and-ekf]]) |
 | nav | `truth` | `slots/navigation/truth.py` | Copies `TruthState` into `NavEstimate` (16 values, including the probe contact light), zero covariance |
 | actuators | `none` | `slots/actuators/none.py` | Zero wrench |

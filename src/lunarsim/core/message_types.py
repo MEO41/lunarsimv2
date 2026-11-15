@@ -49,6 +49,8 @@ class MessageKey:
     ACTUATOR_WRENCH = "actuator_wrench"
     SURFACE_WRENCH = "surface_wrench"
     EPISODE_EVENTS = "episode_events"
+    # Truth-side description of the injected faults (for metrics only; navigation never reads it)
+    FAULT_STATUS = "fault_status"
     MEASUREMENT_PREFIX = "measurement."  # followed by the sensor name
 
 

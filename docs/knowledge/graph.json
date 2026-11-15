@@ -73,6 +73,15 @@
       "path": "drop-test-results.md"
     },
     {
+      "id": "faults-and-detection",
+      "title": "Faults and fault detection (milestone 3)",
+      "type": "component",
+      "status": "current",
+      "updated": "2026-11-15",
+      "summary": "The seeded sensor-fault schedule (faults slot) and the ekf_fdi filter with chi-square gate, isolation and loss detection; test results.",
+      "path": "faults-and-detection.md"
+    },
+    {
       "id": "isaac-lab-quirks",
       "title": "Isaac Lab quirks",
       "type": "environment",
@@ -361,6 +370,11 @@
     },
     {
       "source": "bindings-catalogue",
+      "target": "faults-and-detection",
+      "relation": "mentions"
+    },
+    {
+      "source": "bindings-catalogue",
       "target": "metrics-and-run-records",
       "relation": "mentions"
     },
@@ -476,6 +490,11 @@
     },
     {
       "source": "decisions-log",
+      "target": "faults-and-detection",
+      "relation": "mentions"
+    },
+    {
+      "source": "decisions-log",
       "target": "pending-user-decisions",
       "relation": "mentions"
     },
@@ -498,6 +517,16 @@
       "source": "drop-test-results",
       "target": "terrain-results",
       "relation": "compares with"
+    },
+    {
+      "source": "faults-and-detection",
+      "target": "slot-loop-architecture",
+      "relation": "part of"
+    },
+    {
+      "source": "faults-and-detection",
+      "target": "sensors-and-ekf",
+      "relation": "extends"
     },
     {
       "source": "isaac-lab-quirks",
@@ -687,6 +716,11 @@
     {
       "source": "milestone-roadmap-and-status",
       "target": "sensors-and-ekf",
+      "relation": "mentions"
+    },
+    {
+      "source": "milestone-roadmap-and-status",
+      "target": "faults-and-detection",
       "relation": "mentions"
     },
     {

@@ -98,9 +98,13 @@ def test_truth_reader_without_flag_fails():
         check_slot_loop(loop)
 
 
-@pytest.mark.parametrize("slot", [SlotName.FAULTS, SlotName.AGENT, SlotName.ACTUATORS, SlotName.NAVIGATION])
+@pytest.mark.parametrize("slot", [SlotName.AGENT, SlotName.ACTUATORS, SlotName.NAVIGATION])
 def test_flight_side_slot_may_not_set_reads_truth(slot):
-    """Faults, agent, actuators and any navigation other than 'truth' may not read TruthState."""
+    """Agent, actuators and any navigation other than 'truth' may not read TruthState.
+
+    The faults slot models the physical world (a sensor breaking at some altitude) and is
+    truth-side since milestone 3, like the sensors.
+    """
     loop = _good_loop()
     original = loop[slot]
     loop[slot] = _declaration(

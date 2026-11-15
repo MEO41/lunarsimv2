@@ -1,0 +1,24 @@
+binding: schedule
+# Sensor faults of scenario S3 (src/lunarsim/slots/faults/fault_schedule.py). One fault per
+# episode: class, type and target drawn uniformly, onset when the footpad height first falls
+# below the onset altitude. ALL NUMBERS ARE MODEL CHOICES: no public source gives fault
+# statistics for these sensors. Sizes are chosen against the sensors' own noise (altimeter and
+# Doppler range noise about 0.16 m; Doppler velocity noise about 1.4 mm/s) and the touchdown
+# limits (3 m/s vertical, 1.2 m/s horizontal), so that small faults are hard to see and large ones
+# can break a landing.
+targets: [radar_altimeter, doppler_velocimeter]   # design S3
+classes: [intermittent, persistent]               # design S3
+no_fault_fraction: 0.0
+onset_altitude_m: [5, 40]                         # design S3
+intermittent:
+  event_rate_per_s: [0.2, 1.0]    # events per second after the onset
+  burst_length_s: [0.2, 1.0]      # dropout and delay bursts
+  delay_s: [0.1, 0.5]             # age of the delivered sample in a delay burst
+sizes:
+  bias_range_m: [0.5, 5.0]
+  bias_velocity_mps: [0.05, 0.5]
+  outlier_range_m: [5.0, 20.0]
+  outlier_velocity_mps: [0.5, 3.0]
+  drift_range_mps: [0.1, 1.0]       # m per second since the onset
+  drift_velocity_mps2: [0.01, 0.1]  # m/s per second since the onset
+  scale_deviation: [0.05, 0.2]      # factor 1 +/- this

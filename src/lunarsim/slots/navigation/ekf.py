@@ -59,6 +59,10 @@ def beam_directions(beams: list[dict], device) -> Tensor:
     return torch.tensor(directions, device=device)
 
 
+# Aided sensors of the filter, in the order of the health columns.
+AIDED_SENSORS = ("radar_altimeter", "doppler_velocimeter")
+
+
 @register_binding(SlotName.NAVIGATION, "ekf")
 class ExtendedKalmanFilterNavigation(BindingBase):
     """Error-state Kalman filter on IMU, radar altimeter and Doppler velocimeter."""
@@ -108,10 +112,16 @@ class ExtendedKalmanFilterNavigation(BindingBase):
         suite = context.shared_data.get("sensor_suite_parameters") or {}
         self.altimeter_directions = beam_directions(suite["radar_altimeter"]["beams"], device)
         self.altimeter_maximum_range = float(suite["radar_altimeter"]["maximum_range_m"])
+        self.altimeter_minimum_range = float(suite["radar_altimeter"]["minimum_range_m"])
+        self.doppler_minimum_range = float(suite["doppler_velocimeter"]["minimum_range_m"])
         self.doppler_directions = beam_directions(suite["doppler_velocimeter"]["beams"], device)
         self.doppler_maximum_range = float(suite["doppler_velocimeter"]["maximum_range_m"])
         self.mass = torch.full((count,), self.default_mass, device=device)
         self.body_rates = torch.zeros(count, 3, device=device)
+        # Per aided sensor (altimeter, Doppler): capture time of the last fused sample, and the
+        # filter's own clock (time since the episode start), for the data age in ``health``.
+        self.last_fused_stamp = torch.zeros(count, len(AIDED_SENSORS), device=device)
+        self.time = torch.zeros(count, device=device)
 
     def reset(self, env_ids: Tensor, gen: torch.Generator) -> None:
         """Start the given environments from the start slot's first estimate."""
@@ -126,6 +136,8 @@ class ExtendedKalmanFilterNavigation(BindingBase):
         start_mass = start.mass[env_ids].to(torch.float32)
         self.mass[env_ids] = torch.where(torch.isnan(start_mass), torch.full_like(start_mass, self.default_mass), start_mass)
         self.body_rates[env_ids] = 0.0
+        self.last_fused_stamp[env_ids] = 0.0
+        self.time[env_ids] = 0.0
 
     def step(self, bus, dt: float) -> None:
         """Propagate, fuse the new measurements, and write the estimate."""
@@ -138,7 +150,8 @@ class ExtendedKalmanFilterNavigation(BindingBase):
         altimeter = bus.read(RADAR_ALTIMETER_KEY, self)
         predicted, jacobian, hit = self.filter.predict_ranges(self.altimeter_directions, geometry, self.altimeter_maximum_range)
         use = altimeter.valid.unsqueeze(1) & torch.isfinite(altimeter.value) & hit
-        self.filter.update(torch.nan_to_num(altimeter.value - predicted), jacobian, altimeter.covariance, use)
+        expected = (hit & (predicted >= self.altimeter_minimum_range)).any(dim=1)
+        self.fuse(0, torch.nan_to_num(altimeter.value - predicted), jacobian, altimeter.covariance, use, altimeter.stamp, altimeter.valid, expected)
 
         doppler = bus.read(DOPPLER_VELOCIMETER_KEY, self)
         beams = self.doppler_directions.shape[0]
@@ -149,12 +162,26 @@ class ExtendedKalmanFilterNavigation(BindingBase):
         residual = torch.cat((doppler.value[:, :beams] - velocity_prediction, doppler.value[:, beams:] - range_prediction), dim=1)
         jacobian = torch.cat((velocity_jacobian, range_jacobian), dim=1)
         use = doppler.valid.unsqueeze(1) & torch.isfinite(doppler.value) & torch.cat((range_hit, range_hit), dim=1)
-        self.filter.update(torch.nan_to_num(residual), jacobian, doppler.covariance, use)
+        expected = (range_hit & (range_prediction >= self.doppler_minimum_range)).any(dim=1)
+        self.fuse(1, torch.nan_to_num(residual), jacobian, doppler.covariance, use, doppler.stamp, doppler.valid, expected)
 
         gauge = bus.read(PROPELLANT_GAUGE_KEY, self)
         self.mass = torch.where(gauge.valid & torch.isfinite(gauge.value[:, 0]), gauge.value[:, 0], self.mass)
         contact = bus.read(CONTACT_PROBE_KEY, self)
+        self.time = self.time + dt
         bus.write(MessageKey.NAVIGATION_ESTIMATE, self.estimate(geometry, contact.value[:, 0]), self)
+
+    def fuse(
+        self, sensor: int, residual: Tensor, jacobian: Tensor, variance: Tensor, use: Tensor, stamp: Tensor, sample: Tensor, expected: Tensor
+    ) -> None:
+        """Fuse one sensor's sample (sensor 0 altimeter, 1 Doppler). The plain filter takes every valid sample.
+
+        ``stamp`` is the capture time, ``sample`` is True where the message holds a new sample,
+        ``expected`` is True where the filter predicts a ground return inside the sensor's range limits.
+        Subclasses gate the samples here (``ekf_fdi``) or apply them at their capture time.
+        """
+        self.filter.update(residual, jacobian, variance, use)
+        self.last_fused_stamp[:, sensor] = torch.where(use.any(dim=1), stamp, self.last_fused_stamp[:, sensor])
 
     def estimate(self, geometry: SurfaceGeometry, contact_light: Tensor) -> NavEstimate:
         """Return the estimate in NavigationStateLayout with diagonal variances."""
@@ -181,7 +208,17 @@ class ExtendedKalmanFilterNavigation(BindingBase):
         variance[:, layout.VELOCITY] = diagonal[:, 3:6]
         variance[:, 7:10] = 0.25 * diagonal[:, 6:9]  # quaternion x, y, z: half the angle error
         variance[:, layout.HEIGHT_ABOVE_GROUND] = diagonal[:, 2:3]
-        return NavEstimate(mean=mean, covariance=variance, health=torch.zeros(mean.shape[0], 0, device=self.device))
+        return NavEstimate(mean=mean, covariance=variance, health=self.health())
+
+    def health(self) -> Tensor:
+        """Return the health columns (N, 2 per aided sensor): declared failed (0 or 1), data age (s).
+
+        Data age = time since the capture of the last fused sample. The plain filter never
+        declares a sensor failed.
+        """
+        failed = self.declared_failed() if hasattr(self, "declared_failed") else torch.zeros_like(self.last_fused_stamp)
+        age = (self.time.unsqueeze(1) - self.last_fused_stamp).clamp_min(0.0)
+        return torch.stack((failed, age), dim=2).reshape(self.time.shape[0], -1)
 
     @property
     def error_state_dimension(self) -> int:

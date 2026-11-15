@@ -145,6 +145,19 @@ class ErrorStateKalmanFilter:
         correction = torch.where(any_used.unsqueeze(1), correction, torch.zeros_like(correction)).to(torch.float32)
         self.inject(correction)
 
+    def normalised_innovation(self, residual: Tensor, jacobian: Tensor, variance: Tensor, use: Tensor) -> tuple[Tensor, Tensor]:
+        """Return the normalised innovation squared y^T S^-1 y (N,) and its degrees of freedom (N,).
+
+        Only the used entries count: the others get a huge variance and no residual, so they add
+        nothing. S = H P H^T + R is the innovation covariance of the used entries.
+        """
+        residual = torch.where(use, residual, torch.zeros_like(residual)).to(torch.float64)
+        variance = torch.where(use, variance, torch.full_like(variance, IGNORED_VARIANCE)).to(torch.float64)
+        jacobian = torch.where(use.unsqueeze(-1), jacobian, torch.zeros_like(jacobian)).to(torch.float64)
+        innovation_covariance = jacobian @ self.covariance @ jacobian.transpose(1, 2) + torch.diag_embed(variance)
+        solved = torch.linalg.solve(innovation_covariance, residual.unsqueeze(-1)).squeeze(-1)
+        return (residual * solved).sum(dim=1).to(torch.float32), use.sum(dim=1)
+
     def inject(self, correction: Tensor) -> None:
         """Add an error-state correction (N, 15) to the nominal state."""
         self.position = self.position + correction[:, POSITION]
