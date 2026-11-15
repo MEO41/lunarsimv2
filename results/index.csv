@@ -50,10 +50,15 @@ ppo_attention_s3_seed2,training,2026-11-15T19:25:40+00:00,0e2f9d3473a88184f9533a
 ppo_attention_s3_seed3,training,2026-11-15T19:26:26+00:00,0e2f9d3473a88184f9533adeb582f49fd7f7af66,False,s3_faults,ppo_mlp (attention),ekf_fdi,3,,,91.81
 ppo_attention_s3_seed4,training,2026-11-15T20:29:11+00:00,f3e21194e6e3b39d6566c104abfe3d9b9d5cb9bd,False,s3_faults,ppo_mlp (attention),ekf_fdi,4,,,86.28
 ppo_gru_s3_seed0,training,2026-11-15T17:05:02+00:00,cbd0937f90ddbd0432a46b49d826a9924d8af802,False,s3_faults,ppo_mlp (gru),ekf_fdi,0,,,95.45
+ppo_gru_s3_seed0_to1500,training,2026-11-15T21:18:52+00:00,f3e21194e6e3b39d6566c104abfe3d9b9d5cb9bd,False,s3_faults,ppo_mlp (gru),ekf_fdi,0,,,95.04
 ppo_gru_s3_seed1,training,2026-11-15T17:05:48+00:00,cbd0937f90ddbd0432a46b49d826a9924d8af802,False,s3_faults,ppo_mlp (gru),ekf_fdi,1,,,89.46
+ppo_gru_s3_seed1_to1500,training,2026-11-15T21:19:38+00:00,f3e21194e6e3b39d6566c104abfe3d9b9d5cb9bd,False,s3_faults,ppo_mlp (gru),ekf_fdi,1,,,90.0
 ppo_gru_s3_seed2,training,2026-11-15T17:06:34+00:00,cbd0937f90ddbd0432a46b49d826a9924d8af802,False,s3_faults,ppo_mlp (gru),ekf_fdi,2,,,83.63
+ppo_gru_s3_seed2_to1500,training,2026-11-15T21:20:23+00:00,f3e21194e6e3b39d6566c104abfe3d9b9d5cb9bd,False,s3_faults,ppo_mlp (gru),ekf_fdi,2,,,95.44
 ppo_gru_s3_seed3,training,2026-11-15T17:07:19+00:00,cbd0937f90ddbd0432a46b49d826a9924d8af802,False,s3_faults,ppo_mlp (gru),ekf_fdi,3,,,91.53
+ppo_gru_s3_seed3_to1500,training,2026-11-15T21:21:09+00:00,f3e21194e6e3b39d6566c104abfe3d9b9d5cb9bd,False,s3_faults,ppo_mlp (gru),ekf_fdi,3,,,88.68
 ppo_gru_s3_seed4,training,2026-11-15T17:08:05+00:00,cbd0937f90ddbd0432a46b49d826a9924d8af802,False,s3_faults,ppo_mlp (gru),ekf_fdi,4,,,84.35
+ppo_gru_s3_seed4_to1500,training,2026-11-15T21:21:55+00:00,f3e21194e6e3b39d6566c104abfe3d9b9d5cb9bd,False,s3_faults,ppo_mlp (gru),ekf_fdi,4,,,79.89
 ppo_mlp_s1_seed0,training,2026-11-15T09:59:46+00:00,2c28c608ccf4747acbed8147dbbab8485bb8f5b1,False,s1_terminal_truth,ppo_mlp (mlp),truth,0,,,96.23
 ppo_mlp_s1_seed1,training,2026-11-15T10:01:34+00:00,2c28c608ccf4747acbed8147dbbab8485bb8f5b1,False,s1_terminal_truth,ppo_mlp (mlp),truth,1,,,97.35
 ppo_mlp_s1_seed2,training,2026-11-15T10:04:07+00:00,2c28c608ccf4747acbed8147dbbab8485bb8f5b1,False,s1_terminal_truth,ppo_mlp (mlp),truth,2,,,96.17

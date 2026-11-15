@@ -1,0 +1,16 @@
+run: ppo_gru_s3_seed3_to1500
+kind: training
+started_utc: '2026-11-15T21:21:09+00:00'
+code_commit: f3e21194e6e3b39d6566c104abfe3d9b9d5cb9bd
+uncommitted_changes: false
+scenario: s3_faults
+agent: ppo_mlp (gru)
+navigation: ekf_fdi
+seed: 3
+command_line: scripts/train_ppo.py scenario=s3_faults agent=ppo_gru num_envs=4096
+  seed=3 run_name=ppo_gru_s3_seed3_to1500 max_iterations=1500 resume_from=runs/ppo_gru_s3_seed3/model_600.pt
+resumed_from: runs/ppo_gru_s3_seed3/model_600.pt
+episodes: ''
+success_percent: ''
+final_training_success_percent: 88.68
+iterations: 1500
