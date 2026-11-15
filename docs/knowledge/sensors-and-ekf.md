@@ -29,6 +29,7 @@ summary: The terminal_suite sensor binding (IMU, radar altimeter, Doppler veloci
 | Doppler velocimeter | 3 beams 25° off axis (**model choice**), 20 Hz, 2 m to 5 km, σ_v = 1.4 mm/s + 1.1e-6·range, σ_r = 0.16 m + 1.2e-4·range | NDL, IM-1 flight calibration (Karlgaard et al. 2025) |
 | Propellant gauge | 3.5 % of the load at start, 1 Hz (rate **model choice**) | Apollo 10 DPS evaluation (NASA CR-101869) |
 | Probe switches | contact light, every step | [[lander-preset-apollo-lm]] |
+| Flash LiDAR (`lidar_cheap`, only in `sensors=terminal_suite_with_lidar`) | 32 × 32 of the 128 × 128 pixels (**model choice**), 6° field of view, 10 Hz, 2.8 m to 1 km, σ = 0.10 m + 1 % of range, boresight 30° off −z toward +x (**model choice**) | ASC flash LiDAR of OSIRIS-REx (Sornsin et al., ASC); ALHAT/Morpheus flash LiDAR (8 cm, but 150 m minimum range) as the alternative |
 
 ## Filter
 
@@ -57,7 +58,7 @@ the switches.
   and stamp.
 - Beams are ray-cast on the surface's own ground lookup instead of Isaac Lab's `RayCaster`: the
   same ground the plant and the metrics use, also for flat ground, no extra mesh structure.
-- `lidar_cheap` (also listed for M2) is not built yet; S2 does not use it.
+- `lidar_cheap` is the optional `lidar` section of the suite (file `terminal_suite_with_lidar.yaml`); S2 does not use it, so S2 runs pay nothing for it. Test: `tests/smoke/test_lidar_in_environment.py`.
 
 - part of: [[slot-loop-architecture]]
 - feeds: [[classical-agents]]

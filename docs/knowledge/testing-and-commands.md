@@ -33,6 +33,8 @@ python scripts/evaluate_agent.py scenario=s1_terminal_truth num_envs=4096 run_na
 python scripts/evaluate_agent.py scenario=s2_terminal_ekf num_envs=4096 run_name=s2_zem_zev_seed0 seed=0   # S2: sensors + EKF
 python scripts/train_ppo.py scenario=s1_terminal_truth num_envs=4096 seed=0 run_name=ppo_mlp_s1_seed0    # M1b, on minsky
 python scripts/evaluate_agent.py scenario=s1_terminal_truth agent=ppo_mlp agent.policy_path=runs/ppo_mlp_s1_seed0/policy.pt num_envs=4096 seed=1000 run_name=...
+lunarsim compare zem_zev=runs/a ppo=runs/b,runs/c,runs/d                          # same held-out starts, low-and-fast split
+python scripts/export_policy.py run=runs/ppo_mlp_s1_seed0 checkpoint=model_500.pt   # policy.pt from any checkpoint, no Isaac
 python scripts/benchmark_environment.py scenario=s1_terminal_truth num_envs=1024 steps=500
 python scripts/render_lander_image.py --enable_cameras output=docs/figures/lander_at_rest.png
 python scripts/run_drop_test.py drops=1000 drop_height_m=5 run_name=drop_test_5m

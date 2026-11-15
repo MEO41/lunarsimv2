@@ -50,6 +50,9 @@ on the same seed get the same first-episode starts).
 | 6 | Velocity-tracking reward | Still hovering (same horizon problem) |
 | 7 | **10 Hz decisions, γ 0.99** | Training success 0 % → 94 % between iterations 150 and 300; deterministic 94.4 % on 1,024 held-out starts (seed 1000) |
 
+Tools: `scripts/export_policy.py` exports `policy.pt` from any checkpoint; `lunarsim compare`
+prints the comparison table (checks that all runs flew the same starts).
+
 ## Training runs
 
 The five-seed runs (4,096 envs) run on `minsky` ([[workstation-setup-and-machines]]); results

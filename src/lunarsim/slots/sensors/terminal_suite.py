@@ -12,9 +12,11 @@ so this binding holds one model per sensor, each with its own rate, noise, ``val
 | ``measurement.doppler_velocimeter`` | three beams | line-of-sight velocities (3), ranges (3) |
 | ``measurement.propellant_gauge`` | propellant quantity gauge | vehicle mass |
 | ``measurement.contact_probe`` | surface probe switches | contact light (0 or 1) |
+| ``measurement.lidar`` | flash LiDAR (``lidar_cheap``), only with a ``lidar`` section | slant range per pixel |
 
 Parameters: one section per sensor (``imu``, ``radar_altimeter``, ``doppler_velocimeter``,
-``propellant_gauge``), see ``configs/sensors/terminal_suite.yaml`` for the values and sources.
+``propellant_gauge``, and optionally ``lidar``), see ``configs/sensors/terminal_suite.yaml``.
+Without a ``lidar`` section the LiDAR message is empty (no values).
 """
 
 from __future__ import annotations
@@ -23,11 +25,12 @@ import torch
 from torch import Tensor
 
 from lunarsim.core.binding import BindingBase, SlotName
-from lunarsim.core.message_types import MessageKey, SurfaceGeometry, TruthState
+from lunarsim.core.message_types import Measurement, MessageKey, SurfaceGeometry, TruthState
 from lunarsim.core.registry import register_binding
 from lunarsim.slots.sensors.sensor_models import (
     ContactProbeSwitch,
     InertialMeasurementUnit,
+    flash_lidar_beams,
     PropellantGauge,
     RangeBeams,
 )
@@ -37,8 +40,9 @@ RADAR_ALTIMETER_KEY = MessageKey.MEASUREMENT_PREFIX + "radar_altimeter"
 DOPPLER_VELOCIMETER_KEY = MessageKey.MEASUREMENT_PREFIX + "doppler_velocimeter"
 PROPELLANT_GAUGE_KEY = MessageKey.MEASUREMENT_PREFIX + "propellant_gauge"
 CONTACT_PROBE_KEY = MessageKey.MEASUREMENT_PREFIX + "contact_probe"
+LIDAR_KEY = MessageKey.MEASUREMENT_PREFIX + "lidar"
 TERMINAL_SUITE_KEYS = frozenset(
-    {IMU_KEY, RADAR_ALTIMETER_KEY, DOPPLER_VELOCIMETER_KEY, PROPELLANT_GAUGE_KEY, CONTACT_PROBE_KEY}
+    {IMU_KEY, RADAR_ALTIMETER_KEY, DOPPLER_VELOCIMETER_KEY, PROPELLANT_GAUGE_KEY, CONTACT_PROBE_KEY, LIDAR_KEY}
 )
 
 
@@ -62,6 +66,17 @@ class TerminalSensorSuite(BindingBase):
             self.parameters["propellant_gauge"], preset.usable_descent_propellant_at_start, count, device
         )
         self.contact_probe = ContactProbeSwitch()
+        self.lidar = None
+        lidar_parameters = self.parameters.get("lidar")
+        if lidar_parameters:
+            lidar_parameters = dict(lidar_parameters)
+            lidar_parameters["beams"] = flash_lidar_beams(
+                int(lidar_parameters["pixels_per_side"]),
+                float(lidar_parameters["field_of_view_deg"]),
+                float(lidar_parameters["boresight_off_axis_deg"]),
+                float(lidar_parameters.get("boresight_azimuth_deg", 0.0)),
+            )
+            self.lidar = RangeBeams(lidar_parameters, count, device, measures_velocity=False)
         self.generator: torch.Generator | None = None
 
     def reset(self, env_ids: Tensor, gen: torch.Generator) -> None:
@@ -71,6 +86,8 @@ class TerminalSensorSuite(BindingBase):
         self.radar_altimeter.reset(env_ids)
         self.doppler_velocimeter.reset(env_ids)
         self.propellant_gauge.reset(env_ids, gen)
+        if self.lidar is not None:
+            self.lidar.reset(env_ids)
 
     def step(self, bus, dt: float) -> None:
         """Measure the true state and write one message per sensor."""
@@ -83,3 +100,14 @@ class TerminalSensorSuite(BindingBase):
         bus.write(DOPPLER_VELOCIMETER_KEY, self.doppler_velocimeter.measure(truth, geometry, self.generator), self)
         bus.write(PROPELLANT_GAUGE_KEY, self.propellant_gauge.measure(truth), self)
         bus.write(CONTACT_PROBE_KEY, self.contact_probe.measure(truth), self)
+        bus.write(LIDAR_KEY, self.measure_lidar(truth, geometry), self)
+
+    def measure_lidar(self, truth: TruthState, geometry: SurfaceGeometry) -> Measurement:
+        """Return the LiDAR ranges, or an empty measurement when the suite has no LiDAR."""
+        if self.lidar is not None:
+            return self.lidar.measure(truth, geometry, self.generator)
+        empty = torch.zeros(self.number_of_environments, 0, device=self.device)
+        return Measurement(
+            value=empty, valid=torch.zeros(self.number_of_environments, dtype=torch.bool, device=self.device),
+            stamp=truth.time.clone(), covariance=empty.clone(),
+        )

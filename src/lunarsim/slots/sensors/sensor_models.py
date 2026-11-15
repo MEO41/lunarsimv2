@@ -13,6 +13,9 @@ config file (``configs/sensors/terminal_suite.yaml``), where each has its public
 - :class:`RangeBeams`: beams fixed to the body that measure the slant range to the ground
   (ray cast on the surface's ground lookup) and, optionally, the line-of-sight velocity. Used for
   the radar altimeter (one beam) and the Doppler velocimeter (three beams).
+- :func:`flash_lidar_beams`: the beam list of a flash LiDAR (a square pixel grid over a field of
+  view, boresight tilted from straight down), measured by :class:`RangeBeams` (``lidar_cheap``:
+  a subsampled grid, so thousands of environments stay affordable).
 - :class:`PropellantGauge`: vehicle mass from a propellant quantity gauge with a fixed error.
 - :class:`ContactProbeSwitch`: the contact light of the surface probes, passed on unchanged.
 
@@ -78,6 +81,30 @@ def ray_cast_ground(origin: Tensor, direction: Tensor, geometry: SurfaceGeometry
             distance = (distance - step).clamp_min(0.0)
     hit = pointing_down & (distance <= maximum_range) & torch.isfinite(distance)
     return distance, hit
+
+
+def flash_lidar_beams(pixels_per_side: int, field_of_view_deg: float, boresight_off_axis_deg: float, boresight_azimuth_deg: float = 0.0) -> list[dict]:
+    """Return ``pixels_per_side**2`` beams (``off_axis_deg``, ``azimuth_deg``) of a flash LiDAR.
+
+    Pixel centres sit on a square grid over the field of view around the boresight. The
+    boresight points ``boresight_off_axis_deg`` from body -z toward ``boresight_azimuth_deg``.
+    """
+    half = math.radians(field_of_view_deg) / 2.0
+    tilt, azimuth = math.radians(boresight_off_axis_deg), math.radians(boresight_azimuth_deg)
+    # Boresight frame: forward f, right r, up u, expressed in the body frame.
+    forward = (math.sin(tilt) * math.cos(azimuth), math.sin(tilt) * math.sin(azimuth), -math.cos(tilt))
+    right = (-math.sin(azimuth), math.cos(azimuth), 0.0)
+    up = (forward[1] * right[2] - forward[2] * right[1], forward[2] * right[0] - forward[0] * right[2], forward[0] * right[1] - forward[1] * right[0])
+    beams = []
+    for row in range(pixels_per_side):
+        for column in range(pixels_per_side):
+            a = math.tan(-half + (column + 0.5) * 2.0 * half / pixels_per_side)
+            b = math.tan(-half + (row + 0.5) * 2.0 * half / pixels_per_side)
+            vector = [forward[i] + a * right[i] + b * up[i] for i in range(3)]
+            norm = math.sqrt(sum(component * component for component in vector))
+            x, y, z = (component / norm for component in vector)
+            beams.append({"off_axis_deg": math.degrees(math.acos(max(-1.0, min(1.0, -z)))), "azimuth_deg": math.degrees(math.atan2(y, x))})
+    return beams
 
 
 class InertialMeasurementUnit:

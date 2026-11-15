@@ -1,0 +1,20 @@
+# The S2 sensor suite plus a cheap flash LiDAR (design binding name lidar_cheap), for hazard work.
+defaults:
+  - terminal_suite
+  - _self_
+# Source:
+#   [ASC-FLASH] Sornsin, Short, Bourbeau, Dahlin (Advanced Scientific Concepts), "Global Shutter
+#              Solid State Flash LIDAR for Spacecraft Navigation and Docking Applications" (about
+#              2019), Fig. 5 p. 4: the OSIRIS-REx navigation flash LiDAR, 128 x 128 pixels, 6 deg
+#              field of view, 10 Hz, 2.8 m to 1 km, range error specification < 10 cm + 1 % of range.
+#              https://asc3d.com/wp-content/uploads/2020/05/11005-31-Final_RevE.pdf
+lidar:
+  rate_hz: 10.0                  # [ASC-FLASH]
+  field_of_view_deg: 6.0         # [ASC-FLASH]
+  pixels_per_side: 32            # model choice ("cheap"): every 4th pixel of the 128 x 128 array
+  minimum_range_m: 2.8           # [ASC-FLASH]
+  maximum_range_m: 1000.0        # [ASC-FLASH]
+  range_noise_m: 0.10            # [ASC-FLASH] specification, used as one sigma
+  range_noise_per_m: 0.01        # [ASC-FLASH] 1 % of range
+  boresight_off_axis_deg: 30.0   # model choice: looks ahead of the vehicle, toward +x
+  boresight_azimuth_deg: 0.0

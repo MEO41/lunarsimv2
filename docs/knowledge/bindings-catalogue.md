@@ -19,7 +19,7 @@ summary: Every binding that exists, per slot, with its file and what it does; th
 | surface | `procedural` | `slots/surface/procedural.py` | Random height field through `TerrainImporter` (±0.15 m, 0.5 m cells). **Smoke-tested only**; no height lookup, so height above ground is measured from z = 0 |
 | surface | `measured_terrain` | `slots/surface/measured_terrain.py` | Apollo 17 height map plus craters and rocks; one target per environment per reset; exact height lookup ([[measured-terrain-surface]]) |
 | sensors | `none` | `slots/sensors/none.py` | No sensors |
-| sensors | `terminal_suite` | `slots/sensors/terminal_suite.py`, `sensor_models.py` | IMU, radar altimeter, Doppler velocimeter, propellant gauge, probe switches ([[sensors-and-ekf]]) |
+| sensors | `terminal_suite` | `slots/sensors/terminal_suite.py`, `sensor_models.py` | IMU, radar altimeter, Doppler velocimeter, propellant gauge, probe switches; with `terminal_suite_with_lidar.yaml` also the cheap flash LiDAR ([[sensors-and-ekf]]) |
 | faults | `none` | `slots/faults/none.py` | No faults |
 | nav | `ekf` | `slots/navigation/ekf.py`, `error_state_kalman_filter.py` | 15-state error-state filter on IMU, altimeter, Doppler; never reads truth ([[sensors-and-ekf]]) |
 | nav | `truth` | `slots/navigation/truth.py` | Copies `TruthState` into `NavEstimate` (16 values, including the probe contact light), zero covariance |
@@ -42,7 +42,7 @@ summary: Every binding that exists, per slot, with its file and what it does; th
   (`measured_terrain`); spacing 1 m, first spawn 40 m up; needs the downloaded height maps.
 
 Not yet built from the design list: start `orbit_elements`, `pdi_state`, `from_log`; surface
-`bekker`, plume; `lidar_cheap` and cameras; faults; `ekf_fdi`, `ekf_late_fusion`; recurrent and other RL agents. The design's
+`bekker`, plume; cameras; faults; `ekf_fdi`, `ekf_late_fusion`; recurrent and other RL agents. The design's
 `dem_tile` is covered by `measured_terrain` for one site.
 
 - part of: [[slot-loop-architecture]]
