@@ -167,7 +167,7 @@
       "title": "Milestone roadmap and status",
       "type": "milestone",
       "status": "current",
-      "updated": "2026-11-15",
+      "updated": "2026-11-16",
       "summary": "The eight milestones of the design, which gates have passed, and what comes next.",
       "path": "milestone-roadmap-and-status.md"
     },
@@ -194,7 +194,7 @@
       "title": "Pending user decisions",
       "type": "plan",
       "status": "waiting-for-user",
-      "updated": "2026-11-15",
+      "updated": "2026-11-16",
       "summary": "Questions that wait for the user's answer; work that depends on them must not start before.",
       "path": "pending-user-decisions.md"
     },
@@ -768,22 +768,12 @@
     },
     {
       "source": "milestone-roadmap-and-status",
-      "target": "measured-terrain-surface",
-      "relation": "mentions"
-    },
-    {
-      "source": "milestone-roadmap-and-status",
-      "target": "terrain-results",
-      "relation": "mentions"
-    },
-    {
-      "source": "milestone-roadmap-and-status",
-      "target": "workstation-setup-and-machines",
-      "relation": "mentions"
-    },
-    {
-      "source": "milestone-roadmap-and-status",
       "target": "pending-user-decisions",
+      "relation": "mentions"
+    },
+    {
+      "source": "milestone-roadmap-and-status",
+      "target": "measured-terrain-surface",
       "relation": "mentions"
     },
     {
@@ -848,6 +838,11 @@
     },
     {
       "source": "paper-one-results",
+      "target": "pending-user-decisions",
+      "relation": "mentions"
+    },
+    {
+      "source": "paper-one-results",
       "target": "milestone-roadmap-and-status",
       "relation": "part of"
     },
@@ -860,6 +855,11 @@
       "source": "paper-one-results",
       "target": "ppo-landing-agent",
       "relation": "uses"
+    },
+    {
+      "source": "pending-user-decisions",
+      "target": "paper-one-results",
+      "relation": "mentions"
     },
     {
       "source": "pending-user-decisions",

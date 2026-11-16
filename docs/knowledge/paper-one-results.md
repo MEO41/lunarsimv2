@@ -172,7 +172,8 @@ What it shows:
 ## Next (proposed, not decided)
 
 - The test of memory that is left: plain `ekf` (no detection), without flags, where only a
-  history of readings can reveal a fault (the variant not chosen on 2026-11-16).
+  history of readings can reveal a fault. Planned by the user for later, when `minsky` is less
+  busy ([[pending-user-decisions]] item 1).
 - The radar-bias weakness of `ekf_fdi` (estimate the bias instead of rejecting the altimeter).
 - Figures: success by fault type and agent; training curves by encoder, with and without flags.
 
