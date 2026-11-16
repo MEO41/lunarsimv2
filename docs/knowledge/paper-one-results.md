@@ -110,11 +110,13 @@ What it shows:
   learns in a third of the iterations. The flags already tell the policy what a history encoder
   would have to infer, so this setup does not show a benefit of memory.
 
-## Next (proposed, not decided)
+## Next
 
-- Ablation that tests memory directly: the same three encoders without the health flags
-  (`observation.include_navigation_health=false`), and with plain `ekf` (no detection), where only
-  a history can reveal a fault.
+- Ablation (user decision 2026-11-16): the same three encoders with `ekf_fdi` but without the
+  health flags (`observation.include_navigation_health=false`), MLP 600 and GRU and attention
+  1,500 iterations from scratch, 5 seeds each (`scripts/minsky/queue_paper_one_ablation.sh`;
+  runs `ppo_<kind>_s3_noflags_seed<s>`, grid runs `grid_ppo_<kind>_noflags_seed<s>`). The variant
+  with plain `ekf` was not chosen for now.
 - Figures: success by fault type and agent; training curves by encoder.
 
 - part of: [[milestone-roadmap-and-status]]
