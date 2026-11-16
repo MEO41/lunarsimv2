@@ -29,6 +29,7 @@ from lunarsim.core.registry import register_binding
 from lunarsim.slots.surface.flat import GROUND_PRIM_PATH, FlatSurface
 from lunarsim.terrain.lunar_height_map_reader import LunarHeightMap
 from lunarsim.terrain.measured_terrain_builder import MeasuredTerrain, MeasuredTerrainSettings, build_measured_terrain
+from lunarsim.terrain.terrain_height_field import RegularHeightGrid, TerrainHeightField
 from lunarsim.terrain.surface_detail import CraterPopulation, RockPopulation
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
@@ -93,6 +94,34 @@ def rock_population_from_parameters(parameters: dict | None) -> RockPopulation |
     )
 
 
+def regional_height_grid(height_map, east_offset: float, north_offset: float, center_height: float, half_size: float, cell: float) -> RegularHeightGrid:
+    """Return a coarse grid of the measured heights around the site, for sensors far from it (milestone 6, S5).
+
+    The height map is read with a stride of about one map pixel per grid cell (so +-10 km stays a
+    few megabytes), sampled bilinearly, and no-data pixels take the site's height (model choice:
+    the DTM of Apollo 17 has no data 6 km north of the site).
+    """
+    from scipy.ndimage import map_coordinates
+
+    from lunarsim.terrain.lunar_height_map_reader import NO_DATA_BELOW
+
+    count = int(round(2.0 * half_size / cell)) + 1
+    lines = -half_size + numpy.arange(count) * cell
+    east, north = numpy.meshgrid(lines + east_offset, lines + north_offset)
+    column, row = height_map.local_to_pixel(east.ravel(), north.ravel())
+    stride = max(1, int(cell // 2))
+    layout = height_map.layout
+    first_column = max(0, int(numpy.floor(column.min())) - stride)
+    last_column = min(layout.number_of_samples, int(numpy.ceil(column.max())) + 2 * stride)
+    first_row = max(0, int(numpy.floor(row.min())) - stride)
+    last_row = min(layout.number_of_lines, int(numpy.ceil(row.max())) + 2 * stride)
+    window = numpy.array(height_map.data[first_row:last_row:stride, first_column:last_column:stride], dtype=numpy.float64)
+    window[window < NO_DATA_BELOW] = numpy.nan
+    heights = map_coordinates(window, [(row - first_row) / stride, (column - first_column) / stride], order=1, mode="nearest", cval=numpy.nan)
+    heights = numpy.where(numpy.isfinite(heights), heights, center_height) - center_height
+    return RegularHeightGrid(-half_size, -half_size, cell, torch.as_tensor(heights.reshape(count, count), dtype=torch.float32))
+
+
 def resolve_repository_path(path: str) -> Path:
     """Return ``path`` as is if absolute, else relative to the repository root."""
     candidate = Path(path).expanduser()
@@ -107,7 +136,8 @@ class MeasuredTerrainSurface(FlatSurface):
     ``height_map`` (``directory``, ``label_file``, ``data_file``), ``site`` (``latitude_deg``,
     ``longitude_deg``, ``east_offset_m``, ``north_offset_m``), ``outer_half_size_m``,
     ``outer_cell_size_m``, ``detail_half_size_m``, ``detail_cell_size_m``,
-    ``detail_taper_width_m``, ``target_half_size_m``, ``craters``, ``rocks``,
+    ``detail_taper_width_m``, ``target_half_size_m``, ``craters``, ``rocks``, ``regional_half_size_m`` and
+    ``regional_cell_size_m`` (a coarse sensors-only grid far around the site, milestone 6),
     ``static_friction``, ``dynamic_friction``, ``restitution``, ``seed_offset``.
     """
 
@@ -148,7 +178,13 @@ class MeasuredTerrainSurface(FlatSurface):
             raise ValueError(
                 "target_half_size_m must leave at least 10 m (a lander footprint) inside the detail patch"
             )
-        return build_measured_terrain(base_heights, settings)
+        terrain = build_measured_terrain(base_heights, settings)
+        self.regional_grid = None
+        regional_half = float(get("regional_half_size_m", 0.0))
+        if regional_half > 0.0:
+            cell = float(get("regional_cell_size_m", 8.0))
+            self.regional_grid = regional_height_grid(height_map, east_offset, north_offset, center_height, regional_half, cell)
+        return terrain
 
     def setup_scene(self, environment) -> None:
         """Build the terrain and import its two meshes as one static ground for all environments."""
@@ -176,7 +212,11 @@ class MeasuredTerrainSurface(FlatSurface):
 
     def initialize(self, environment) -> None:
         """Move the height lookup to the GPU and put every target at the patch centre until the first reset."""
-        self.height_field = self.terrain.height_field().to(self.device)
+        height_field = self.terrain.height_field()
+        if getattr(self, "regional_grid", None) is not None:
+            # Sensors only (camera, TRN map, long LiDAR rays): no PhysX mesh is made from it.
+            height_field = TerrainHeightField(height_field.levels + [self.regional_grid])
+        self.height_field = height_field.to(self.device)
         self.target_half_size = float(self.parameters.get("target_half_size_m", 50.0))
         site_origin = torch.zeros(self.number_of_environments, 3, device=self.device)
         site_origin[:, 2] = self.height_field.height_at(site_origin[:, 0], site_origin[:, 1])

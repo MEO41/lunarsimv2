@@ -3,7 +3,7 @@ id: testing-and-commands
 title: Testing and commands
 type: environment
 status: current
-updated: 2026-11-15
+updated: 2026-11-16
 summary: How to run the tests, scenarios, evaluations, benchmarks, figures and the knowledge-graph check.
 ---
 
@@ -15,8 +15,8 @@ Activate the Isaac environment first ([[workstation-setup-and-machines]]).
 
 | Command | What | Needs GPU |
 | --- | --- | --- |
-| `python -m pytest tests/unit -q` | 128 CPU tests (core, preset, controllers, records, figures, terrain, knowledge graph, reward, action adapter, engine cut-off, EKF on a synthetic flight) | no |
-| `python scripts/run_isaac_tests.py` | `tests/physics` + `tests/smoke` (17 files, including the probe test, the EKF gate test and the PPO smoke test), one simulator process per file; the terrain test is skipped without the height maps | yes |
+| `python -m pytest tests/unit -q` | 184 CPU tests (core, preset, controllers, records, figures, terrain, knowledge graph, reward, action adapter, engine cut-off, EKF on a synthetic flight, hazards, regolith, frames, orbit plant, TRN) | no |
+| `python scripts/run_isaac_tests.py` | `tests/physics` + `tests/smoke` (24 files, including the probe test, the EKF gate test, the PPO smoke tests, S6, S8 and the S7/S5 mission phases), one simulator process per file; the terrain test is skipped without the height maps | yes |
 | `python scripts/run_isaac_tests.py physics` | one folder | yes |
 | `python scripts/run_isaac_tests.py tests/smoke/test_null_loop_environment.py` | one file | yes |
 | `python scripts/check_installation.py` | versions against `requirements-pinned.txt`, CUDA check | yes |
@@ -37,6 +37,8 @@ python scripts/sensor_check.py && python scripts/plot_sensor_check.py && python 
 lunarsim compare zem_zev=runs/a ppo=runs/b,runs/c,runs/d                          # same held-out starts, low-and-fast split
 python scripts/export_policy.py run=runs/ppo_mlp_s1_seed0 checkpoint=model_500.pt   # policy.pt from any checkpoint, no Isaac
 python scripts/benchmark_environment.py scenario=s1_terminal_truth num_envs=1024 steps=500
+python scripts/run_mission.py mission=s7_full_mission num_envs=16 run_name=s7_full_mission_seed0 seed=0   # S7 orbit to touchdown, phase by phase
+python scripts/run_mission.py mission=s5_trn num_envs=16 run_name=s5_trn_seed0 seed=0                     # S5 TRN descent
 python scripts/render_lander_image.py --enable_cameras replay=runs/contact_check/contacts.npz clip=1 output=docs/figures/lander_at_rest.png   # on the Apollo 17 terrain (needs the contact-check recording); without replay= on flat ground
 python scripts/run_drop_test.py drops=1000 drop_height_m=5 run_name=drop_test_5m
 python scripts/record_landing_videos.py landings=3072                             # then:

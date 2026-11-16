@@ -1,0 +1,6 @@
+# S5 Terrain-relative navigation descent (scenario catalogue, section S5): from the high gate to
+# the low gate on TRN (local float64 plant), then to touchdown in PhysX.
+name: s5_trn
+phases:
+  - {name: trn_descent, scenario: s5_trn_descent, save_as: low_gate}
+  - {name: terminal, scenario: s5_trn_terminal}

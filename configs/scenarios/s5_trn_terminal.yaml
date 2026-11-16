@@ -1,0 +1,48 @@
+# @package _global_
+# S5 phase 2: from the low gate to touchdown in PhysX, still navigating with TRN; ZEM/ZEV flies to
+# the site (the design's S5 agent; ppo_gru is the learned variant, skipped for now).
+defaults:
+  - /start: from_log
+  - /plant: physx_site
+  - /surface: apollo17_taurus_littrow
+  - /sensors: trn_suite
+  - /faults: none
+  - /nav: trn_ekf
+  - /agent: zem_zev
+  - /actuators: engine_rcs_pulse
+  - /metrics: touchdown
+  - /training: none
+  - /landers@lander: apollo_lunar_module
+  - _self_
+name: s5_trn_terminal
+seed: 0
+start:
+  convert_to: SITE
+surface:
+  target_half_size_m: 0.0
+  outer_half_size_m: 800.0
+  regional_half_size_m: 10000.0
+  regional_cell_size_m: 8.0
+nav:
+  initial_sigma:
+    position_m: 5.0
+    velocity_mps: 0.2
+metrics:
+  maximum_horizontal_distance_m: 1000.0
+  maximum_altitude_m: 400.0
+env:
+  num_envs: 16
+  env_spacing_m: 1.0
+  physics_step_s: 0.005
+  physics_steps_per_control_step: 4
+  episode_length_s: 180.0
+plant:
+  spawn_height_m: 200.0
+lander:
+  mass:
+    mass_at_start_kg:
+      value: 7788.2
+      source: "derived: as s6_hazard_avoidance (low-gate mass); the plant takes the logged mass"
+    descent_propellant_at_start_kg:
+      value: 810.5
+      source: "derived: as s6_hazard_avoidance"

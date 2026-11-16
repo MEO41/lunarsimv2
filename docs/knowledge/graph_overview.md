@@ -24,6 +24,7 @@ flowchart LR
     lander_preset_apollo_lm["Lander preset, Apollo LM"]
     measured_terrain_surface["Measured terrain surface (Apollo 17)"]
     metrics_and_run_records["Touchdown metric and run records"]
+    orbit_to_touchdown_mission["Orbit to touchdown mission and terrain-relative navigation (S7, S5, milestone 6)"]
     physx_contact_settings["PhysX contact settings"]
     plume_regolith_and_dust["Plume, regolith and dust (scenario S8, milestone 5)"]
     ppo_landing_agent["PPO landing agent (milestone 1b)"]
@@ -105,6 +106,12 @@ flowchart LR
   milestone_roadmap_and_status -- "follows" --> project_goal_and_design_documents
   milestone_roadmap_and_status -- "built" --> measured_terrain_surface
   milestone_roadmap_and_status -- "history" --> session_history
+  orbit_to_touchdown_mission -- "depends on" --> slot_loop_architecture
+  orbit_to_touchdown_mission -- "depends on" --> hazard_detection_and_avoidance
+  orbit_to_touchdown_mission -- "uses" --> measured_terrain_surface
+  orbit_to_touchdown_mission -- "uses" --> sensors_and_ekf
+  orbit_to_touchdown_mission -- "uses" --> lander_preset_apollo_lm
+  orbit_to_touchdown_mission -- "sources" --> sources_bibliography
   paper_one_results -- "part of" --> milestone_roadmap_and_status
   paper_one_results -- "uses" --> faults_and_detection
   paper_one_results -- "uses" --> ppo_landing_agent
@@ -165,6 +172,7 @@ flowchart LR
 | [Lander preset, Apollo LM](lander-preset-apollo-lm.md) | component | current | The Apollo LM-5 preset with its sourced numbers, the body frame, the corrections of 2026-11-15, and the values that are model choices. |
 | [Measured terrain surface (Apollo 17)](measured-terrain-surface.md) | component | current | The measured_terrain surface binding - real NASA height map, craters and rocks from published laws, one landing target per environment, exact GPU height lookup. |
 | [Touchdown metric and run records](metrics-and-run-records.md) | component | current | How a landing is judged (outcome codes, detection settings) and what every run writes to disk, plus the figure and summary tools. |
+| [Orbit to touchdown mission and terrain-relative navigation (S7, S5, milestone 6)](orbit-to-touchdown-mission.md) | component | current | Milestone 6 - float64 orbit plant, MCI/MCMF/SITE frames, phase gates and gate logs, Apollo-style quadratic guidance (braking and approach), the handoff to PhysX at the low gate, the camera TRN filter; scenarios S7 (full mission) and S5 (TRN descent); the guidance fixes that made the Apollo 11 timeline come out. |
 | [PhysX contact settings](physx-contact-settings.md) | component | current | Solver and contact settings from the contact-rest study, why PGS and not TGS, and the measured residuals. |
 | [Plume, regolith and dust (scenario S8, milestone 5)](plume-regolith-and-dust.md) | component | current | Bekker soil under the footpads, the L1 plume model, the dust fault and the dust metric of S8; first results; the L2 check that does not work in this Isaac Sim (decision pending) and the L3 data plan. |
 | [PPO landing agent (milestone 1b)](ppo-landing-agent.md) | component | current | The ppo_mlp agent, its rsl_rl adapter, the landing reward, the training script, and how the design reached a policy that learns. |

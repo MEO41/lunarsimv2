@@ -56,6 +56,7 @@ class ZeroEffortMissZeroEffortVelocityAgent(ClassicalLandingAgentBase):
     - ``upright_below_altitude_m``: below this footpad height the lander is held upright (default 2).
     - ``final_horizontal_velocity_gain_per_s``: gain that removes horizontal speed in the final descent (default 0.8).
     - ``minimum_time_to_go_s``: the guided phase hands over when less time than this is left (default 1).
+    - ``longest_time_to_go_s``: the longest plan the chooser may pick (default 80 s; a gate far from the site needs more).
     - ``attitude`` and ``vertical``: parameters of the two inner controllers.
     """
 
@@ -83,7 +84,7 @@ class ZeroEffortMissZeroEffortVelocityAgent(ClassicalLandingAgentBase):
         self.final_horizontal_velocity_gain = float(get("final_horizontal_velocity_gain_per_s", 0.8))
         self.minimum_time_to_go = float(get("minimum_time_to_go_s", 1.0))
         self.gravity = torch.tensor([0.0, 0.0, -MOON_SURFACE_GRAVITY], device=device)
-        self.time_to_go_candidates = torch.arange(2.0, 80.5, 0.5, device=device)
+        self.time_to_go_candidates = torch.arange(2.0, float(get("longest_time_to_go_s", 80.0)) + 0.5, 0.5, device=device)
 
         count = number_of_environments
         # Gate point of every environment (site frame). All start above the configured target; a

@@ -1,0 +1,19 @@
+# @package _global_
+# S7 phase 4: handoff at the low gate (MCMF float64 -> SITE float32, with the jump check) and the
+# terminal phase on the Apollo 17 terrain in PhysX: the S6 chain (pointed LiDAR, hazard map,
+# site_pick_divert). The design's terminal agent is ppo_gru (learned, skipped for now).
+defaults:
+  - s6_hazard_avoidance
+  - override /start: from_log
+  - _self_
+name: s7_phase_terminal
+start:
+  convert_to: SITE
+surface:
+  target_half_size_m: 0.0      # the SITE frame of the orbit phases is the terrain centre (the LM site)
+  outer_half_size_m: 800.0     # the low gate is 610 m uprange plus the dispersion (the DTM has gaps beyond 900 m)
+agent:
+  longest_time_to_go_s: 150.0    # model choice: the low gate can lie 100-200 m off the track (navigation error of the orbit phases)
+metrics:
+  maximum_horizontal_distance_m: 3000.0
+  tip_over_needs_contact: true   # the handoff state may be tilted in flight

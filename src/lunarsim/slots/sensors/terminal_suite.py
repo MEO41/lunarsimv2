@@ -14,6 +14,7 @@ so this binding holds one model per sensor, each with its own rate, noise, ``val
 | ``measurement.contact_probe`` | surface probe switches | contact light (0 or 1) |
 | ``measurement.lidar`` | flash LiDAR (``lidar_cheap``), only with a ``lidar`` section | slant range per pixel |
 | ``measurement.lidar_pointing`` | the LiDAR mount, only with ``lidar.pointing`` | boresight unit vector, body frame |
+| ``measurement.camera`` | ``camera_cheap``, only with a ``camera`` section | shaded-relief image |
 
 Parameters: one section per sensor (``imu``, ``radar_altimeter``, ``doppler_velocimeter``,
 ``propellant_gauge``, and optionally ``lidar``), see ``configs/sensors/terminal_suite.yaml``, and
@@ -39,6 +40,7 @@ from lunarsim.slots.sensors.sensor_models import (
     enable_compiled_ray_cast,
 )
 from lunarsim.slots.sensors.pointed_flash_lidar import LIDAR_POINTING_KEY, PointedFlashLidar
+from lunarsim.slots.sensors.shaded_relief_camera import CAMERA_KEY, ShadedReliefCamera
 
 IMU_KEY = MessageKey.MEASUREMENT_PREFIX + "imu"
 RADAR_ALTIMETER_KEY = MessageKey.MEASUREMENT_PREFIX + "radar_altimeter"
@@ -47,7 +49,7 @@ PROPELLANT_GAUGE_KEY = MessageKey.MEASUREMENT_PREFIX + "propellant_gauge"
 CONTACT_PROBE_KEY = MessageKey.MEASUREMENT_PREFIX + "contact_probe"
 LIDAR_KEY = MessageKey.MEASUREMENT_PREFIX + "lidar"
 TERMINAL_SUITE_KEYS = frozenset(
-    {IMU_KEY, RADAR_ALTIMETER_KEY, DOPPLER_VELOCIMETER_KEY, PROPELLANT_GAUGE_KEY, CONTACT_PROBE_KEY, LIDAR_KEY, LIDAR_POINTING_KEY}
+    {IMU_KEY, RADAR_ALTIMETER_KEY, DOPPLER_VELOCIMETER_KEY, PROPELLANT_GAUGE_KEY, CONTACT_PROBE_KEY, LIDAR_KEY, LIDAR_POINTING_KEY, CAMERA_KEY}
 )
 
 
@@ -87,6 +89,8 @@ class TerminalSensorSuite(BindingBase):
                 float(lidar_parameters.get("boresight_azimuth_deg", 0.0)),
             )
             self.lidar = RangeBeams(lidar_parameters, count, device, measures_velocity=False)
+        camera_parameters = self.parameters.get("camera")
+        self.camera = ShadedReliefCamera(dict(camera_parameters), count, device) if camera_parameters else None
         self.generator: torch.Generator | None = None
 
     def reset(self, env_ids: Tensor, gen: torch.Generator) -> None:
@@ -100,6 +104,8 @@ class TerminalSensorSuite(BindingBase):
             self.lidar.reset(env_ids)
         if self.pointed_lidar is not None:
             self.pointed_lidar.reset(env_ids)
+        if self.camera is not None:
+            self.camera.reset(env_ids)
 
     def step(self, bus, dt: float) -> None:
         """Measure the true state and write one message per sensor."""
@@ -119,6 +125,10 @@ class TerminalSensorSuite(BindingBase):
         else:
             bus.write(LIDAR_KEY, self.measure_lidar(truth, geometry), self)
             bus.write(LIDAR_POINTING_KEY, self.empty_measurement(truth), self)
+        if self.camera is not None:
+            bus.write(CAMERA_KEY, self.camera.measure(truth, geometry, self.generator), self)
+        else:
+            bus.write(CAMERA_KEY, self.empty_measurement(truth), self)
 
     def empty_measurement(self, truth: TruthState) -> Measurement:
         """Return a measurement with no values that is never valid (a sensor the suite does not have)."""

@@ -59,7 +59,7 @@
       "title": "Decisions log",
       "type": "decision",
       "status": "current",
-      "updated": "2026-11-15",
+      "updated": "2026-11-16",
       "summary": "Every decision taken so far, with date and reason; the place to add new ones.",
       "path": "decisions-log.md"
     },
@@ -188,6 +188,15 @@
       "updated": "2026-11-16",
       "summary": "Known weak points of the model and the code, with what each one affects.",
       "path": "open-issues.md"
+    },
+    {
+      "id": "orbit-to-touchdown-mission",
+      "title": "Orbit to touchdown mission and terrain-relative navigation (S7, S5, milestone 6)",
+      "type": "component",
+      "status": "current",
+      "updated": "2026-11-16",
+      "summary": "Milestone 6 - float64 orbit plant, MCI/MCMF/SITE frames, phase gates and gate logs, Apollo-style quadratic guidance (braking and approach), the handoff to PhysX at the low gate, the camera TRN filter; scenarios S7 (full mission) and S5 (TRN descent); the guidance fixes that made the Apollo 11 timeline come out.",
+      "path": "orbit-to-touchdown-mission.md"
     },
     {
       "id": "paper-one-results",
@@ -338,7 +347,7 @@
       "title": "Testing and commands",
       "type": "environment",
       "status": "current",
-      "updated": "2026-11-15",
+      "updated": "2026-11-16",
       "summary": "How to run the tests, scenarios, evaluations, benchmarks, figures and the knowledge-graph check.",
       "path": "testing-and-commands.md"
     },
@@ -401,6 +410,11 @@
     {
       "source": "bindings-catalogue",
       "target": "hazard-detection-and-avoidance",
+      "relation": "mentions"
+    },
+    {
+      "source": "bindings-catalogue",
+      "target": "orbit-to-touchdown-mission",
       "relation": "mentions"
     },
     {
@@ -556,6 +570,11 @@
     {
       "source": "decisions-log",
       "target": "skipped-learning-work",
+      "relation": "mentions"
+    },
+    {
+      "source": "decisions-log",
+      "target": "orbit-to-touchdown-mission",
       "relation": "mentions"
     },
     {
@@ -855,6 +874,11 @@
     },
     {
       "source": "milestone-roadmap-and-status",
+      "target": "orbit-to-touchdown-mission",
+      "relation": "mentions"
+    },
+    {
+      "source": "milestone-roadmap-and-status",
       "target": "project-goal-and-design-documents",
       "relation": "follows"
     },
@@ -901,6 +925,46 @@
     {
       "source": "open-issues",
       "target": "milestone-1a-results",
+      "relation": "mentions"
+    },
+    {
+      "source": "orbit-to-touchdown-mission",
+      "target": "slot-loop-architecture",
+      "relation": "depends on"
+    },
+    {
+      "source": "orbit-to-touchdown-mission",
+      "target": "hazard-detection-and-avoidance",
+      "relation": "depends on"
+    },
+    {
+      "source": "orbit-to-touchdown-mission",
+      "target": "measured-terrain-surface",
+      "relation": "uses"
+    },
+    {
+      "source": "orbit-to-touchdown-mission",
+      "target": "sensors-and-ekf",
+      "relation": "uses"
+    },
+    {
+      "source": "orbit-to-touchdown-mission",
+      "target": "lander-preset-apollo-lm",
+      "relation": "uses"
+    },
+    {
+      "source": "orbit-to-touchdown-mission",
+      "target": "sources-bibliography",
+      "relation": "sources"
+    },
+    {
+      "source": "orbit-to-touchdown-mission",
+      "target": "slot-loop-architecture",
+      "relation": "mentions"
+    },
+    {
+      "source": "orbit-to-touchdown-mission",
+      "target": "skipped-learning-work",
       "relation": "mentions"
     },
     {
@@ -1185,6 +1249,11 @@
     },
     {
       "source": "session-history",
+      "target": "orbit-to-touchdown-mission",
+      "relation": "mentions"
+    },
+    {
+      "source": "session-history",
       "target": "workstation-setup-and-machines",
       "relation": "mentions"
     },
@@ -1221,6 +1290,11 @@
     {
       "source": "skipped-learning-work",
       "target": "plume-regolith-and-dust",
+      "relation": "mentions"
+    },
+    {
+      "source": "skipped-learning-work",
+      "target": "orbit-to-touchdown-mission",
       "relation": "mentions"
     },
     {

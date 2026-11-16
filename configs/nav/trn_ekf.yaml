@@ -1,0 +1,14 @@
+# ekf plus terrain-relative navigation fixes from the camera (scenario S5).
+defaults:
+  - ekf
+  - _self_
+binding: trn_ekf
+trn:
+  map_error:                   # design S5: "map_error: {offset_m: [0, 20], resolution_m: 5}"
+    resolution_m: 5.0
+    offset_m: [0.0, 20.0]
+    half_size_m: 10000.0
+  grid_cells: 48               # model choice
+  search_cells: 12             # model choice
+  minimum_correlation: 0.5     # model choice: below it the lock is lost
+  fix_sigma_cells: 0.5         # model choice: fix uncertainty per axis, in grid cells

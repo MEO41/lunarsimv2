@@ -47,7 +47,7 @@ def test_unknown_names_fail_with_scenario_error():
     with pytest.raises(ScenarioError, match="No scenario file"):
         load_scenario("does_not_exist")
     with pytest.raises(ScenarioError, match="does not compose"):
-        load_scenario("m0_null_loop", ["nav=trn_ekf"])
+        load_scenario("m0_null_loop", ["nav=no_such_navigation_file"])
 
 
 def test_registered_name_is_checked(tmp_path):

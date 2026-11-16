@@ -1,0 +1,28 @@
+binding: quadratic_guidance
+# Approach phase (P64) to the low gate, Apollo 11 premission plan.
+# [D-6846] p. 10: "the altitude decreases from 7000 to 500 feet, the range decreases from
+# approximately 4.5 nautical miles to 2000 feet, and the time of flight is approximately 1 minute
+# 40 seconds"; low gate: "60 fps of forward velocity, 16 fps of vertical descent rate".
+defaults:
+  - quadratic_guidance_braking
+  - _self_
+target:
+  uprange_m: 609.6             # 2,000 ft
+  crossrange_m: 0.0
+  altitude_m: 152.4            # 500 ft
+  forward_speed_mps: 18.29     # 60 fps
+  vertical_speed_mps: -4.877   # -16 fps
+time_to_go_s: 100.0            # 1 min 40 s
+minimum_time_to_go_s: 5.0
+time_to_go_mode: feasible      # the ZEM/ZEV time-to-go chooser from the actual high-gate state
+planning_tilt_limit_deg: 75.0  # model choice within the attitudes the LM flew: [D-6846] Fig. 8(b) shows about 80 deg from the vertical early in braking and about 55 deg at high gate; a faster high gate needs more
+planning_thrust_margin: 0.9    # model choice
+time_to_go_stretch_factor: 1.1 # model choice (ZEM/ZEV margin)
+time_to_go_extra_s: 2.0
+shortest_duration_s: 20.0
+longest_duration_s: 300.0
+throttle:
+  start_at_fixed_point: false  # the approach starts throttled ([D-6846] p. 4); the latch still allows the fixed point when needed
+# Throttle as in braking (inherited): 10-60 % or the fixed throttle point. Apollo flew the approach
+# throttled ([D-6846] p. 4); here the high gate can come out faster than planned, and the fixed
+# throttle point is the margin that brakes it.

@@ -1,0 +1,11 @@
+binding: scripted_burns
+# Descent orbit insertion: retrograde burn that lowers the perilune to 50,000 ft ([D-6846] p. 3,
+# "approximately 75 fps"; the vis-viva value for 60 n.mi. -> 50,000 ft is 71.5 ft/s).
+frame: MCI
+site:
+  latitude_deg: 20.19091
+  longitude_deg: 30.77168
+  radius_m: 1734773.15
+start_s: 10.0
+perilune_altitude_m: 15240.0
+throttle_fraction: 0.4         # model choice

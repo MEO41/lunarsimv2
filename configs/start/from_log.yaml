@@ -1,0 +1,12 @@
+binding: from_log
+# States saved at a gate by the previous phase (scenario S7, S5). The mission runner sets log_path.
+log_path: null
+convert_to: keep
+site:
+  latitude_deg: 20.19091
+  longitude_deg: 30.77168
+  radius_m: 1734773.15
+handoff_tolerance:             # model choices: the float32 site frame keeps centimetres near the site
+  position_m: 0.01
+  velocity_mps: 1.0e-4
+  energy_fraction: 1.0e-7

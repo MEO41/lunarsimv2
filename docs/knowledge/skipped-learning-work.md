@@ -25,6 +25,8 @@ learns at all). Each entry below names what was skipped and what is ready for it
 | M4 | A learned site-selection or divert agent in S6 | S6 with the classical `site_pick_divert` baseline | [[hazard-detection-and-avoidance]] |
 
 | M5 | The design's S8 agent `ppo_gru` (learned); ZEM/ZEV flies S8 | S8, `ppo_gru` | [[plume-regolith-and-dust]] |
+| M6 | The design's S7 terminal agent `ppo_gru` (learned); the classical S6 chain flies it | S7 with the gate logs, `ppo_gru` | [[orbit-to-touchdown-mission]] |
+| M6 | The design's S5 agent `ppo_gru` (learned) on the TRN estimate; the approach guidance and ZEM/ZEV fly S5 | S5, `trn_ekf`, `ppo_gru` | [[orbit-to-touchdown-mission]] |
 
 Rows are added as milestones 6 and 7 are built.
 

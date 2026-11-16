@@ -58,12 +58,14 @@ class InitialNavigationError:
         angle = self.attitude_error.norm(dim=1)
         axis = self.attitude_error / angle.clamp_min(1e-12).unsqueeze(1)
         axis = torch.where(angle.unsqueeze(1) > 0.0, axis, torch.tensor([1.0, 0.0, 0.0], device=self.device))
-        orientation = quaternion_multiply(start.orientation_quaternion, quaternion_from_axis_angle(axis, angle))
+        dtype = start.position.dtype
+        error_rotation = quaternion_from_axis_angle(axis, angle).to(start.orientation_quaternion.dtype)
+        orientation = quaternion_multiply(start.orientation_quaternion, error_rotation)
         return TruthState(
-            frame=Frame.SITE,
+            frame=start.frame,
             time=start.time.clone(),
-            position=start.position + self.position_error,
-            velocity=start.velocity + self.velocity_error,
+            position=start.position + self.position_error.to(dtype),
+            velocity=start.velocity + self.velocity_error.to(dtype),
             orientation_quaternion=orientation,
             angular_velocity=start.angular_velocity.clone(),
             mass=start.mass.clone(),

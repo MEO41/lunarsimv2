@@ -18,7 +18,7 @@ summary: The eight milestones of the design, which gates have passed, and what c
 | M3 Faults and history agents | Fault schedules, fault-detecting EKF, GRU and attention agents; S3, S4; paper 1. Gate: G5 (paper 1 results table filled) and the paper 1 draft complete | **Training part done 2026-11-16, gate half passed.** Built: fault schedule, `ekf_fdi`, `ekf_late_fusion`, `faults: delay`, `fault_response`, `ppo_gru`, `ppo_attention`, S3, S4, the held-out fault grid ([[faults-and-detection]]). G5 table filled ([[paper-one-results]]): ZEM/ZEV `ekf` 78.6 %, `ekf_fdi` 95.6 %; PPO with health flags MLP 97.0 % (600 iterations), attention 94.7 %, GRU 90.6 % (1,500); without flags MLP 97.6 %, attention 95.6 %, GRU 94.9 %. **Left:** paper 1 draft and figures; plain-`ekf` memory study (planned, [[pending-user-decisions]]); optional: learned agents in S4, `ekf_fdi` radar-bias weakness |
 | M4 Real terrain, hazards and agents | `dem_tile` surface from LROC NAC DTMs, hazard maps, site pick; SAC, Dreamer, TD-MPC2; S6, S9; paper 2 | Terrain part pulled forward and **built** 2026-11-15 ([[measured-terrain-surface]]). **Hazard part built 2026-11-16** ([[hazard-detection-and-avoidance]]): S6 with pointed LiDAR, hazard map, `site_pick_divert`, `site_safety`; 31 % safe touchdowns with the LiDAR map, 83 % with the true map. Agent adapters (SAC, Dreamer, TD-MPC2), S9 and paper 2 skipped ([[skipped-learning-work]]) |
 | M5 Plume and footpads | Plume forces, Bekker footpad sinkage, dust; S8. Gate: L1 vs L2 check written up | **Built 2026-11-16** except L2 ([[plume-regolith-and-dust]]): `regolith_plume_l1` (Bekker soil from TN D-6850, L1 plume), `faults: dust`, `metrics: dust`, S8 and its no-plume variant, L3 data plan. **L2 does not work in this Isaac Sim** (no particle tensor view); fix proposed, waiting for the user ([[pending-user-decisions]] item 2). S8 learned agent skipped |
-| M6 Orbit, phases and TRN | float64 orbit, frame handoff, camera TRN; S5, S7 | Not started |
+| M6 Orbit, phases and TRN | float64 orbit, frame handoff, camera TRN; S5, S7 | Done without learning (2026-11-16): S7 orbit to touchdown and S5 TRN fly the Apollo 11 timeline ([[orbit-to-touchdown-mission]]); the learned terminal `ppo_gru` is skipped ([[skipped-learning-work]]) |
 | M7 ROS 2 bridge | S10 | Not started |
 
 Each gate must pass before the next milestone builds on it. Every new binding needs its unit
@@ -26,12 +26,12 @@ test, the scenario smoke test, the truth-leak check and a speed log.
 
 ## What happens next (as of 2026-11-16)
 
-1. Paper 1 draft and figures from the runs in `results/` ([[paper-one-results]]); this closes
-   the M3 gate together with the filled results table.
-2. When `minsky` is free: the plain-`ekf` memory study ([[pending-user-decisions]] item 1).
-3. Optional for paper 1: PPO in S4 (late Doppler data), a fix for the radar-bias case of
-   `ekf_fdi`, the M2 comparison figure (S1 vs S2 policies).
-4. Then M4 (hazard maps, site pick, SAC, Dreamer, TD-MPC2; paper 2) when the user opens it.
+1. M7: the ROS 2 bridge and S10 (user: "reach the M7"; no training over 20 min).
+2. Paper 1 draft and figures from the runs in `results/` (the user writes it); this closes the
+   M3 gate together with the filled results table.
+3. When `minsky` is free: the plain-`ekf` memory study ([[pending-user-decisions]] item 1).
+4. Waiting for the user: M5 L2 ([[pending-user-decisions]] item 2).
+5. Later: the learned work skipped in M3 to M6 ([[skipped-learning-work]]).
 
 - follows: [[project-goal-and-design-documents]]
 - built: [[measured-terrain-surface]]

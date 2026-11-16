@@ -28,7 +28,7 @@ class EngineAndPulsedJetsActuators(BindingBase):
     that balances the lunar weight) or a fraction of rated thrust.
     """
 
-    requires = frozenset({MessageKey.COMMAND})
+    requires = frozenset({MessageKey.COMMAND, MessageKey.START_STATE})
     provides = frozenset({MessageKey.ACTUATOR_WRENCH})
 
     def __init__(self, parameters, context) -> None:
@@ -67,8 +67,18 @@ class EngineAndPulsedJetsActuators(BindingBase):
         self.initial_throttle = float(initial_throttle)
 
     def reset(self, env_ids: Tensor, gen: torch.Generator) -> None:
-        """Start the episode with a running engine, closed jets and the preset's propellant load."""
-        self.engine.reset(env_ids, self.initial_throttle, self.preset.usable_descent_propellant_at_start)
+        """Start the episode with a running engine, closed jets and the propellant load.
+
+        The load is the start state's mass minus the dry mass (the vehicle without usable descent
+        propellant), so a phase that starts from a saved state (milestone 6) has the propellant
+        that is left; with no start mass it is the preset's load.
+        """
+        load = torch.full((len(env_ids),), self.preset.usable_descent_propellant_at_start, device=self.device)
+        if self.context.bus.has(MessageKey.START_STATE):
+            start_mass = self.context.bus.read(MessageKey.START_STATE, self).mass[env_ids].to(torch.float32)
+            from_mass = (start_mass - self.preset.mass_without_usable_propellant).clamp_min(0.0)
+            load = torch.where(torch.isfinite(start_mass), from_mass, load)
+        self.engine.reset(env_ids, self.initial_throttle, load)
         self.jets.reset(env_ids)
         self.throttle_command[env_ids] = self.initial_throttle
 

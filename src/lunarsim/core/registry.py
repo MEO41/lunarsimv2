@@ -27,7 +27,7 @@ TRUTH_SIDE_SLOTS = frozenset(
 # The only bindings on the flight-software side that may read TruthState: ``nav: truth`` and its
 # S6 variant with the true hazard map (design S6: "Set nav: truth with the true hazard map").
 TRUTH_NAVIGATION_NAME = "truth"
-TRUTH_NAVIGATION_NAMES = frozenset({TRUTH_NAVIGATION_NAME, "truth_with_hazard_map"})
+TRUTH_NAVIGATION_NAMES = frozenset({TRUTH_NAVIGATION_NAME, "truth_with_hazard_map", "truth_noise"})
 
 # Order in which the slots run during one control step, starting at a reset.
 # The plant appears twice: it first reports the state, and later takes the wrench.

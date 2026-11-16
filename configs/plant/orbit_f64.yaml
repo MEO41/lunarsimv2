@@ -1,0 +1,6 @@
+binding: orbit_f64
+frame: MCI                      # MCI (coast, descent orbit) or MCMF (braking, approach)
+site:
+  latitude_deg: 20.19091
+  longitude_deg: 30.77168
+  radius_m: 1734773.15

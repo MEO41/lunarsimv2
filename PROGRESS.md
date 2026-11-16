@@ -41,9 +41,20 @@ Last update: 2026-11-15
   held-out fault grid. ZEM/ZEV under one fault per landing: 95.4 % with `ekf_fdi`, 75.9 % with
   the plain `ekf`.
 
+- **Milestone 3 training part done.** Paper 1 results table filled (`docs/knowledge/paper-one-results.md`).
+- **Milestone 4 hazard part built (no learning).** S6: pointed flash LiDAR, onboard hazard map,
+  LM footprint criteria from TN D-6850, `site_pick_divert`, `site_safety`
+  (`docs/knowledge/hazard-detection-and-avoidance.md`).
+- **Milestone 5 built except L2.** Bekker footpad soil, L1 plume, dust fault, S8
+  (`docs/knowledge/plume-regolith-and-dust.md`); L2 waits for the user.
+- **Milestone 6 built (no learning).** float64 orbit plant, MCI/MCMF/SITE frames, phase gates and
+  gate logs, Apollo-style quadratic guidance, handoff to PhysX at the low gate, camera TRN; S7
+  (orbit to touchdown) and S5 (TRN descent) fly the Apollo 11 timeline
+  (`docs/knowledge/orbit-to-touchdown-mission.md`).
+
 ## In progress
-- On `minsky`: S2 PPO training (M2: S1 policy vs S2 policy), then paper 1 training (MLP, GRU,
-  attention in S3, 5 seeds each) and the fault-grid evaluation (`scripts/minsky/queue_paper_one.sh`).
+- Milestone 7: ROS 2 bridge and S10. Learned work skipped in M3 to M6 is listed in
+  `docs/knowledge/skipped-learning-work.md`.
 
 ## Waiting for the user
 - Open questions: `docs/knowledge/pending-user-decisions.md`.

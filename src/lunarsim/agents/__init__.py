@@ -3,6 +3,7 @@
 
 from lunarsim.agents.classical import attitude_hold_agent as _attitude_hold_agent  # noqa: F401
 from lunarsim.agents.classical import landing_agents as _landing_agents  # noqa: F401
+from lunarsim.agents.classical import powered_descent_guidance as _powered_descent_guidance  # noqa: F401
 from lunarsim.agents.classical import site_pick_divert_agent as _site_pick_divert_agent  # noqa: F401
 from lunarsim.agents.classical import zero_command_agent as _zero_command_agent  # noqa: F401
 from lunarsim.agents.classical import (  # noqa: F401

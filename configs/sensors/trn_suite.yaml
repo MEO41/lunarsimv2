@@ -1,0 +1,15 @@
+# The S2 sensor suite plus camera_cheap, a downward camera that sees shaded relief (scenario S5).
+defaults:
+  - terminal_suite
+  - _self_
+camera:
+  rate_hz: 2.0                 # model choice
+  pixels_per_side: 64          # model choice ("cheap")
+  field_of_view_deg: 30.0      # model choice
+  maximum_range_m: 20000.0
+  noise: 0.01                  # model choice: 1 % of full brightness
+  albedo: 1.0
+  ray_march_step_m: 2.0
+  sun:
+    elevation_deg: 10.9        # [D-6846] p. 10: crew line of sight above "the sun angle (10.9 deg nominal to 13.6 deg maximum)"
+    azimuth_deg: 90.0          # model choice: morning sun from the east, behind a lander approaching from the east

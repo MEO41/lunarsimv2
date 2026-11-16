@@ -1,0 +1,46 @@
+# @package _global_
+# S7 phase 1: parking orbit, descent orbit insertion and coast to perilune (= PDI), in MCI.
+# Run through scripts/run_mission.py mission=s7_full_mission.
+defaults:
+  - /start: orbit_elements
+  - /plant: orbit_f64
+  - /surface: flat
+  - /sensors: none
+  - /faults: none
+  - /nav: truth_noise
+  - /agent: scripted_burns
+  - /actuators: engine_rcs_pulse
+  - /metrics: phase_gate
+  - /training: none
+  - /landers@lander: apollo_lunar_module
+  - _self_
+name: s7_phase_descent_orbit
+seed: 0
+plant:
+  frame: MCI
+actuators:
+  initial_throttle: 0.0
+metrics:
+  until:
+    perilune: true
+    minimum_elapsed_s: 600.0
+  maximum_elapsed_s: 5000.0
+env:
+  num_envs: 16
+  env_spacing_m: 30.0
+  physics_step_s: 0.05
+  physics_steps_per_control_step: 2      # 10 Hz guidance: the DOI cut-off then misses by under 0.2 m/s
+  episode_length_s: 6000.0
+# Mass and throttle at descent orbit insertion (derived; sources below).
+lander:
+  mass:
+    mass_at_start_kg:
+      value: 14721.0
+      source: "derived: 7,327 kg at touchdown [A11-MR] x exp((6,775 ft/s PDI-to-touchdown [D-6846] Table I + 21.8 m/s DOI) / (305 s [D-7143] x g0))"
+    descent_propellant_at_start_kg:
+      value: 7743.3
+      source: "derived: 349.3 kg left at cutoff [A11-MR] + 7,394 kg burned from DOI to touchdown (rocket equation above); Table II of [D-6846] lists 7,693 kg (16,960.9 lb) nominal for the powered descent"
+  descent_engine:
+    maximum_throttle_fraction:
+      value: 0.925
+      source: "[D-6846] p. 4 and [D-7143] p. 6-8: the fixed throttle point is 92.5 % of design thrust; the guidance commands either 10-60 % or this point, never the 65-92.5 % non-operating region"

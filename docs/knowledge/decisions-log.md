@@ -3,7 +3,7 @@ id: decisions-log
 title: Decisions log
 type: decision
 status: current
-updated: 2026-11-15
+updated: 2026-11-16
 summary: Every decision taken so far, with date and reason; the place to add new ones.
 ---
 
@@ -97,3 +97,11 @@ Newest at the bottom. "User" means the user decided; the others were proposed, e
 | 2026-11-16 | With soil contact the footpads have no PhysX collision; the surface computes soil forces from the plant's current footpad states each substep and the plant adds them to the leg links | Design table: `bekker_pads` is a surface binding; rigid PhysX contact cannot sink |
 | 2026-11-16 | S8 keeps the preset's sourced RCS minimum pulse and valve delay, not the design's unsourced 0.5 N s and 20 ms | Rule: every number from a public source; pulse width is the S8 variant to sweep |
 | 2026-11-16 | M5 L2 (PhysX particles) stopped: not possible in Isaac Sim 6.0.1; fix proposed to the user | User rule: "If something in the design does not work in Isaac Lab, stop and explain" |
+| 2026-11-16 | S7 runs phase by phase (`scripts/run_mission.py`): every phase is a scenario; the gate states go to the next phase through `episodes.parquet` and `start: from_log` | One plant per scenario; orbit phases in float64, the terminal phase in PhysX; the gate log is also the S7 dispersion record |
+| 2026-11-16 | Braking and approach use Apollo-style quadratic guidance with the LM throttle logic (10-60 % or the fixed throttle point, latched until the command falls to 57 %) | [D-6846] p. 4, 8 |
+| 2026-11-16 | The engine ignites once aligned and then burns without stopping to the low gate | [D-6846] p. 7: one DPS burn from PDI to touchdown |
+| 2026-11-16 | Braking plan starts at the full fixed-throttle-point deceleration and changes linearly to the gate | A constant deceleration needs more thrust than the engine gives at the PDI mass ([[orbit-to-touchdown-mission]]) |
+| 2026-11-16 | After the planned time the guidance target moves on at its target rates | Otherwise the quadratic law hovers v_D T / 2 short of a moving gate |
+| 2026-11-16 | Orbit-phase navigation is `truth_noise`, 50 m bias per axis (model choice), 5 m vertical in the approach | S7 design has no orbit navigation; Apollo's landing radar updated the altitude from 39,000 ft ([D-6846] Table I) |
+| 2026-11-16 | The TRN camera rays are marched onto the onboard map | The approach camera looks far ahead over hundreds of metres of relief; a level-ground model gave wrong fixes |
+| 2026-11-16 | S7 terminal phase uses the S6 chain (`site_pick_divert`), plan up to 80 s; S5 and S7 terminal `ppo_gru` skipped | User rule: no training over 20 min ([[skipped-learning-work]]) |

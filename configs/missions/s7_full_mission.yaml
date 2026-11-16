@@ -1,0 +1,10 @@
+# S7 Full mission from orbit with phase handoffs (scenario catalogue, section S7), run by
+# scripts/run_mission.py. Phases run one after the other for all landers; each phase ends every
+# lander at its gate (metrics: phase_gate) and saves the gate states, which the next phase starts
+# from (start: from_log). The handoff to PhysX at the low gate checks for state jumps.
+name: s7_full_mission
+phases:
+  - {name: descent_orbit, scenario: s7_phase_descent_orbit, save_as: pdi}
+  - {name: braking, scenario: s7_phase_braking, save_as: high_gate}
+  - {name: approach, scenario: s7_phase_approach, save_as: low_gate}
+  - {name: terminal, scenario: s7_phase_terminal}

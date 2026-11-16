@@ -1,0 +1,12 @@
+binding: approach_gate
+# Start at the Apollo high gate, the start of the approach phase (scenario S5, design "descent_gate").
+# [D-6846] Bennett, NASA TN D-6846 (1972) p. 10: braking ends "at an altitude of approximately
+# 7000 feet, a range of approximately 4.5 nautical miles from the landing site"; Table I: high
+# gate 506 fps, altitude rate -145 fps. Ranges around them: model choices (about +-3 %).
+downrange_m: [8100.0, 8550.0]        # 4.5 n.mi. = 8,334 m
+crossrange_m: [-50.0, 50.0]          # model choice
+altitude_m: [2070.0, 2200.0]         # 7,000 ft = 2,133.6 m (footpad plane above the site height)
+forward_speed_mps: [150.0, 158.0]    # 506 fps = 154.2 m/s
+vertical_speed_mps: [-46.0, -42.5]   # -145 fps = -44.2 m/s
+pitch_deg: [45.0, 55.0]              # model choice: thrust axis well back from the vertical while braking
+approach_azimuth_deg: [180.0, 180.0] # flying west (-x), as in S7; this start measures the direction from +x toward +y (the guidance uses compass headings: 270)

@@ -1,0 +1,6 @@
+binding: local_f64
+frame: SITE
+site:
+  latitude_deg: 20.19091
+  longitude_deg: 30.77168
+  radius_m: 1734773.15

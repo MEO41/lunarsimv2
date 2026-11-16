@@ -61,7 +61,7 @@ class TouchdownMetrics(BindingBase):
 
     Parameters (all optional): ``contact_force_threshold_n``, ``settle_speed_mps``,
     ``settle_rate_deg_per_s``, ``settle_hold_s``, ``settle_timeout_s``, ``tip_over_tilt_deg``,
-    ``maximum_horizontal_distance_m``, ``maximum_altitude_m``, ``nozzle_clearance_counts_as_failure``,
+    ``maximum_horizontal_distance_m``, ``maximum_altitude_m``, ``tip_over_needs_contact``, ``nozzle_clearance_counts_as_failure``,
     ``nozzle_failure_clearance_m``.
     """
 
@@ -83,6 +83,8 @@ class TouchdownMetrics(BindingBase):
         self.settle_hold = float(get("settle_hold_s", 1.0))
         self.settle_timeout = float(get("settle_timeout_s", 10.0))
         self.tip_over_tilt = math.radians(float(get("tip_over_tilt_deg", 45.0)))
+        # A run that starts in flight at a large tilt (S7 handoff at the low gate) only tips over on the ground.
+        self.tip_over_needs_contact = bool(get("tip_over_needs_contact", False))
         self.maximum_horizontal_distance = float(get("maximum_horizontal_distance_m", 300.0))
         self.maximum_altitude = float(get("maximum_altitude_m", 200.0))
         self.nozzle_clearance_counts_as_failure = bool(get("nozzle_clearance_counts_as_failure", False))
@@ -291,6 +293,8 @@ class TouchdownMetrics(BindingBase):
         self.settled_duration = torch.where(at_rest, self.settled_duration + dt, torch.zeros_like(speed))
         settled = self.settled_duration >= self.settle_hold
         tipped_over = tilt > self.tip_over_tilt
+        if self.tip_over_needs_contact:
+            tipped_over = tipped_over & self.has_contact
         settle_timed_out = self.has_contact & (truth.time - self.contact_time > self.settle_timeout)
         altitude = truth.footpad_height_above_ground
         out_of_bounds = (truth.position[:, :2].norm(dim=1) > self.maximum_horizontal_distance) | (

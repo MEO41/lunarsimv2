@@ -1,0 +1,37 @@
+binding: quadratic_guidance
+# Braking phase (P63) to the high gate, Apollo 11 premission plan.
+# [D-6846] p. 10: braking ends "at an altitude of approximately 7000 feet, a range of approximately
+# 4.5 nautical miles from the landing site, and a time from ignition (TFI) of 8 minutes 26 seconds";
+# Table I, high gate: inertial velocity 506 fps, altitude rate -145 fps.
+frame: MCMF
+site:
+  latitude_deg: 20.19091
+  longitude_deg: 30.77168
+  radius_m: 1734773.15
+approach_azimuth_deg: 270.0
+target:
+  uprange_m: 8334.0            # 4.5 n.mi.
+  crossrange_m: 0.0
+  altitude_m: 2133.6           # 7,000 ft
+  forward_speed_mps: 154.2     # 506 fps (the table's inertial velocity, used as surface-relative: model choice)
+  vertical_speed_mps: -44.2    # -145 fps
+time_to_go_s: 506.0            # 8:26 from ignition to high gate (used by the fixed mode)
+minimum_time_to_go_s: 5.0      # model choice: below this the time-to-go is held (a longer hold brakes too gently before the gate)
+# Braking flies near full thrust ([D-6846] p. 8: maximum thrust "for most of the phase"): at PDI
+# each lander plans a constant downrange deceleration to the gate (T = 2 d / (v + v_D)), then
+# counts down from it.
+time_to_go_mode: planned
+# [D-6846] p. 8: braking flies the fixed throttle point "for most of the phase". The planned
+# downrange deceleration starts at this fraction of the fixed-throttle-point acceleration at
+# ignition and changes linearly to the gate (a constant deceleration would need more than the
+# engine gives at the PDI mass; at constant thrust the acceleration grows as propellant burns).
+# Model choice: 1.0 starts at full fixed-point thrust and keeps about 20 % margin at the gate
+# (0.9 left under 10 % there, and the high gate came out 40 m/s fast).
+initial_deceleration_fraction: 1.0
+shortest_duration_s: 300.0
+longest_duration_s: 1200.0
+throttle:
+  lower_fraction: 0.10         # [D-6846] p. 4: throttleable between 10 and 60 percent of design thrust
+  upper_fraction: 0.60
+  fixed_throttle_point: 0.925  # [D-6846] p. 4: 92.5 to 95.5 percent of the design thrust
+  recovery_fraction: 0.57      # [D-6846] p. 8: leave the fixed throttle point when the command falls to 57 % (3 % low bias)

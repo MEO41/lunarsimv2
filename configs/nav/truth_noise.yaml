@@ -1,0 +1,6 @@
+binding: truth_noise
+# True state plus a navigation error (design S5 variant; S7 orbit phases). Model choices.
+position_bias_m: 50.0
+velocity_bias_mps: 0.05
+position_noise_m: 1.0
+velocity_noise_mps: 0.01

@@ -1,0 +1,8 @@
+binding: phase_gate
+# Each phase scenario sets its gate (one condition) under until:
+until: {}
+maximum_elapsed_s: 1000.0
+site:                          # for range_below_m (Apollo 17 LM site, as everywhere in S7)
+  latitude_deg: 20.19091
+  longitude_deg: 30.77168
+  radius_m: 1734773.15

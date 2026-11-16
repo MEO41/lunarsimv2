@@ -1,0 +1,15 @@
+binding: orbit_elements
+# The lander in its parking orbit at the DOI point, 180 deg before PDI (scenario S7).
+# Source: [D-6846] Bennett, NASA TN D-6846 (1972), p. 3 and p. 8, Table I.
+site:                          # Apollo 17 LM ([HAASE] Table 3); radius = 1737.4 km + the NAC DTM height there (-2,626.85 m)
+  latitude_deg: 20.19091
+  longitude_deg: 30.77168
+  radius_m: 1734773.15
+orbit_altitude_m: 111120.0     # [D-6846] p. 3: CSM parking orbit about 62 by 58 n.mi.; 60 n.mi. circular (model choice in that range)
+perilune_altitude_m: 15240.0   # [D-6846] p. 3: DOI lowers the orbit to 50,000 ft at PDI
+pdi_range_m: 481520.0          # [D-6846] p. 8: PDI "approximately 260 nautical miles from the landing site"
+pdi_to_touchdown_s: 714.0      # [D-6846] Table I: touchdown 11:54 after ignition
+approach_azimuth_deg: 270.0    # model choice: the ground track crosses the site flying west, as Apollo approached from the east ([D-6846] Fig. 7)
+start_before_doi_s: 18.6     # derived: burn start 10 s (agent) + half of the 17.2 s DOI burn (21.8 m/s at 0.4 x 46.7 kN on 14.7 t)
+position_sigma_m: 100.0        # model choice: orbit dispersion per axis
+velocity_sigma_mps: 0.1        # model choice
