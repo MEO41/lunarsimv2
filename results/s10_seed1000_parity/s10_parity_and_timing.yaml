@@ -1,0 +1,94 @@
+run_name: s10_seed1000
+seed: 1000
+episodes: 20
+tolerance:
+  position_m: 1.0
+  touchdown_speed_mps: 0.1
+parity:
+  episodes: 20
+  same_outcome_fraction: 1.0
+  largest_position_difference_m: 5.171162801009048
+  median_of_largest_position_difference_m: 1.477412816263314
+  largest_touchdown_speed_difference_mps: 0.708277702331543
+  success_reference: 0.9
+  success: 0.9
+  touchdown_speed_mean_mps: 0.8195354342460632
+  touchdown_speed_mean_reference_mps: 0.75286865234375
+  landing_error_mean_m: 8.338894844055176
+  landing_error_mean_reference_m: 8.673721313476562
+  timing:
+    navigation:
+      replies: 17669
+      deadline_misses: 0
+      measured_round_trip_ms_median: 3.918434027582407
+      measured_round_trip_ms_p99: 4.616850351449102
+      measured_round_trip_ms_max: 39.940142014529556
+      delay_ms_median: 3.918434027582407
+      delay_ms_p99: 4.616850351449102
+    agent:
+      replies: 17668
+      deadline_misses: 0
+      measured_round_trip_ms_median: 1.0044575028587133
+      measured_round_trip_ms_p99: 1.7775557370623571
+      measured_round_trip_ms_max: 3.2029509893618524
+      delay_ms_median: 1.0044575028587133
+      delay_ms_p99: 1.7775557370623571
+  passed: false
+timing_measured:
+  episodes: 20
+  same_outcome_fraction: 1.0
+  largest_position_difference_m: 5.171162801009048
+  median_of_largest_position_difference_m: 1.477412816263314
+  largest_touchdown_speed_difference_mps: 0.708277702331543
+  success_reference: 0.9
+  success: 0.9
+  touchdown_speed_mean_mps: 0.8195354342460632
+  touchdown_speed_mean_reference_mps: 0.75286865234375
+  landing_error_mean_m: 8.338894844055176
+  landing_error_mean_reference_m: 8.673721313476562
+  timing:
+    navigation:
+      replies: 17669
+      deadline_misses: 3
+      measured_round_trip_ms_median: 3.9610129897482693
+      measured_round_trip_ms_p99: 4.624078443739563
+      measured_round_trip_ms_max: 39.57860998343676
+      delay_ms_median: 3.9610129897482693
+      delay_ms_p99: 4.624078443739563
+    agent:
+      replies: 17668
+      deadline_misses: 0
+      measured_round_trip_ms_median: 0.9783905406948179
+      measured_round_trip_ms_p99: 1.7423981701722366
+      measured_round_trip_ms_max: 3.0529130017384887
+      delay_ms_median: 0.9783905406948179
+      delay_ms_p99: 1.7423981701722366
+timing_stress:
+  episodes: 20
+  same_outcome_fraction: 0.9
+  largest_position_difference_m: 4.497942479479385
+  median_of_largest_position_difference_m: 1.447685366028789
+  largest_touchdown_speed_difference_mps: 0.8218735456466675
+  success_reference: 0.9
+  success: 1.0
+  touchdown_speed_mean_mps: 0.8002387881278992
+  touchdown_speed_mean_reference_mps: 0.75286865234375
+  landing_error_mean_m: 8.154542922973633
+  landing_error_mean_reference_m: 8.673721313476562
+  timing:
+    navigation:
+      replies: 17732
+      deadline_misses: 2862
+      measured_round_trip_ms_median: 4.086413013283163
+      measured_round_trip_ms_p99: 4.825528218061662
+      measured_round_trip_ms_max: 42.38232399802655
+      delay_ms_median: 15.0
+      delay_ms_p99: 26.472235734254415
+    agent:
+      replies: 17731
+      deadline_misses: 2711
+      measured_round_trip_ms_median: 0.9999560425058007
+      measured_round_trip_ms_p99: 1.7632566159591079
+      measured_round_trip_ms_max: 2.911055984441191
+      delay_ms_median: 15.0
+      delay_ms_p99: 26.588890006418524
