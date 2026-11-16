@@ -106,10 +106,17 @@ def summarise(run: Path, kind: str, manifest: dict, curve: pandas.DataFrame | No
     if kind == "evaluation":
         episodes = pandas.read_parquet(run / "episodes.parquet")
         summary["episodes"] = len(episodes)
-        summary["success_percent"] = round(100.0 * float(episodes["success"].mean()), 2)
-        summary["outcomes"] = {str(key): int(value) for key, value in episodes["outcome"].value_counts().items()}
-        summary["touchdown_vertical_speed_mps_mean"] = round(float(episodes["touchdown_vertical_speed_mps"].mean()), 3)
-        summary["propellant_used_kg_mean"] = round(float(episodes["propellant_used_kg"].mean()), 1)
+        # Landing runs have the touchdown columns; mission phases that end at a gate (phase_gate) do not.
+        if "success" in episodes:
+            summary["success_percent"] = round(100.0 * float(episodes["success"].mean()), 2)
+        if "outcome" in episodes:
+            summary["outcomes"] = {str(key): int(value) for key, value in episodes["outcome"].value_counts().items()}
+        if "touchdown_vertical_speed_mps" in episodes:
+            summary["touchdown_vertical_speed_mps_mean"] = round(float(episodes["touchdown_vertical_speed_mps"].mean()), 3)
+        if "gate_reached" in episodes:
+            summary["gate_reached_percent"] = round(100.0 * float(episodes["gate_reached"].mean()), 2)
+        if "propellant_used_kg" in episodes:
+            summary["propellant_used_kg_mean"] = round(float(episodes["propellant_used_kg"].mean()), 1)
     if curve is not None and "lunarsim/success_rate" in curve:
         last = curve["lunarsim/success_rate"].dropna()
         summary["final_training_success_percent"] = round(100.0 * float(last.tail(10).mean()), 2)
