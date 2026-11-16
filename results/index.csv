@@ -90,6 +90,7 @@ ppo_mlp_s2_seed1,training,2026-11-15T12:30:36+00:00,d78db18c397cf6b7c6644ef82c00
 ppo_mlp_s2_seed2,training,2026-11-15T12:31:22+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,2,,,96.93
 ppo_mlp_s2_seed3,training,2026-11-15T12:32:07+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,3,,,96.99
 ppo_mlp_s2_seed4,training,2026-11-15T12:32:52+00:00,d78db18c397cf6b7c6644ef82c00d16d4925d357,False,s2_terminal_ekf,ppo_mlp (mlp),ekf,4,,,97.25
+ppo_mlp_s3_noflags_seed0,training,2026-11-16T11:09:07+00:00,b674d91879fb93ef53afe01533b329f2eee0304d,False,s3_faults,ppo_mlp (mlp),ekf_fdi,0,,,97.0
 ppo_mlp_s3_seed0,training,2026-11-15T16:09:18+00:00,542574fce270c13deba9d524228bd83ff7bc5922,False,s3_faults,ppo_mlp (mlp),ekf_fdi,0,,,96.72
 ppo_mlp_s3_seed1,training,2026-11-15T16:10:04+00:00,542574fce270c13deba9d524228bd83ff7bc5922,False,s3_faults,ppo_mlp (mlp),ekf_fdi,1,,,97.1
 ppo_mlp_s3_seed2,training,2026-11-15T16:10:49+00:00,542574fce270c13deba9d524228bd83ff7bc5922,False,s3_faults,ppo_mlp (mlp),ekf_fdi,2,,,95.27
