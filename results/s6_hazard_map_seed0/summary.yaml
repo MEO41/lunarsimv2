@@ -1,0 +1,18 @@
+run: s6_hazard_map_seed0
+kind: evaluation
+started_utc: '2026-11-16T15:52:14+00:00'
+code_commit: 9bcbcfa7ac0e02223c32a939c671de8c648cb421
+uncommitted_changes: true
+scenario: s6_hazard_avoidance
+agent: site_pick_divert
+navigation: hazard_map
+seed: 0
+command_line: scripts/evaluate_agent.py scenario=s6_hazard_avoidance num_envs=64 run_name=s6_hazard_map_seed0
+resumed_from: ''
+episodes: 64
+success_percent: 100.0
+final_training_success_percent: ''
+outcomes:
+  success: 64
+touchdown_vertical_speed_mps_mean: -1.441
+propellant_used_kg_mean: 445.3
