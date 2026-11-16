@@ -1,0 +1,24 @@
+run: grid_ppo_gru_noflags_seed2
+kind: evaluation
+started_utc: '2026-11-16T14:24:58+00:00'
+code_commit: b674d91879fb93ef53afe01533b329f2eee0304d
+uncommitted_changes: false
+scenario: s3_faults
+agent: ppo_mlp (gru)
+navigation: ekf_fdi
+seed: 1000
+command_line: scripts/evaluate_agent.py num_envs=4096 seed=1000 episodes_per_env=1
+  scenario=s3_faults fault_grid=true observation.include_navigation_health=false agent=ppo_gru
+  agent.policy_path=runs/ppo_gru_s3_noflags_seed2/policy.pt run_name=grid_ppo_gru_noflags_seed2
+resumed_from: ''
+episodes: 4096
+success_percent: 92.36
+final_training_success_percent: ''
+outcomes:
+  success: 3783
+  tilt_rate_at_contact: 209
+  hard_horizontal: 72
+  tilt_at_contact: 19
+  hard_vertical: 13
+touchdown_vertical_speed_mps_mean: -0.961
+propellant_used_kg_mean: 57.6
