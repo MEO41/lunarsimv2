@@ -1,0 +1,48 @@
+run_name: s10_diagnosis_seed1000
+seed: 1000
+episodes: 20
+tolerance:
+  position_m: 1.0
+  touchdown_speed_mps: 0.1
+parity_same_numerics:
+  episodes: 20
+  same_outcome_fraction: 1.0
+  largest_position_difference_m: 0.0
+  median_of_largest_position_difference_m: 0.0
+  largest_touchdown_speed_difference_mps: 0.0
+  success_reference: 0.9
+  success: 0.9
+  touchdown_speed_mean_mps: 0.75286865234375
+  touchdown_speed_mean_reference_mps: 0.75286865234375
+  landing_error_mean_m: 8.673721313476562
+  landing_error_mean_reference_m: 8.673721313476562
+  timing:
+    navigation:
+      replies: 17101
+      deadline_misses: 0
+      measured_round_trip_ms_median: 4.647015011869371
+      measured_round_trip_ms_p99: 5.535174044780433
+      measured_round_trip_ms_max: 2336.4635100006126
+      delay_ms_median: 4.647015011869371
+      delay_ms_p99: 5.535174044780433
+    agent:
+      replies: 17100
+      deadline_misses: 0
+      measured_round_trip_ms_median: 1.4350159908644855
+      measured_round_trip_ms_p99: 2.075277497060595
+      measured_round_trip_ms_max: 165.77620198950171
+      delay_ms_median: 1.4350159908644855
+      delay_ms_p99: 2.075277497060595
+reference_eager:
+  episodes: 20
+  same_outcome_fraction: 0.9
+  largest_position_difference_m: 3.110542466202473
+  median_of_largest_position_difference_m: 1.3753374469018405
+  largest_touchdown_speed_difference_mps: 0.5997092723846436
+  success_reference: 0.9
+  success: 1.0
+  touchdown_speed_mean_mps: 0.7883695363998413
+  touchdown_speed_mean_reference_mps: 0.75286865234375
+  landing_error_mean_m: 8.410720825195312
+  landing_error_mean_reference_m: 8.673721313476562
+  timing: {}
