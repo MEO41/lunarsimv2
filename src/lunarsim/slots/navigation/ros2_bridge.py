@@ -13,7 +13,8 @@ since the last step (the node keeps the rest), waits for the estimate, and write
 A reply that misses the deadline (see :mod:`lunarsim.bridge.deadline_model`) is not used: the
 previous estimate stays on the bus for this step.
 
-Parameters: ``node``, ``transport`` (``loopback`` or ``ros2``), ``node_name``, ``timeout_ms``,
+Parameters: ``node``, ``transport`` (``loopback`` or ``ros2``), ``node_name``, ``node_device`` (default
+``cpu``; ``cuda:0`` gives the node the simulator's arithmetic, for the parity diagnosis), ``timeout_ms``,
 ``added_latency_ms``, ``jitter_ms``, ``count_measured_round_trip``.
 """
 
@@ -60,6 +61,7 @@ class NavigationBridge(BindingBase):
             "physics_step_duration": context.clock.physics_step_duration,
             "physics_steps_per_control_step": context.clock.physics_steps_per_control_step,
             "seed": seed,
+            "device": str(self.parameters.get("node_device", "cpu")),
         }
         self.transport = make_transport(str(self.parameters.get("transport", "loopback")), spec, str(self.parameters.get("node_name", "lunarsim_ekf")))
         self.deadline = DeadlineModel.from_parameters(self.parameters, seed)

@@ -11,7 +11,7 @@ Each control step the observation goes to the node and its command comes back. A
 misses the deadline (:mod:`lunarsim.bridge.deadline_model`) is not used: the previous command is
 flown again for this step, as a flight loop with a deadline would.
 
-Parameters: ``node``, ``transport`` (``loopback`` or ``ros2``), ``node_name``, ``policy_format``
+Parameters: ``node``, ``transport`` (``loopback`` or ``ros2``), ``node_name``, ``node_device``, ``policy_format``
 (``torchscript`` or ``onnx``), ``onnx_path``, ``timeout_ms``, ``added_latency_ms``, ``jitter_ms``,
 ``count_measured_round_trip``, ``seed``.
 """
@@ -65,6 +65,7 @@ class AgentBridge(AgentBase):
             "policy_format": policy_format,
             "onnx_path": repository_path(str(self.parameters["onnx_path"])) if policy_format == "onnx" else None,
             "seed": seed,
+            "device": str(self.parameters.get("node_device", "cpu")),
         }
         self.transport = make_transport(str(self.parameters.get("transport", "loopback")), spec, str(self.parameters.get("node_name", "lunarsim_policy")))
         self.deadline = DeadlineModel.from_parameters(self.parameters, seed + 1)

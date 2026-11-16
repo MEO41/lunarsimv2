@@ -10,3 +10,4 @@ added_latency_ms: 0.0
 jitter_ms: 0.0
 count_measured_round_trip: true
 seed: 0
+node_device: cpu                  # cuda:0: the node computes like the simulator (parity diagnosis)

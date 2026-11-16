@@ -69,7 +69,15 @@ VARIANTS = {
         [f"agent.node.policy_path={POLICY}", f"agent.onnx_path={ONNX}"] + DEADLINE
         + [f"{slot}.{name}={value}" for slot in ("nav", "agent") for name, value in (("added_latency_ms", 15.0), ("jitter_ms", 5.0), ("count_measured_round_trip", "false"))],
     ),
+    # Diagnosis variants (not part of the default run): the nodes compute like the simulator (GPU,
+    # compiled filter, TorchScript policy); and the in-loop run with the filter not compiled.
+    "parity_same_numerics": (
+        "s10_ros2_sil",
+        [f"agent.node.policy_path={POLICY}", "agent.policy_format=torchscript", "nav.node_device=cuda:0", "agent.node_device=cuda:0", "nav.node.compile=true"],
+    ),
+    "reference_eager": ("s3_faults", ["agent=ppo_gru", f"agent.policy_path={POLICY}", "nav.compile=false"]),
 }
+DEFAULT_VARIANTS = "reference,parity,timing_measured,timing_stress"
 
 
 class _TruthReader:
@@ -151,7 +159,7 @@ def compare(reference: tuple, other: tuple) -> dict:
 
 def main() -> None:
     """Run the four variants and write the parity and timing summary."""
-    options = {"episodes": "20", "seed": "1000", "run_name": None, "variants": ",".join(VARIANTS)}
+    options = {"episodes": "20", "seed": "1000", "run_name": None, "variants": DEFAULT_VARIANTS}
     for argument in script_arguments:
         key, _, value = argument.partition("=")
         if key not in options:

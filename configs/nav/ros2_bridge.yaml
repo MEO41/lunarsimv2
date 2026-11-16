@@ -8,3 +8,4 @@ added_latency_ms: 0.0             # timing test: added message latency (model ch
 jitter_ms: 0.0                    # timing test: executor jitter, one sigma (model choice)
 count_measured_round_trip: true   # false: only the seeded latency and jitter decide misses (repeatable)
 seed: 0
+node_device: cpu                  # cuda:0: the node computes like the simulator (parity diagnosis)
