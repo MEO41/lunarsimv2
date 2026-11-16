@@ -1283,6 +1283,11 @@
     },
     {
       "source": "session-history",
+      "target": "software-in-the-loop-bridge",
+      "relation": "mentions"
+    },
+    {
+      "source": "session-history",
       "target": "workstation-setup-and-machines",
       "relation": "mentions"
     },

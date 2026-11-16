@@ -54,7 +54,9 @@ Last update: 2026-11-15
 
 - **Milestone 7 built.** `nav`/`agent: ros2_bridge`, loopback node processes, ONNX export of
   `ppo_gru`, deadline model, S10 parity and timing tests
-  (`docs/knowledge/software-in-the-loop-bridge.md`). ROS 2 transport untested (not installed).
+  (`docs/knowledge/software-in-the-loop-bridge.md`). Exact parity with the same arithmetic; the
+  CPU/ONNX nodes miss the 1 m tolerance by float rounding (user decision 4). ROS 2 transport
+  untested (not installed).
 
 ## In progress
 - Nothing running. Next: the user's decisions in `docs/knowledge/pending-user-decisions.md`.

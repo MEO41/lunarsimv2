@@ -49,6 +49,30 @@ here, so S10 keeps the S3 metric and the bridges add per-episode timing columns
 - GPU (`tests/smoke/test_software_in_the_loop.py`, needs the paper 1 GRU policy in `runs/`): the
   bridged run stays within 5 cm of the in-loop run for 3 s from the same S3 start.
 
-## Results
+## Results (2026-11-16, 20 S3 episodes, seed 1000, one lander, paper 1 GRU seed 0)
 
-Filled in after the committed S10 run.
+Runs `results/s10_seed1000_*` (commit `50d92e8`) and `results/s10_diagnosis_seed1000_*` (commit
+`9b77e95`); summaries `s10_parity_and_timing.yaml` and `s10_parity_diagnosis.yaml` there.
+
+Parity, each run against the in-loop reference (`ekf_fdi` compiled on the GPU, TorchScript policy):
+
+| Run | Largest position difference | Median of the largest | Touchdown speed difference | Same outcome |
+| --- | --- | --- | --- | --- |
+| Reference run again | 0.000 m | 0 | 0 | 20/20 |
+| Bridge with the simulator's arithmetic (`parity_same_numerics`: nodes on the GPU, filter compiled, TorchScript) | **0.000 m** | 0 | 0 | 20/20 |
+| In-loop, only the filter not compiled (`reference_eager`) | 3.1 m | 1.4 m | 0.6 m/s | 18/20 |
+| Bridge, flight-like nodes (`parity`: CPU, eager filter, ONNX policy) | 5.2 m | 1.5 m | 0.7 m/s | 20/20 |
+
+The bridge itself is exact: with the same arithmetic all 20 episodes match bit for bit. Any
+change of float rounding (even switching off compilation inside the simulator) starts a 1 mm
+difference within 0.2 to 3.5 s of flight, which the closed loop (fault switching, policy
+decisions) grows to metres; landings stay equally good (success 90 % in both). The tolerance set
+before the run (1 m, 0.1 m/s) therefore fails for the CPU/ONNX nodes; how to state the gate is
+[[pending-user-decisions]] item 4.
+
+Timing (loopback, this machine): navigation round trip median 3.9 ms (99 % below 4.6 ms, largest
+40 ms), policy 1.0 ms (1.8 ms, 3.2 ms). With `timeout_ms: 20` and the measured times, 3 of 17,669
+navigation replies missed (the rare slow ones) and no agent reply. Stress test (15 ms added
+latency, 5 ms jitter): 16 % of navigation and 15 % of agent replies missed, the bridge held its
+last output each time; success 100 % (reference 90 %), mean touchdown speed 0.80 m/s (reference
+0.75), landing error 8.2 m (8.7): no loss for this loop at this rate of misses.
