@@ -1,0 +1,77 @@
+mission: s7_full_mission
+run_name: s7_full_mission_seed0
+handoff_check:
+  position_jump_m: 3.0449316082615156e-05
+  velocity_jump_mps: 8.404503234870143e-07
+  energy_jump_fraction: 8.217306898627617e-12
+  at: terminal
+phases:
+- phase: descent_orbit
+  landers: 16
+  gate_reached_fraction: 1.0
+  propellant_used_kg_mean: 139.34625111060268
+  elapsed_s_mean: 3432.2062500037205
+  gate_mean:
+    east_m: 488634.9012795558
+    north_m: 297.80522089277883
+    up_m: -56095.602616896365
+    east_speed_mps: -1633.708110160845
+    north_speed_mps: -1.40280715670295
+    up_speed_mps: 475.5466272489969
+  gate_dispersion_1sigma:
+    east_m: 4462.511896979324
+    north_m: 71.40257209999542
+    up_m: 1173.445337708628
+    east_speed_mps: 1.369798549499553
+    north_speed_mps: 0.12527451350843805
+    up_speed_mps: 4.2719776819503075
+  wall_time_s: 174.5
+- phase: braking
+  landers: 16
+  gate_reached_fraction: 1.0
+  propellant_used_kg_mean: 6244.83478078066
+  elapsed_s_mean: 489.7437500017817
+  gate_mean:
+    east_m: 8337.346389076607
+    north_m: -0.16463725606285262
+    up_m: 2099.1410001906147
+    east_speed_mps: -151.65615442342894
+    north_speed_mps: 1.463799890606274
+    up_speed_mps: -42.236440637333715
+  gate_dispersion_1sigma:
+    east_m: 4.34441615427227
+    north_m: 71.58196363512471
+    up_m: 49.31182532059388
+    east_speed_mps: 2.526314018209314
+    north_speed_mps: 2.322704472627032
+    up_speed_mps: 2.4863321700443355
+  wall_time_s: 50.6
+- phase: approach
+  landers: 16
+  gate_reached_fraction: 1.0
+  propellant_used_kg_mean: 724.9771245410186
+  elapsed_s_mean: 88.63750000032246
+  gate_mean:
+    east_m: 649.5757480679493
+    north_m: -4.6347486700880705
+    up_m: 161.90836217559416
+    east_speed_mps: -18.38070557399477
+    north_speed_mps: 0.08433719270886786
+    up_speed_mps: -4.639964936091117
+  gate_dispersion_1sigma:
+    east_m: 49.08797596670911
+    north_m: 71.11835878766138
+    up_m: 9.019012732528699
+    east_speed_mps: 0.8425708510304106
+    north_speed_mps: 0.4448072072709615
+    up_speed_mps: 0.401417851704563
+  wall_time_s: 9.4
+- phase: terminal
+  landers: 16
+  success_fraction: 1.0
+  propellant_used_kg_mean: 434.71490478515625
+  touchdown_vertical_speed_mps_mean: -1.4406663924455643
+  divert_distance_m_mean: 4.074525646865368
+  touchdown_site_safe_mean: 0.1875
+  landing_error_from_site_m_mean: 4.073466777801514
+  wall_time_s: 145.0

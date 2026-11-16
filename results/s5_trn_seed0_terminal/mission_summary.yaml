@@ -1,0 +1,35 @@
+mission: s5_trn
+run_name: s5_trn_seed0
+handoff_check:
+  position_jump_m: 0.0
+  velocity_jump_mps: 0.0
+  energy_jump_fraction: 0.0
+  at: terminal
+phases:
+- phase: trn_descent
+  landers: 16
+  gate_reached_fraction: 1.0
+  propellant_used_kg_mean: 644.0084533691406
+  elapsed_s_mean: 89.7062497138977
+  gate_mean:
+    east_m: 608.7726211547852
+    north_m: 0.0332070188887883
+    up_m: 151.7995147705078
+    east_speed_mps: -18.337911367416382
+    north_speed_mps: -0.054725487920222804
+    up_speed_mps: -4.863142371177673
+  gate_dispersion_1sigma:
+    east_m: 0.5503154299308906
+    north_m: 2.7373306432495426
+    up_m: 0.9444627228986869
+    east_speed_mps: 0.07453545139298265
+    north_speed_mps: 0.08810418572927406
+    up_speed_mps: 0.02573242171165038
+  wall_time_s: 214.9
+- phase: terminal
+  landers: 16
+  success_fraction: 1.0
+  propellant_used_kg_mean: 305.19970703125
+  touchdown_vertical_speed_mps_mean: -1.2704031765460968
+  landing_error_from_site_m_mean: 0.7511884570121765
+  wall_time_s: 259.0
