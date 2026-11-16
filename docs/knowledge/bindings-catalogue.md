@@ -37,6 +37,7 @@ summary: Every binding that exists, per slot, with its file and what it does; th
 | nav | `truth_with_hazard_map` | same file | True state plus the true hazard map (S6 upper limit; may read truth) |
 | nav | `truth_noise` | `slots/navigation/truth_noise.py` | Truth plus a per-episode bias and white noise, optional local-vertical bias (S7 orbit phases, S5 variant) |
 | nav | `trn_ekf` | `slots/navigation/terrain_relative_navigation.py` | `ekf` plus camera terrain fixes against the onboard map (S5) |
+| nav | `ros2_bridge` | `slots/navigation/ros2_bridge.py`, `bridge/` | Runs the inner navigation binding (`node`) as a separate node; deadline model (S10, [[software-in-the-loop-bridge]]) |
 | nav | `truth` | `slots/navigation/truth.py` | Copies `TruthState` into `NavEstimate` (16 values, including the probe contact light), zero covariance |
 | actuators | `none` | `slots/actuators/none.py` | Zero wrench |
 | actuators | `engine_rcs_pulse` | `slots/actuators/engine_rcs_pulse.py`, `propulsion_models.py` | `DescentEngineModel` (throttle range, slew, lag, 0.5 s straight-line thrust tail-off after shutdown, propellant) and `ReactionControlPulseModel` (16 jets, minimum pulse, valve delay); engine starts at hover throttle; gimbal ignored |
@@ -49,6 +50,7 @@ summary: Every binding that exists, per slot, with its file and what it does; th
 | agent | `zero`, `attitude_hold`, `hover_hold`, `vertical_descent`, `zem_zev` | `agents/classical/` | See [[classical-agents]] |
 | agent | `scripted_burns` | `agents/classical/powered_descent_guidance.py` | DOI burn to the 50,000 ft perilune, then attitude hold (S7) |
 | agent | `quadratic_guidance` | same file | Apollo-style braking and approach guidance over the sphere with the LM throttle logic (S7, S5; [[orbit-to-touchdown-mission]]) |
+| agent | `ros2_bridge` | `agents/bridge_agent.py`, `bridge/` | Runs the inner agent (`node`) as a separate node, optionally with the ONNX policy (S10) |
 | agent | `site_pick_divert` | `agents/classical/site_pick_divert_agent.py` | ZEM/ZEV that picks and redesignates a safe site from the site map (S6) |
 | agent | `ppo_mlp` | `agents/rsl_rl/ppo_policy_agent.py` | Flies an exported PPO policy ([[ppo-landing-agent]]) |
 

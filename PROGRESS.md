@@ -52,9 +52,13 @@ Last update: 2026-11-15
   (orbit to touchdown) and S5 (TRN descent) fly the Apollo 11 timeline
   (`docs/knowledge/orbit-to-touchdown-mission.md`).
 
+- **Milestone 7 built.** `nav`/`agent: ros2_bridge`, loopback node processes, ONNX export of
+  `ppo_gru`, deadline model, S10 parity and timing tests
+  (`docs/knowledge/software-in-the-loop-bridge.md`). ROS 2 transport untested (not installed).
+
 ## In progress
-- Milestone 7: ROS 2 bridge and S10. Learned work skipped in M3 to M6 is listed in
-  `docs/knowledge/skipped-learning-work.md`.
+- Nothing running. Next: the user's decisions in `docs/knowledge/pending-user-decisions.md`.
+  Learned work skipped in M3 to M6 is listed in `docs/knowledge/skipped-learning-work.md`.
 
 ## Waiting for the user
 - Open questions: `docs/knowledge/pending-user-decisions.md`.

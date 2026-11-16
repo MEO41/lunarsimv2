@@ -23,7 +23,7 @@ notes summarise them and point to them.
 | rule | [[rules-from-the-user]] |
 | design | [[project-goal-and-design-documents]] |
 | milestone | [[milestone-roadmap-and-status]] |
-| component | [[slot-loop-architecture]], [[bindings-catalogue]], [[measured-terrain-surface]], [[lander-preset-apollo-lm]], [[lander-articulation-model]], [[physx-contact-settings]], [[classical-agents]], [[hazard-detection-and-avoidance]], [[orbit-to-touchdown-mission]], [[plume-regolith-and-dust]], [[sensors-and-ekf]], [[faults-and-detection]], [[ppo-landing-agent]], [[metrics-and-run-records]], [[replay-recording-and-rendering]], [[knowledge-graph-tooling]] |
+| component | [[slot-loop-architecture]], [[bindings-catalogue]], [[measured-terrain-surface]], [[lander-preset-apollo-lm]], [[lander-articulation-model]], [[physx-contact-settings]], [[classical-agents]], [[hazard-detection-and-avoidance]], [[orbit-to-touchdown-mission]], [[software-in-the-loop-bridge]], [[plume-regolith-and-dust]], [[sensors-and-ekf]], [[faults-and-detection]], [[ppo-landing-agent]], [[metrics-and-run-records]], [[replay-recording-and-rendering]], [[knowledge-graph-tooling]] |
 | decision | [[decisions-log]] |
 | result | [[milestone-1a-results]], [[milestone-1b-results]], [[paper-one-results]], [[terrain-results]], [[drop-test-results]], [[contact-check-results]], [[speed-benchmarks]] |
 | issue | [[open-issues]] |

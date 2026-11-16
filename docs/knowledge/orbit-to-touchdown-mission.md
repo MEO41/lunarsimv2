@@ -116,9 +116,25 @@ updated the altitude since 39,000 ft ([D-6846] Table I).
 
 The committed 16-lander results are in the next section.
 
-## Committed results
+## Committed results (2026-11-16, 16 landers, seed 0, commit `fe6ede0`)
 
-Filled in after the committed runs (`results/s7_full_mission_seed0_*`, `results/s5_trn_seed0_*`).
+S7 (`results/s7_full_mission_seed0_*`, mission summary in the terminal folder):
+
+| Phase | Time | Propellant | Gate state (mean; 1 sigma) |
+| --- | --- | --- | --- |
+| Descent orbit (DOI to PDI) | 3,432 s | 139 kg | PDI 489 km uprange |
+| Braking | 490 s | 6,245 kg | high gate 2,099 m (sigma 49 m), 151.7 m/s, -42.2 m/s; 8,337 kg |
+| Approach | 89 s | 725 kg | low gate 162 m (sigma 9 m), 18.4 m/s, -4.6 m/s; 7,612 kg |
+| Terminal (PhysX) | 106 s (95-135) | 435 kg | **16/16 landed**, -1.44 m/s, 0.09 m/s horizontal |
+
+Handoff to PhysX at the low gate: position jump 3e-5 m, velocity jump 8e-7 m/s, energy 8e-12.
+Crossrange at the gates is about 71 m (1 sigma), the 50 m navigation bias of the orbit phases.
+As in S6, 19 % of the touchdowns are on a site that the true ground judges safe (LiDAR map).
+
+S5 (`results/s5_trn_seed0_*`): TRN descent 90 s and 644 kg from the high gate; navigation error
+at the low gate 2.95 m mean (1.3 to 12.7 m) from a 50 m start error; terminal **16/16 landed**,
+landing error 0.75 m mean (1.5 m at most). The filter's gate rejected 8 to 164 terrain fixes per
+lander (health column `fixes_rejected`).
 
 ## Limits
 

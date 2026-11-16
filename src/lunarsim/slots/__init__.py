@@ -22,6 +22,7 @@ from lunarsim.slots.navigation import ekf as _navigation_ekf  # noqa: F401
 from lunarsim.slots.navigation import ekf_fdi as _navigation_ekf_fdi  # noqa: F401
 from lunarsim.slots.navigation import ekf_late_fusion as _navigation_ekf_late_fusion  # noqa: F401
 from lunarsim.slots.navigation import hazard_map_navigation as _navigation_hazard_map  # noqa: F401
+from lunarsim.slots.navigation import ros2_bridge as _navigation_ros2_bridge  # noqa: F401
 from lunarsim.slots.navigation import terrain_relative_navigation as _navigation_trn  # noqa: F401
 from lunarsim.slots.navigation import truth as _navigation_truth  # noqa: F401
 from lunarsim.slots.navigation import truth_noise as _navigation_truth_noise  # noqa: F401

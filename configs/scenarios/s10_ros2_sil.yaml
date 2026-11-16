@@ -1,0 +1,20 @@
+# @package _global_
+# S10 ROS 2 software-in-the-loop (scenario catalogue, section S10): S3 with the navigation
+# (ekf_fdi) and the agent (ppo_gru, ONNX export) running as separate nodes. One environment; for
+# tests only. The parity and timing tests are run by scripts/run_software_in_the_loop.py.
+# Deviation: the design lists `metrics: [touchdown, latency]`; here the S3 metric stays and the
+# bridges add per-episode timing columns (replies, deadline misses, longest round trip).
+defaults:
+  - s3_faults
+  - /nav@nav.node: ekf_fdi
+  - /agent@agent.node: ppo_gru
+  - override /nav: ros2_bridge
+  - override /agent: ros2_bridge
+  - _self_
+name: s10_ros2_sil
+agent:
+  node:
+    policy_path: runs/ppo_gru_s3_seed0_to1500/policy.pt   # paper 1 GRU, seed 0, 1,500 iterations
+  onnx_path: runs/ppo_gru_s3_seed0_to1500/policy.onnx
+env:
+  num_envs: 1

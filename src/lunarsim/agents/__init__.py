@@ -9,4 +9,5 @@ from lunarsim.agents.classical import zero_command_agent as _zero_command_agent 
 from lunarsim.agents.classical import (  # noqa: F401
     zero_effort_miss_zero_effort_velocity_agent as _zero_effort_miss_zero_effort_velocity_agent,
 )
+from lunarsim.agents import bridge_agent as _bridge_agent  # noqa: F401
 from lunarsim.agents.rsl_rl import ppo_policy_agent as _ppo_policy_agent  # noqa: F401

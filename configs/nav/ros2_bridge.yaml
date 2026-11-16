@@ -1,0 +1,10 @@
+# The navigation binding runs as a separate node (scenario S10). The scenario puts the inner
+# binding's whole config under `node` (for example `- /nav@nav.node: ekf_fdi`).
+binding: ros2_bridge
+transport: loopback               # loopback: separate process over a local socket; ros2: rclpy topics (needs ROS 2)
+node_name: lunarsim_ekf           # design S10: nav_node
+timeout_ms: null                  # null: every reply is used (parity test); design S10 timing test: 20
+added_latency_ms: 0.0             # timing test: added message latency (model choice)
+jitter_ms: 0.0                    # timing test: executor jitter, one sigma (model choice)
+count_measured_round_trip: true   # false: only the seeded latency and jitter decide misses (repeatable)
+seed: 0

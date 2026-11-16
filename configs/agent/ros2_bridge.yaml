@@ -1,0 +1,12 @@
+# The agent runs as a separate node (scenario S10). The scenario puts the inner agent's whole
+# config under `node` (for example `- /agent@agent.node: ppo_gru`).
+binding: ros2_bridge
+transport: loopback               # loopback: separate process over a local socket; ros2: rclpy topics (needs ROS 2)
+node_name: lunarsim_policy        # design S10: agent_node
+policy_format: onnx               # design S10: the policy node "loads the ONNX export of ppo_gru"
+onnx_path: null                   # made by scripts/export_policy_onnx.py
+timeout_ms: null                  # null: every reply is used (parity test); design S10 timing test: 20
+added_latency_ms: 0.0
+jitter_ms: 0.0
+count_measured_round_trip: true
+seed: 0

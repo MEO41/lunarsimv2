@@ -31,6 +31,7 @@ flowchart LR
     replay_recording_and_rendering["Replay recording and rendering"]
     sensors_and_ekf["Sensors and EKF (milestone 2)"]
     slot_loop_architecture["Slot loop architecture"]
+    software_in_the_loop_bridge["Software-in-the-loop bridge (S10, milestone 7)"]
   end
   subgraph decision
     decisions_log["Decisions log"]
@@ -139,6 +140,10 @@ flowchart LR
   slot_loop_architecture -- "implements" --> project_goal_and_design_documents
   slot_loop_architecture -- "runs on" --> physx_contact_settings
   slot_loop_architecture -- "details in" --> bindings_catalogue
+  software_in_the_loop_bridge -- "depends on" --> slot_loop_architecture
+  software_in_the_loop_bridge -- "uses" --> faults_and_detection
+  software_in_the_loop_bridge -- "uses" --> ppo_landing_agent
+  software_in_the_loop_bridge -- "results" --> paper_one_results
   sources_bibliography -- "cited by" --> lander_preset_apollo_lm
   sources_bibliography -- "cited by" --> apollo_lm_geometry_research
   sources_bibliography -- "cited by" --> lunar_surface_statistics_research
@@ -179,6 +184,7 @@ flowchart LR
 | [Replay recording and rendering](replay-recording-and-rendering.md) | component | current | How runs are recorded frame by frame and rendered later as videos or stills, on a physics-free stage, with footpad force arrows. |
 | [Sensors and EKF (milestone 2)](sensors-and-ekf.md) | component | current | The terminal_suite sensor binding (IMU, radar altimeter, Doppler velocimeter, propellant gauge, probe switches), the ekf navigation, scenario S2 and the consistency results. |
 | [Slot loop architecture](slot-loop-architecture.md) | component | current | The nine slots, the message bus with its truth guard, the hook order of one control step, timing and message fields. |
+| [Software-in-the-loop bridge (S10, milestone 7)](software-in-the-loop-bridge.md) | component | current | Milestone 7 - nav and agent ros2_bridge bindings that run the unchanged ekf_fdi and ppo_gru (ONNX export) as separate node processes; loopback transport (tested) and ROS 2 transport (written but untested, as ROS 2 is not installed); deadline model; parity and timing tests of S10. |
 | [Decisions log](decisions-log.md) | decision | current | Every decision taken so far, with date and reason; the place to add new ones. |
 | [Footpad contact check on real terrain](contact-check-results.md) | result | current | Free-fall drops on eight kinds of ground; at rest every footpad's contact-sensor force agrees with its gap to the terrain lookup (32 of 32). |
 | [Drop test on steep terrain](drop-test-results.md) | result | current | 1,000 engine-off drops from 5 m on a massif flank of the Apollo 17 map - where the lander stands, slides and tips over. |

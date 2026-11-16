@@ -307,6 +307,15 @@
       "path": "slot-loop-architecture.md"
     },
     {
+      "id": "software-in-the-loop-bridge",
+      "title": "Software-in-the-loop bridge (S10, milestone 7)",
+      "type": "component",
+      "status": "current",
+      "updated": "2026-11-16",
+      "summary": "Milestone 7 - nav and agent ros2_bridge bindings that run the unchanged ekf_fdi and ppo_gru (ONNX export) as separate node processes; loopback transport (tested) and ROS 2 transport (written but untested, as ROS 2 is not installed); deadline model; parity and timing tests of S10.",
+      "path": "software-in-the-loop-bridge.md"
+    },
+    {
       "id": "sources-bibliography",
       "title": "Sources bibliography",
       "type": "research",
@@ -444,6 +453,11 @@
     },
     {
       "source": "bindings-catalogue",
+      "target": "software-in-the-loop-bridge",
+      "relation": "mentions"
+    },
+    {
+      "source": "bindings-catalogue",
       "target": "metrics-and-run-records",
       "relation": "mentions"
     },
@@ -575,6 +589,11 @@
     {
       "source": "decisions-log",
       "target": "orbit-to-touchdown-mission",
+      "relation": "mentions"
+    },
+    {
+      "source": "decisions-log",
+      "target": "software-in-the-loop-bridge",
       "relation": "mentions"
     },
     {
@@ -879,6 +898,11 @@
     },
     {
       "source": "milestone-roadmap-and-status",
+      "target": "software-in-the-loop-bridge",
+      "relation": "mentions"
+    },
+    {
+      "source": "milestone-roadmap-and-status",
       "target": "project-goal-and-design-documents",
       "relation": "follows"
     },
@@ -1010,6 +1034,11 @@
     {
       "source": "pending-user-decisions",
       "target": "plume-regolith-and-dust",
+      "relation": "mentions"
+    },
+    {
+      "source": "pending-user-decisions",
+      "target": "software-in-the-loop-bridge",
       "relation": "mentions"
     },
     {
@@ -1331,6 +1360,31 @@
       "source": "slot-loop-architecture",
       "target": "bindings-catalogue",
       "relation": "details in"
+    },
+    {
+      "source": "software-in-the-loop-bridge",
+      "target": "slot-loop-architecture",
+      "relation": "depends on"
+    },
+    {
+      "source": "software-in-the-loop-bridge",
+      "target": "faults-and-detection",
+      "relation": "uses"
+    },
+    {
+      "source": "software-in-the-loop-bridge",
+      "target": "ppo-landing-agent",
+      "relation": "uses"
+    },
+    {
+      "source": "software-in-the-loop-bridge",
+      "target": "paper-one-results",
+      "relation": "results"
+    },
+    {
+      "source": "software-in-the-loop-bridge",
+      "target": "pending-user-decisions",
+      "relation": "mentions"
     },
     {
       "source": "sources-bibliography",
