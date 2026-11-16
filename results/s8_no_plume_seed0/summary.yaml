@@ -1,0 +1,21 @@
+run: s8_no_plume_seed0
+kind: evaluation
+started_utc: '2026-11-16T16:21:15+00:00'
+code_commit: 5fa5a341d9cb554873adc00f123834ffe916de98
+uncommitted_changes: false
+scenario: s8_plume_regolith_no_plume
+agent: zem_zev
+navigation: ekf_fdi
+seed: 0
+command_line: scripts/evaluate_agent.py scenario=s8_plume_regolith_no_plume num_envs=64
+  run_name=s8_no_plume_seed0
+resumed_from: ''
+episodes: 64
+success_percent: 93.75
+final_training_success_percent: ''
+outcomes:
+  success: 60
+  tilt_rate_at_contact: 2
+  hard_horizontal: 2
+touchdown_vertical_speed_mps_mean: -1.31
+propellant_used_kg_mean: 105.8

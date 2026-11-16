@@ -128,3 +128,5 @@ s4_zem_zev_ekf_fdi,evaluation,2026-11-15T13:25:50+00:00,8d40351fddff5c014aabbadd
 s4_zem_zev_ekf_late_fusion,evaluation,2026-11-15T13:22:27+00:00,8d40351fddff5c014aabbaddc1b2f3f9396f0520,False,s4_late_fusion,zem_zev,ekf_late_fusion,0,1024,97.46,
 s6_hazard_map_seed0,evaluation,2026-11-16T15:52:14+00:00,9bcbcfa7ac0e02223c32a939c671de8c648cb421,True,s6_hazard_avoidance,site_pick_divert,hazard_map,0,64,100.0,
 s6_truth_map_seed0,evaluation,2026-11-16T15:54:08+00:00,9bcbcfa7ac0e02223c32a939c671de8c648cb421,True,s6_hazard_avoidance_truth_map,site_pick_divert,truth_with_hazard_map,0,64,100.0,
+s8_no_plume_seed0,evaluation,2026-11-16T16:21:15+00:00,5fa5a341d9cb554873adc00f123834ffe916de98,False,s8_plume_regolith_no_plume,zem_zev,ekf_fdi,0,64,93.75,
+s8_plume_seed0,evaluation,2026-11-16T16:19:42+00:00,5fa5a341d9cb554873adc00f123834ffe916de98,False,s8_plume_regolith,zem_zev,ekf_fdi,0,64,95.31,
