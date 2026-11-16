@@ -1,0 +1,16 @@
+run: ppo_attention_s3_seed2_to1500
+kind: training
+started_utc: '2026-11-16T00:12:09+00:00'
+code_commit: f3e21194e6e3b39d6566c104abfe3d9b9d5cb9bd
+uncommitted_changes: false
+scenario: s3_faults
+agent: ppo_mlp (attention)
+navigation: ekf_fdi
+seed: 2
+command_line: scripts/train_ppo.py scenario=s3_faults agent=ppo_attention num_envs=4096
+  seed=2 run_name=ppo_attention_s3_seed2_to1500 max_iterations=1500 resume_from=runs/ppo_attention_s3_seed2/model_600.pt
+resumed_from: runs/ppo_attention_s3_seed2/model_600.pt
+episodes: ''
+success_percent: ''
+final_training_success_percent: 94.9
+iterations: 1500
