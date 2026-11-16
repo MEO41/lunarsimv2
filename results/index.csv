@@ -54,6 +54,7 @@ grid_zem_zev_ekf_fdi,evaluation,2026-11-15T19:00:57+00:00,cbd0937f90ddbd0432a46b
 m1a_zem_zev_full_box_seed0,evaluation,2026-11-14T14:23:18+00:00,009762ca6b0c67bea3c2d245b2fcce39ff1fbdaf,False,s1_terminal_truth,zem_zev,truth,0,4096,96.9,
 m1a_zem_zev_full_box_seed1,evaluation,2026-11-14T14:24:51+00:00,009762ca6b0c67bea3c2d245b2fcce39ff1fbdaf,False,s1_terminal_truth,zem_zev,truth,1,4096,96.51,
 m1a_zem_zev_full_box_seed2,evaluation,2026-11-14T14:26:24+00:00,009762ca6b0c67bea3c2d245b2fcce39ff1fbdaf,False,s1_terminal_truth,zem_zev,truth,2,4096,96.9,
+ppo_attention_s3_noflags_seed0,training,2026-11-16T05:27:00+00:00,b674d91879fb93ef53afe01533b329f2eee0304d,False,s3_faults,ppo_mlp (attention),ekf_fdi,0,,,96.77
 ppo_attention_s3_seed0,training,2026-11-15T17:55:49+00:00,cbd0937f90ddbd0432a46b49d826a9924d8af802,False,s3_faults,ppo_mlp (attention),ekf_fdi,0,,,88.99
 ppo_attention_s3_seed0_to1500,training,2026-11-15T22:36:38+00:00,f3e21194e6e3b39d6566c104abfe3d9b9d5cb9bd,False,s3_faults,ppo_mlp (attention),ekf_fdi,0,,,94.48
 ppo_attention_s3_seed1,training,2026-11-15T17:56:34+00:00,cbd0937f90ddbd0432a46b49d826a9924d8af802,False,s3_faults,ppo_mlp (attention),ekf_fdi,1,,,91.7
@@ -64,6 +65,7 @@ ppo_attention_s3_seed3,training,2026-11-15T19:26:26+00:00,0e2f9d3473a88184f9533a
 ppo_attention_s3_seed3_to1500,training,2026-11-16T00:12:55+00:00,f3e21194e6e3b39d6566c104abfe3d9b9d5cb9bd,False,s3_faults,ppo_mlp (attention),ekf_fdi,3,,,96.25
 ppo_attention_s3_seed4,training,2026-11-15T20:29:11+00:00,f3e21194e6e3b39d6566c104abfe3d9b9d5cb9bd,False,s3_faults,ppo_mlp (attention),ekf_fdi,4,,,86.28
 ppo_attention_s3_seed4_to1500,training,2026-11-16T01:47:41+00:00,f3e21194e6e3b39d6566c104abfe3d9b9d5cb9bd,False,s3_faults,ppo_mlp (attention),ekf_fdi,4,,,94.77
+ppo_gru_s3_noflags_seed0,training,2026-11-16T05:33:01+00:00,b674d91879fb93ef53afe01533b329f2eee0304d,False,s3_faults,ppo_mlp (gru),ekf_fdi,0,,,96.18
 ppo_gru_s3_seed0,training,2026-11-15T17:05:02+00:00,cbd0937f90ddbd0432a46b49d826a9924d8af802,False,s3_faults,ppo_mlp (gru),ekf_fdi,0,,,95.45
 ppo_gru_s3_seed0_to1500,training,2026-11-15T21:18:52+00:00,f3e21194e6e3b39d6566c104abfe3d9b9d5cb9bd,False,s3_faults,ppo_mlp (gru),ekf_fdi,0,,,95.04
 ppo_gru_s3_seed1,training,2026-11-15T17:05:48+00:00,cbd0937f90ddbd0432a46b49d826a9924d8af802,False,s3_faults,ppo_mlp (gru),ekf_fdi,1,,,89.46

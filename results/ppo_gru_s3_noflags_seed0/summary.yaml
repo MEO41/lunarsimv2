@@ -1,0 +1,16 @@
+run: ppo_gru_s3_noflags_seed0
+kind: training
+started_utc: '2026-11-16T05:33:01+00:00'
+code_commit: b674d91879fb93ef53afe01533b329f2eee0304d
+uncommitted_changes: false
+scenario: s3_faults
+agent: ppo_mlp (gru)
+navigation: ekf_fdi
+seed: 0
+command_line: scripts/train_ppo.py scenario=s3_faults agent=ppo_gru num_envs=4096
+  seed=0 run_name=ppo_gru_s3_noflags_seed0 max_iterations=1500 observation.include_navigation_health=false
+resumed_from: ''
+episodes: ''
+success_percent: ''
+final_training_success_percent: 96.18
+iterations: 1500
