@@ -185,8 +185,8 @@
       "title": "Paper 1 results, sensor faults (S3 fault grid)",
       "type": "result",
       "status": "open",
-      "updated": "2026-11-15",
-      "summary": "First pass of paper 1 - ZEM/ZEV with ekf and ekf_fdi, and PPO with MLP, GRU and attention encoders (5 seeds each, 600 iterations) on the held-out fault grid; the memory encoders were still learning, so they continue to 1,500 iterations.",
+      "updated": "2026-11-16",
+      "summary": "Paper 1 on the held-out fault grid - ZEM/ZEV (ekf 78.6 %, ekf_fdi 95.6 %), PPO MLP 97.0 % at 600 iterations, attention 94.7 % and GRU 90.6 % at 1,500; with health flags in the observation, memory gives no benefit.",
       "path": "paper-one-results.md"
     },
     {
