@@ -4,7 +4,7 @@ title: Paper 1 results, sensor faults (S3 fault grid)
 type: result
 status: open
 updated: 2026-11-16
-summary: Paper 1 on the held-out fault grid - ZEM/ZEV (ekf 78.6 %, ekf_fdi 95.6 %), PPO MLP 97.0 % at 600 iterations, attention 94.7 % and GRU 90.6 % at 1,500; with health flags in the observation, memory gives no benefit.
+summary: Paper 1 on the held-out fault grid - ZEM/ZEV (ekf 78.6 %, ekf_fdi 95.6 %) and PPO MLP, GRU and attention with and without health flags; the MLP without flags is best (97.6 %), the flags help no encoder, and memory helps neither way.
 ---
 
 # Paper 1 results (first pass, 2026-11-15)
@@ -110,14 +110,71 @@ What it shows:
   learns in a third of the iterations. The flags already tell the policy what a history encoder
   would have to infer, so this setup does not show a benefit of memory.
 
-## Next
+## Ablation: no health flags in the observation (2026-11-16)
 
-- Ablation (user decision 2026-11-16): the same three encoders with `ekf_fdi` but without the
-  health flags (`observation.include_navigation_health=false`), MLP 600 and GRU and attention
-  1,500 iterations from scratch, 5 seeds each (`scripts/minsky/queue_paper_one_ablation.sh`;
-  runs `ppo_<kind>_s3_noflags_seed<s>`, grid runs `grid_ppo_<kind>_noflags_seed<s>`). The variant
-  with plain `ekf` was not chosen for now.
-- Figures: success by fault type and agent; training curves by encoder.
+Same filter (`ekf_fdi`), but the policy sees only the 16 navigation values
+(`observation.include_navigation_health=false`); trained from scratch, MLP 600 and GRU and
+attention 1,500 iterations without a resume, commit `b674d91`; runs `ppo_<kind>_s3_noflags_seed<s>`
+and `grid_ppo_<kind>_noflags_seed<s>`. Every grid run has the same 4,096 starts, faults and fault
+onsets (checked per environment; the episode files list landings in the order they ended).
+
+| Agent | Fault-grid success per seed (%) | Mean ± SD | Median |
+|---|---|---|---|
+| ZEM/ZEV `ekf_fdi` | 95.58 | 95.6 | 95.6 |
+| MLP, flags (600) | 97.46, 97.66, 95.21, 97.63, 97.27 | 97.0 ± 1.0 | 97.5 |
+| **MLP, no flags (600)** | 97.49, 97.73, 97.39, 97.63, 97.66 | **97.6 ± 0.1** | 97.6 |
+| GRU, flags (1,500, resumed) | 95.85, 90.99, 96.00, 89.21, 80.71 | 90.6 ± 6.3 | 91.0 |
+| GRU, no flags (1,500) | 96.95, 97.09, 92.36, 95.75, 92.26 | 94.9 ± 2.4 | 95.8 |
+| attention, flags (1,500, resumed) | 93.85, 91.06, 96.04, 96.92, 95.46 | 94.7 ± 2.3 | 95.5 |
+| attention, no flags (1,500) | 97.07, 97.14, 96.41, 90.53, 97.05 | 95.6 ± 2.9 | 97.1 |
+
+No flags minus flags: MLP +0.5, GRU +4.3, attention +1.0 points; with 5 seeds none of these is
+statistically clear (Welch p = 0.32, 0.21, 0.57). Training success without flags (mean over
+seeds): MLP 61 % at iteration 100 and 95 % at 200; GRU 21, 87, 86 (300), 86 (600), 88 (1,000),
+94 (1,500); attention 14, 59, 79 (300), 90 (600), 90 (1,000), 95 (1,500). Without flags the
+memory models learn much earlier than with them (attention 2 % at 200 with flags).
+
+By fault type (%, mean over seeds):
+
+| Fault / sensor | ZEM/ZEV `ekf_fdi` | MLP flags | MLP none | GRU none | attention none |
+|---|---|---|---|---|---|
+| bias / Doppler | 94.9 | 97.2 | 98.0 | 94.6 | 93.4 |
+| bias / radar | 74.9 | 87.3 | 86.1 | 91.4 | 89.0 |
+| delay spike / Doppler | 98.0 | 97.8 | 98.2 | 95.3 | 97.2 |
+| delay spike / radar | 98.8 | 97.8 | 98.5 | 94.9 | 97.3 |
+| drift / Doppler | 97.6 | 97.6 | 98.4 | 94.7 | 94.3 |
+| drift / radar | 97.6 | 98.1 | 98.4 | 94.5 | 97.7 |
+| dropout burst / Doppler | 98.5 | 98.2 | 98.7 | 96.0 | 97.6 |
+| dropout burst / radar | 97.7 | 98.2 | 98.4 | 95.2 | 97.5 |
+| outlier spike / Doppler | 98.0 | 98.2 | 98.7 | 95.8 | 97.6 |
+| outlier spike / radar | 96.1 | 96.3 | 96.6 | 94.5 | 96.0 |
+| scale / Doppler | 96.9 | 96.6 | 98.0 | 95.8 | 94.3 |
+| scale / radar | 88.2 | 95.8 | 96.5 | 94.2 | 92.4 |
+| stuck / Doppler | 98.4 | 98.4 | 99.5 | 96.1 | 95.2 |
+| stuck / radar | 98.8 | 99.2 | 99.4 | 95.7 | 98.0 |
+| total loss / Doppler | 95.3 | 96.9 | 98.3 | 94.0 | 94.4 |
+| total loss / radar | 99.2 | 99.0 | 99.4 | 95.5 | 98.1 |
+
+What it shows:
+
+- The health flags do not help any encoder; without them every encoder is as good or better, and
+  the memory models train much sooner. The detecting filter already removes the faulty data from
+  the estimate, so the 16 navigation values are enough and the flags mainly add inputs to learn.
+- The memoryless MLP stays the best agent (97.6 %, the smallest seed spread), above ZEM/ZEV with
+  the same filter (95.6 %) and near ZEM/ZEV without faults (97.7 %).
+- Memory does not help in this setup either: GRU and attention are below the MLP on every fault
+  type. Attention has four seeds at 96.4-97.1 % and one at 90.5 % (most failures of that run:
+  propellant depleted).
+- Radar bias is the hardest case for every agent (86-91 %): `ekf_fdi` rejects the altimeter
+  there, while ZEM/ZEV with plain `ekf` gets 96.5 %. The weak point is the filter's response to a
+  bias, not the agent.
+
+## Next (proposed, not decided)
+
+- The test of memory that is left: plain `ekf` (no detection), without flags, where only a
+  history of readings can reveal a fault (the variant not chosen on 2026-11-16).
+- The radar-bias weakness of `ekf_fdi` (estimate the bias instead of rejecting the altimeter).
+- Figures: success by fault type and agent; training curves by encoder, with and without flags.
 
 - part of: [[milestone-roadmap-and-status]]
 - uses: [[faults-and-detection]], [[ppo-landing-agent]]

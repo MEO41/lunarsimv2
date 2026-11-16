@@ -186,7 +186,7 @@
       "type": "result",
       "status": "open",
       "updated": "2026-11-16",
-      "summary": "Paper 1 on the held-out fault grid - ZEM/ZEV (ekf 78.6 %, ekf_fdi 95.6 %), PPO MLP 97.0 % at 600 iterations, attention 94.7 % and GRU 90.6 % at 1,500; with health flags in the observation, memory gives no benefit.",
+      "summary": "Paper 1 on the held-out fault grid - ZEM/ZEV (ekf 78.6 %, ekf_fdi 95.6 %) and PPO MLP, GRU and attention with and without health flags; the MLP without flags is best (97.6 %), the flags help no encoder, and memory helps neither way.",
       "path": "paper-one-results.md"
     },
     {
