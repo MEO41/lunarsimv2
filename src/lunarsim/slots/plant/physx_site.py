@@ -12,7 +12,7 @@ from torch import Tensor
 from lunarsim.assets.lander_builder import LANDER_PRIM_NAME, leg_link_name, strut_joint_name, write_lander_usd
 from lunarsim.assets.lander_preset import LanderPreset
 from lunarsim.core.binding import SlotName
-from lunarsim.core.message_types import SurfaceGeometry
+from lunarsim.core.message_types import MessageKey, SurfaceGeometry
 from lunarsim.core.registry import register_binding
 from lunarsim.core.rotation_math import rotate_vector_body_to_parent
 from lunarsim.slots.plant.physx_root_body_plant import PhysxRootBodyPlant
@@ -29,8 +29,23 @@ class PhysxSitePlant(PhysxRootBodyPlant):
     Parameters (all optional, defaults are the tuned values reported in M1A_REPORT.md):
     ``solver_position_iterations``, ``solver_velocity_iterations``, ``contact_offset_m``,
     ``rest_offset_m``, ``max_depenetration_velocity_mps``, ``contact_force_threshold_n``,
-    ``spawn_height_m`` (height of the first spawn above the ground, before the first reset).
+    ``spawn_height_m`` (height of the first spawn above the ground, before the first reset),
+    ``footpad_contact`` (``physx``, the default, or ``soil``).
+
+    With ``footpad_contact: soil`` (milestone 5) the footpads have no PhysX contact. The surface
+    slot's soil model (``surface: regolith_plume_l1``) computes a force on every footpad each
+    PhysX substep from :meth:`footpad_states`, and the plant applies those forces to the leg links
+    (``Wrench.leg_forces``). The footpad contact force in ``TruthState.contact`` is then the soil
+    force. A surface binding may ask for soil contact through the shared data
+    (``footpad_contact``), so one line of the scenario file switches both.
     """
+
+    def footpad_contact_mode(self) -> str:
+        """Return ``physx`` or ``soil`` (from the parameters, else from the shared data, else physx)."""
+        mode = str(self.parameters.get("footpad_contact", self.context.shared_data.get("footpad_contact", "physx")))
+        if mode not in ("physx", "soil"):
+            raise ValueError(f"footpad_contact must be 'physx' or 'soil', not '{mode}'")
+        return mode
 
     def setup_scene(self, environment) -> None:
         """Write the lander USD from the preset, spawn it, and add the leg contact sensor."""
@@ -42,7 +57,8 @@ class PhysxSitePlant(PhysxRootBodyPlant):
         preset: LanderPreset = self.context.shared_data["lander_preset"]
         self.preset = preset
         self.reference_height_above_ground_contact = preset.center_of_mass_height_above_footpad_plane
-        usd_path = write_lander_usd(preset, Path(tempfile.gettempdir()) / "lunarsim_assets")
+        self.soil_contact = self.footpad_contact_mode() == "soil"
+        usd_path = write_lander_usd(preset, Path(tempfile.gettempdir()) / "lunarsim_assets", footpad_collision=not self.soil_contact)
         parameters = self.parameters
         lander_configuration = ArticulationCfg(
             prim_path="{ENV_REGEX_NS}/" + LANDER_PRIM_NAME,
@@ -111,7 +127,47 @@ class PhysxSitePlant(PhysxRootBodyPlant):
             self.asset.find_bodies(leg_link_name(leg - 1))[0][0] for leg in self.preset.legs_with_surface_probes
         ]
         self.probe_tip_offset = torch.tensor(self.preset.surface_probe_tip_offset_from_leg_link, device=self.device)
+        self.leg_body_ids = [self.asset.find_bodies(name)[0][0] for name in leg_names]
+        self.footpad_bottom_offset = torch.tensor([0.0, 0.0, -self.preset.footpad_depth], device=self.device)
+        self.soil_contact_force = torch.zeros(self.number_of_environments, self.preset.number_of_legs, device=self.device)
         super().initialize(environment)
+
+    def body_pose(self) -> tuple[Tensor, Tensor]:
+        """Return the current world position (N, 3) and orientation (N, 4, w x y z) of the body (centre of mass)."""
+        from lunarsim.core.rotation_math import quaternion_xyzw_to_wxyz
+
+        data = self.asset.data
+        return data.root_link_pos_w.torch, quaternion_xyzw_to_wxyz(data.root_link_quat_w.torch)
+
+    def footpad_states(self) -> tuple[Tensor, Tensor]:
+        """Return the world position of each dish's lowest point (N, L, 3) and the pad velocity (N, L, 3), now.
+
+        The leg links do not rotate against the body (prismatic struts), so the body orientation
+        turns the offset from the link origin (flat top of the dish) to the lowest point.
+        """
+        data = self.asset.data
+        _, orientation = self.body_pose()
+        links = data.body_link_pos_w.torch[:, self.leg_body_ids]
+        count, legs = links.shape[0], links.shape[1]
+        offset = rotate_vector_body_to_parent(orientation, self.footpad_bottom_offset.expand(count, 3))
+        return links + offset.unsqueeze(1).expand(count, legs, 3), data.body_link_lin_vel_w.torch[:, self.leg_body_ids]
+
+    def apply_wrench(self, bus, physics_step_duration: float) -> None:
+        """Apply the body wrench, then (soil contact) add the soil forces on the leg links."""
+        super().apply_wrench(bus, physics_step_duration)
+        surface_wrench = bus.read(MessageKey.SURFACE_WRENCH, self)
+        if surface_wrench.leg_forces is None:
+            return
+        if not self.soil_contact:
+            raise RuntimeError("the surface sends footpad soil forces, but the plant has footpad_contact: physx")
+        self.asset.permanent_wrench_composer.add_forces_and_torques_index(
+            forces=surface_wrench.leg_forces,
+            torques=torch.zeros_like(surface_wrench.leg_forces),
+            positions=surface_wrench.leg_force_points,
+            body_ids=self.leg_body_ids,
+            is_global=True,
+        )
+        self.soil_contact_force = surface_wrench.leg_forces.norm(dim=-1)
 
     def _reset_joints(self, env_ids: Tensor) -> None:
         """Extend all struts fully and stop them."""
@@ -120,7 +176,9 @@ class PhysxSitePlant(PhysxRootBodyPlant):
         self.asset.write_joint_velocity_to_sim_index(velocity=zeros, joint_ids=self.strut_joint_ids, env_ids=env_ids)
 
     def _read_contact_forces(self) -> Tensor:
-        """Return the contact force magnitude on each footpad, (N, n_legs), in leg order."""
+        """Return the contact force magnitude on each footpad, (N, n_legs), in leg order (the soil force with soil contact)."""
+        if self.soil_contact:
+            return self.soil_contact_force.clone()
         net_forces = self.contact_sensor.data.net_forces_w.torch  # (N, n_sensor_bodies, 3)
         return net_forces[:, self.contact_body_ids, :].norm(dim=-1)
 

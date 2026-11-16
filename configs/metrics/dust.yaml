@@ -1,0 +1,6 @@
+# touchdown plus the plume, dust and soil columns of scenario S8.
+defaults:
+  - touchdown
+  - _self_
+binding: dust
+blinded_dust_density: 0.5   # model choice: half the LiDAR pixels lost with the default dust fault

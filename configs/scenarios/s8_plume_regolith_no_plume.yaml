@@ -1,0 +1,10 @@
+# @package _global_
+# S8 with the plume turned off (design S8 variant: "Turn plume off and compare with L1, using the
+# same seeds. The difference is the plume effect."). The soil stays.
+defaults:
+  - s8_plume_regolith
+  - _self_
+name: s8_plume_regolith_no_plume
+surface:
+  plume:
+    enabled: false

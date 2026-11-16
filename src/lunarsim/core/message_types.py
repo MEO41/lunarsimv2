@@ -51,6 +51,8 @@ class MessageKey:
     EPISODE_EVENTS = "episode_events"
     # Truth-side description of the injected faults (for metrics only; navigation never reads it)
     FAULT_STATUS = "fault_status"
+    # Truth-side state of the regolith under the lander (plume, dust, footpad sinkage; milestone 5)
+    REGOLITH_STATE = "regolith_state"
     MEASUREMENT_PREFIX = "measurement."  # followed by the sensor name
 
 
@@ -260,6 +262,12 @@ class Wrench:
     force: Tensor  # (N, 3) N
     torque: Tensor  # (N, 3) N m
     mass_flow_rate: Tensor | None = None  # (N,) kg/s, positive when mass leaves the vehicle
+    # Milestone 5: forces of the ground on each footpad (soil contact), world frame, acting at
+    # ``leg_force_points`` (world positions). None when PhysX handles the footpad contact.
+    leg_forces: Tensor | None = None  # (N, n_legs, 3) N
+    leg_force_points: Tensor | None = None  # (N, n_legs, 3) m
+    # Thrust of the descent engine alone (the actuators' wrench also holds the RCS), for the plume.
+    engine_thrust: Tensor | None = None  # (N,) N
 
     def __post_init__(self) -> None:
         """Check the shapes and fill a zero mass flow if none is given."""
@@ -269,6 +277,10 @@ class Wrench:
             self.mass_flow_rate = torch.zeros(self.force.shape[0], dtype=self.force.dtype, device=self.force.device)
         elif tuple(self.mass_flow_rate.shape) != (self.force.shape[0],):
             raise ValueError("Wrench.mass_flow_rate must have shape (N,)")
+        if (self.leg_forces is None) != (self.leg_force_points is None):
+            raise ValueError("Wrench.leg_forces and Wrench.leg_force_points come together")
+        if self.leg_forces is not None and (self.leg_forces.dim() != 3 or self.leg_forces.shape != self.leg_force_points.shape):
+            raise ValueError("Wrench.leg_forces and leg_force_points must have shape (N, n_legs, 3)")
 
     @classmethod
     def zeros(cls, number_of_environments: int, device: torch.device | str = "cpu") -> Wrench:
@@ -319,6 +331,37 @@ class SurfaceGeometry:
         if self.height_field is None:
             return torch.zeros_like(x), torch.zeros_like(x)
         return self.height_field.gradient_at(x, y)
+
+
+@dataclass
+class RegolithState:
+    """Output of a regolith surface (milestone 5, S8): what the plume and the soil do this step.
+
+    The surface writes it; the dust fault and the metrics read it (truth side). ``dust_density``
+    is a normalised ejecta density between the lander and the ground, 0 (clear) to 1 (full
+    blowing dust, the L1 model's saturation), the link "the surface sends dust density to the
+    faults slot" of design S8.
+    """
+
+    dust_density: Tensor  # (N,) 0..1
+    eroding: Tensor  # (N,) bool, the plume moves soil
+    ejecta_mass_rate: Tensor  # (N,) kg/s
+    nozzle_height: Tensor  # (N,) m, nozzle exit above the ground straight below it
+    plume_force: Tensor  # (N, 3) N, body frame, force of the reflected plume on the vehicle
+    plume_torque: Tensor  # (N, 3) N m, body frame, about the centre of mass
+    footpad_sinkage: Tensor  # (N, n_legs) m, soil sinkage of each footpad (0 without soil contact)
+
+    @classmethod
+    def clear(cls, number_of_environments: int, number_of_legs: int, device) -> RegolithState:
+        """Return a state with no plume, no dust and no sinkage."""
+        zeros = torch.zeros(number_of_environments, device=device)
+        return cls(
+            dust_density=zeros.clone(), eroding=torch.zeros(number_of_environments, dtype=torch.bool, device=device),
+            ejecta_mass_rate=zeros.clone(), nozzle_height=torch.full_like(zeros, float("inf")),
+            plume_force=torch.zeros(number_of_environments, 3, device=device),
+            plume_torque=torch.zeros(number_of_environments, 3, device=device),
+            footpad_sinkage=torch.zeros(number_of_environments, number_of_legs, device=device),
+        )
 
 
 @dataclass

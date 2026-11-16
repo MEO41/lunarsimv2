@@ -25,6 +25,7 @@ flowchart LR
     measured_terrain_surface["Measured terrain surface (Apollo 17)"]
     metrics_and_run_records["Touchdown metric and run records"]
     physx_contact_settings["PhysX contact settings"]
+    plume_regolith_and_dust["Plume, regolith and dust (scenario S8, milestone 5)"]
     ppo_landing_agent["PPO landing agent (milestone 1b)"]
     replay_recording_and_rendering["Replay recording and rendering"]
     sensors_and_ekf["Sensors and EKF (milestone 2)"]
@@ -109,6 +110,10 @@ flowchart LR
   paper_one_results -- "uses" --> ppo_landing_agent
   physx_contact_settings -- "used by" --> lander_articulation_model
   physx_contact_settings -- "recorded in" --> decisions_log
+  plume_regolith_and_dust -- "part of" --> milestone_roadmap_and_status
+  plume_regolith_and_dust -- "uses" --> measured_terrain_surface
+  plume_regolith_and_dust -- "uses" --> lander_articulation_model
+  plume_regolith_and_dust -- "uses" --> faults_and_detection
   ppo_landing_agent -- "flies on" --> slot_loop_architecture
   ppo_landing_agent -- "compared with" --> classical_agents
   ppo_landing_agent -- "judged by" --> metrics_and_run_records
@@ -161,6 +166,7 @@ flowchart LR
 | [Measured terrain surface (Apollo 17)](measured-terrain-surface.md) | component | current | The measured_terrain surface binding - real NASA height map, craters and rocks from published laws, one landing target per environment, exact GPU height lookup. |
 | [Touchdown metric and run records](metrics-and-run-records.md) | component | current | How a landing is judged (outcome codes, detection settings) and what every run writes to disk, plus the figure and summary tools. |
 | [PhysX contact settings](physx-contact-settings.md) | component | current | Solver and contact settings from the contact-rest study, why PGS and not TGS, and the measured residuals. |
+| [Plume, regolith and dust (scenario S8, milestone 5)](plume-regolith-and-dust.md) | component | current | Bekker soil under the footpads, the L1 plume model, the dust fault and the dust metric of S8; first results; the L2 check that does not work in this Isaac Sim (decision pending) and the L3 data plan. |
 | [PPO landing agent (milestone 1b)](ppo-landing-agent.md) | component | current | The ppo_mlp agent, its rsl_rl adapter, the landing reward, the training script, and how the design reached a policy that learns. |
 | [Replay recording and rendering](replay-recording-and-rendering.md) | component | current | How runs are recorded frame by frame and rendered later as videos or stills, on a physics-free stage, with footpad force arrows. |
 | [Sensors and EKF (milestone 2)](sensors-and-ekf.md) | component | current | The terminal_suite sensor binding (IMU, radar altimeter, Doppler velocimeter, propellant gauge, probe switches), the ekf navigation, scenario S2 and the consistency results. |

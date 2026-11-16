@@ -48,7 +48,9 @@ SLOT_STEP_ORDER = (
 
 # Keys that their provider writes during initialisation and at every reset, before any step
 # runs (the surface's site origins and ground lookup). Readers anywhere in the step may use them.
-KEYS_WRITTEN_BEFORE_THE_FIRST_STEP = frozenset({MessageKey.SURFACE_GEOMETRY})
+# The regolith state (milestone 5) is written the same way, so the dust fault (before the surface
+# in the step) reads the previous step's dust, as a sensor sees the dust already in the air.
+KEYS_WRITTEN_BEFORE_THE_FIRST_STEP = frozenset({MessageKey.SURFACE_GEOMETRY, MessageKey.REGOLITH_STATE})
 
 
 class ObservationBuilderDeclaration:

@@ -1,0 +1,27 @@
+# Apollo 17 terrain with Bekker soil under the footpads and the level-L1 plume (scenario S8).
+defaults:
+  - apollo17_taurus_littrow
+  - _self_
+binding: regolith_plume_l1
+contact: bekker            # design S8 "contact: bekker"; rigid keeps PhysX footpad contact
+soil:
+  # [D-6850] Rogers, NASA TN D-6850 (1972) p. 3: "the Apollo 11 landing indicated a 2 to 3
+  # psi/in. lower boundary of bearing strength" -> Bekker n = 1, k = 2.5 psi/in (679 kPa/m).
+  # preset lm_design: the LM design soil of the same page (1 psi at 4 in, 12 psi at 24 in).
+  preset: apollo11
+  rebound_depth_m: 0.002          # model choice
+  damping_n_s_per_m: 2000.0       # model choice
+  friction_coefficient: 0.4       # [D-6850] p. 3
+  friction_smoothing_mps: 0.01    # model choice
+plume:
+  model: l1
+  enabled: true
+  # Onset: Apollo 11, Armstrong (technical debrief, ALSJ "The First Lunar Landing" after
+  # 102:45:17): "I first noticed that we were, in fact, disturbing the dust on the surface when
+  # we were something less than 100 feet". The rest are model choices until L3 data exist.
+  erosion_onset_height_m: 30.48
+  full_dust_height_m: 3.0
+  reference_thrust_n: 11869.7            # derived: hover at 7,327 kg ([A11-MR]) in lunar gravity
+  ground_effect_coefficient: 0.05        # model choice (L3 calibration pending)
+  ground_effect_decay_exit_diameters: 1.0
+  maximum_ejecta_mass_rate_kg_per_s: 2.0 # model choice (L3 calibration pending)

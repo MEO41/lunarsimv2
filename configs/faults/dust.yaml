@@ -1,0 +1,5 @@
+binding: dust
+# Blowing dust degrades the optical sensors (scenario S8). Model choices until L2/L3 give numbers.
+lidar_dropout_at_full_dust: 0.9
+lidar_false_return_at_full_dust: 0.05
+doppler_dropout_at_full_dust: 0.5      # the velocimeter is a Doppler lidar (optical)

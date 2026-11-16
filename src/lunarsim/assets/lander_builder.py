@@ -84,8 +84,12 @@ def footpad_dish_mesh(preset: LanderPreset) -> tuple[list[tuple[float, float, fl
     return points, counts, indices
 
 
-def _footpad_lines(preset: LanderPreset) -> list[str]:
-    """Return USD lines of the dish footpad collision mesh of one leg."""
+def _footpad_lines(preset: LanderPreset, collision: bool = True) -> list[str]:
+    """Return USD lines of the dish footpad collision mesh of one leg.
+
+    With ``collision`` False the dish is drawn but PhysX ignores it: a soil model (milestone 5,
+    ``surface: regolith_plume_l1`` with Bekker contact) pushes on the footpads instead.
+    """
     points, counts, indices = footpad_dish_mesh(preset)
     point_text = ", ".join(f"({x:.6f}, {y:.6f}, {z:.6f})" for x, y, z in points)
     return [
@@ -93,6 +97,7 @@ def _footpad_lines(preset: LanderPreset) -> list[str]:
         '            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysicsMeshCollisionAPI"]',
         "        )",
         "        {",
+        f"            bool physics:collisionEnabled = {1 if collision else 0}",
         '            uniform token physics:approximation = "convexHull"',
         f"            point3f[] points = [{point_text}]",
         f"            int[] faceVertexCounts = [{', '.join(str(value) for value in counts)}]",
@@ -141,8 +146,11 @@ def _strut_visual_lines(preset: LanderPreset, leg_position: tuple[float, float, 
     ]
 
 
-def build_lander_usda(preset: LanderPreset) -> str:
-    """Return the USD (text format) of the lander articulation for ``preset``."""
+def build_lander_usda(preset: LanderPreset, footpad_collision: bool = True) -> str:
+    """Return the USD (text format) of the lander articulation for ``preset``.
+
+    ``footpad_collision`` False leaves the footpads without PhysX contact (soil model, milestone 5).
+    """
     body_inertia = preset.body_inertia
     body_centre_of_mass = preset.body_center_of_mass
     descent_x, descent_y, descent_z = preset.descent_stage_center
@@ -207,7 +215,7 @@ def build_lander_usda(preset: LanderPreset) -> str:
             "        point3f physics:centerOfMass = (0, 0, 0)",
             f"        float3 physics:diagonalInertia = ({leg_inertia:.6f}, {leg_inertia:.6f}, {leg_inertia:.6f})",
             "",
-            *_footpad_lines(preset),
+            *_footpad_lines(preset, footpad_collision),
             *_strut_visual_lines(preset, (x, y, z)),
             "    }",
             "",
@@ -236,12 +244,12 @@ def build_lander_usda(preset: LanderPreset) -> str:
     return "\n".join(lines)
 
 
-def write_lander_usd(preset: LanderPreset, directory: Path | str) -> Path:
+def write_lander_usd(preset: LanderPreset, directory: Path | str, footpad_collision: bool = True) -> Path:
     """Write the lander USD into ``directory`` and return its path.
 
     The file name contains a hash of the content, so a changed preset never reuses an old file.
     """
-    text = build_lander_usda(preset)
+    text = build_lander_usda(preset, footpad_collision)
     digest = hashlib.sha256(text.encode()).hexdigest()[:12]
     path = Path(directory) / f"{preset.name}_{digest}.usda"
     path.parent.mkdir(parents=True, exist_ok=True)

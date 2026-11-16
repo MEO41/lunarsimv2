@@ -93,9 +93,7 @@ Newest at the bottom. "User" means the user decided; the others were proposed, e
 | 2026-11-16 | S6 keeps the Doppler velocimeter (design row lists imu, radar_alt, lidar) | The filter needs velocity aiding; Apollo's landing radar had velocity beams ([D-6846] p. 4) |
 | 2026-11-16 | The truth variant of S6 is a binding named `truth_with_hazard_map`; the registry allows it to read truth like `nav: truth` | One binding per slot; the design's variant is "nav: truth with the true hazard map" |
 | 2026-11-16 | S6 starts at the Apollo low gate with the low-gate mass derived by the rocket equation | [D-6846] Table I and p. 10 |
-| 2026-11-15 | `ekf_late_fusion` replays from stored inputs (0.6 s buffer), batched over environments | Design S4; CPU test: late fusion as accurate as no delay |
-| 2026-11-15 | Paper 1 test = fixed fault grid (80 cells, onsets 5-40 m, mid sizes, seed 1000) | Every agent meets the same faults; design: "held-out test set" |
-| 2026-11-15 | Filter covariance scaled by the initial sigmas and float32; filter compiled with `torch.compile` on the GPU | Consumer GPUs run float64 at 1/64 speed and the step was launch-bound; NEES unchanged (9.86 on recorded truth) |
-| 2026-11-15 | Late fusion keeps the exact replay (merged late messages, empty ones skipped); Larsen's method rejected | Larsen diverged with overlapping delays; replay now 11.6 ms vs 102 ms per step |
-
-Decisions still open: [[pending-user-decisions]].
+| 2026-11-16 | Bekker soil from TN D-6850 p. 3 (Apollo 11: 2 to 3 psi/in, n = 1); the design soil as a preset | Sourced; Apollo 11 is the measured value |
+| 2026-11-16 | With soil contact the footpads have no PhysX collision; the surface computes soil forces from the plant's current footpad states each substep and the plant adds them to the leg links | Design table: `bekker_pads` is a surface binding; rigid PhysX contact cannot sink |
+| 2026-11-16 | S8 keeps the preset's sourced RCS minimum pulse and valve delay, not the design's unsourced 0.5 N s and 20 ms | Rule: every number from a public source; pulse width is the S8 variant to sweep |
+| 2026-11-16 | M5 L2 (PhysX particles) stopped: not possible in Isaac Sim 6.0.1; fix proposed to the user | User rule: "If something in the design does not work in Isaac Lab, stop and explain" |

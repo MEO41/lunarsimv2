@@ -24,7 +24,9 @@ learns at all). Each entry below names what was skipped and what is ready for it
 | M4 | Agent adapters `sac`, `dreamer`, `tdmpc2`, the equal-budget sweep runner, scenario S9 and paper 2 | the S3 environment (S9 reuses it), `ppo_mlp`/`ppo_gru`/`ppo_attention` | design M4, scenario catalogue S9 |
 | M4 | A learned site-selection or divert agent in S6 | S6 with the classical `site_pick_divert` baseline | [[hazard-detection-and-avoidance]] |
 
-Rows are added as milestones 5 to 7 are built.
+| M5 | The design's S8 agent `ppo_gru` (learned); ZEM/ZEV flies S8 | S8, `ppo_gru` | [[plume-regolith-and-dust]] |
+
+Rows are added as milestones 6 and 7 are built.
 
 - part of: [[milestone-roadmap-and-status]]
 - follows: [[rules-from-the-user]]

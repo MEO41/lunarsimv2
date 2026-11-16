@@ -1,0 +1,36 @@
+# @package _global_
+# S8 Plume and regolith at final contact (scenario catalogue, section S8): Bekker soil under the
+# footpads, the L1 plume, and the dust it raises degrading the LiDAR and the Doppler lidar.
+# The design's agent is ppo_gru (a learned agent, skipped for now, see skipped-learning-work);
+# the classical ZEM/ZEV flies. The design's RCS values (0.5 N s, 20 ms) have no source; the
+# preset's sourced values stay, and pulse width is the variant to sweep.
+# Same-seed comparison without plume: s8_plume_regolith_no_plume.
+defaults:
+  - /start: terminal_box
+  - /plant: physx_site
+  - /surface: regolith_plume_l1
+  - /sensors: terminal_suite_with_lidar
+  - /faults: dust
+  - /nav: ekf_fdi
+  - /agent: zem_zev
+  - /actuators: engine_rcs_pulse
+  - /metrics: dust
+  - /training: none
+  - /landers@lander: apollo_lunar_module
+  - _self_
+
+name: s8_plume_regolith
+seed: 0
+start:
+  nav_error:                 # design S2/S3 values
+    position_m: 1.0
+    velocity_mps: 0.2
+    attitude_deg: 0.1
+env:
+  num_envs: 64
+  env_spacing_m: 1.0
+  physics_step_s: 0.005
+  physics_steps_per_control_step: 4
+  episode_length_s: 90.0
+plant:
+  spawn_height_m: 40.0

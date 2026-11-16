@@ -86,4 +86,4 @@ class EngineAndPulsedJetsActuators(BindingBase):
         force[:, 2] += thrust
         torque = open_fraction @ self.jet_torque_matrix
         mass_flow = engine_mass_flow + open_fraction.sum(dim=1) * self.jet_mass_flow_per_open_jet
-        bus.write(MessageKey.ACTUATOR_WRENCH, Wrench(force=force, torque=torque, mass_flow_rate=mass_flow), self)
+        bus.write(MessageKey.ACTUATOR_WRENCH, Wrench(force=force, torque=torque, mass_flow_rate=mass_flow, engine_thrust=thrust.clone()), self)

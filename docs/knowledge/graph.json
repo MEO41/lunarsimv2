@@ -185,7 +185,7 @@
       "title": "Open issues",
       "type": "issue",
       "status": "open",
-      "updated": "2026-11-15",
+      "updated": "2026-11-16",
       "summary": "Known weak points of the model and the code, with what each one affects.",
       "path": "open-issues.md"
     },
@@ -215,6 +215,15 @@
       "updated": "2026-11-15",
       "summary": "Solver and contact settings from the contact-rest study, why PGS and not TGS, and the measured residuals.",
       "path": "physx-contact-settings.md"
+    },
+    {
+      "id": "plume-regolith-and-dust",
+      "title": "Plume, regolith and dust (scenario S8, milestone 5)",
+      "type": "component",
+      "status": "current",
+      "updated": "2026-11-16",
+      "summary": "Bekker soil under the footpads, the L1 plume model, the dust fault and the dust metric of S8; first results; the L2 check that does not work in this Isaac Sim (decision pending) and the L3 data plan.",
+      "path": "plume-regolith-and-dust.md"
     },
     {
       "id": "ppo-landing-agent",
@@ -401,6 +410,11 @@
     },
     {
       "source": "bindings-catalogue",
+      "target": "plume-regolith-and-dust",
+      "relation": "mentions"
+    },
+    {
+      "source": "bindings-catalogue",
       "target": "measured-terrain-surface",
       "relation": "mentions"
     },
@@ -542,11 +556,6 @@
     {
       "source": "decisions-log",
       "target": "skipped-learning-work",
-      "relation": "mentions"
-    },
-    {
-      "source": "decisions-log",
-      "target": "pending-user-decisions",
       "relation": "mentions"
     },
     {
@@ -841,6 +850,11 @@
     },
     {
       "source": "milestone-roadmap-and-status",
+      "target": "plume-regolith-and-dust",
+      "relation": "mentions"
+    },
+    {
+      "source": "milestone-roadmap-and-status",
       "target": "project-goal-and-design-documents",
       "relation": "follows"
     },
@@ -853,6 +867,11 @@
       "source": "milestone-roadmap-and-status",
       "target": "session-history",
       "relation": "history"
+    },
+    {
+      "source": "open-issues",
+      "target": "plume-regolith-and-dust",
+      "relation": "mentions"
     },
     {
       "source": "open-issues",
@@ -926,6 +945,11 @@
     },
     {
       "source": "pending-user-decisions",
+      "target": "plume-regolith-and-dust",
+      "relation": "mentions"
+    },
+    {
+      "source": "pending-user-decisions",
       "target": "decisions-log",
       "relation": "mentions"
     },
@@ -953,6 +977,36 @@
       "source": "physx-contact-settings",
       "target": "decisions-log",
       "relation": "recorded in"
+    },
+    {
+      "source": "plume-regolith-and-dust",
+      "target": "skipped-learning-work",
+      "relation": "mentions"
+    },
+    {
+      "source": "plume-regolith-and-dust",
+      "target": "pending-user-decisions",
+      "relation": "mentions"
+    },
+    {
+      "source": "plume-regolith-and-dust",
+      "target": "milestone-roadmap-and-status",
+      "relation": "part of"
+    },
+    {
+      "source": "plume-regolith-and-dust",
+      "target": "measured-terrain-surface",
+      "relation": "uses"
+    },
+    {
+      "source": "plume-regolith-and-dust",
+      "target": "lander-articulation-model",
+      "relation": "uses"
+    },
+    {
+      "source": "plume-regolith-and-dust",
+      "target": "faults-and-detection",
+      "relation": "uses"
     },
     {
       "source": "ppo-landing-agent",
@@ -1162,6 +1216,11 @@
     {
       "source": "skipped-learning-work",
       "target": "hazard-detection-and-avoidance",
+      "relation": "mentions"
+    },
+    {
+      "source": "skipped-learning-work",
+      "target": "plume-regolith-and-dust",
       "relation": "mentions"
     },
     {
