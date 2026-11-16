@@ -121,6 +121,10 @@ ppo_mlp_s3_seed3,training,2026-11-15T16:11:35+00:00,542574fce270c13deba9d524228b
 ppo_mlp_s3_seed4,training,2026-11-15T16:12:20+00:00,542574fce270c13deba9d524228bd83ff7bc5922,False,s3_faults,ppo_mlp (mlp),ekf_fdi,4,,,96.39
 probe_check_apollo17,evaluation,2026-11-15T09:03:24+00:00,a37932d87c4bc0a994861dc43a40136f5d30bc2e,True,apollo17_terminal_truth,zem_zev,truth,0,1024,96.58,
 probe_tuning_flat_steady,evaluation,2026-11-15T08:46:41+00:00,baf4bc8196c1234e9c213f28e86dfe6486083629,True,s1_terminal_truth,zem_zev,truth,0,1024,97.66,
+s10_seed1000_parity,evaluation,2026-11-16T19:09:38+00:00,50d92e8aecaebb50c80070e385c2f4e94287ca2c,False,s10_ros2_sil,ros2_bridge,ros2_bridge,1000,20,90.0,
+s10_seed1000_reference,evaluation,2026-11-16T19:04:33+00:00,50d92e8aecaebb50c80070e385c2f4e94287ca2c,False,s3_faults,ppo_mlp (gru),ekf_fdi,1000,20,90.0,
+s10_seed1000_timing_measured,evaluation,2026-11-16T19:14:42+00:00,50d92e8aecaebb50c80070e385c2f4e94287ca2c,False,s10_ros2_sil,ros2_bridge,ros2_bridge,1000,20,90.0,
+s10_seed1000_timing_stress,evaluation,2026-11-16T19:19:52+00:00,50d92e8aecaebb50c80070e385c2f4e94287ca2c,False,s10_ros2_sil,ros2_bridge,ros2_bridge,1000,20,100.0,
 s2_zem_zev_check,evaluation,2026-11-15T10:14:09+00:00,2c28c608ccf4747acbed8147dbbab8485bb8f5b1,True,s2_terminal_ekf,zem_zev,ekf,0,1024,97.46,
 s3_zem_zev_ekf_fdi_check,evaluation,2026-11-15T12:19:35+00:00,6f2413d7d26485d680c7613aa8ca53908cb666b0,True,s3_faults,zem_zev,ekf_fdi,0,1024,95.41,
 s4_zem_zev_ekf,evaluation,2026-11-15T13:24:00+00:00,8d40351fddff5c014aabbaddc1b2f3f9396f0520,False,s4_late_fusion,zem_zev,ekf,0,1024,86.43,

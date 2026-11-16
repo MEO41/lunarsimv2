@@ -1,0 +1,18 @@
+run: s10_seed1000_timing_stress
+kind: evaluation
+started_utc: '2026-11-16T19:19:52+00:00'
+code_commit: 50d92e8aecaebb50c80070e385c2f4e94287ca2c
+uncommitted_changes: false
+scenario: s10_ros2_sil
+agent: ros2_bridge
+navigation: ros2_bridge
+seed: 1000
+command_line: scripts/run_software_in_the_loop.py episodes=20 seed=1000 run_name=s10_seed1000
+resumed_from: ''
+episodes: 20
+success_percent: 100.0
+final_training_success_percent: ''
+outcomes:
+  success: 20
+touchdown_vertical_speed_mps_mean: -0.772
+propellant_used_kg_mean: 87.2

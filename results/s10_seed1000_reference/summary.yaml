@@ -1,0 +1,20 @@
+run: s10_seed1000_reference
+kind: evaluation
+started_utc: '2026-11-16T19:04:33+00:00'
+code_commit: 50d92e8aecaebb50c80070e385c2f4e94287ca2c
+uncommitted_changes: false
+scenario: s3_faults
+agent: ppo_mlp (gru)
+navigation: ekf_fdi
+seed: 1000
+command_line: scripts/run_software_in_the_loop.py episodes=20 seed=1000 run_name=s10_seed1000
+resumed_from: ''
+episodes: 20
+success_percent: 90.0
+final_training_success_percent: ''
+outcomes:
+  success: 18
+  tilt_rate_at_contact: 1
+  tilt_at_contact: 1
+touchdown_vertical_speed_mps_mean: -0.733
+propellant_used_kg_mean: 83.5
