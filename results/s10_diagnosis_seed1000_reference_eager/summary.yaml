@@ -1,0 +1,19 @@
+run: s10_diagnosis_seed1000_reference_eager
+kind: evaluation
+started_utc: '2026-11-16T19:35:14+00:00'
+code_commit: 9b77e95007a83aea8ae651f26ab9d50bed354cc0
+uncommitted_changes: false
+scenario: s3_faults
+agent: ppo_mlp (gru)
+navigation: ekf_fdi
+seed: 1000
+command_line: scripts/run_software_in_the_loop.py episodes=20 seed=1000 run_name=s10_diagnosis_seed1000
+  variants=reference,parity_same_numerics,reference_eager
+resumed_from: ''
+episodes: 20
+success_percent: 100.0
+final_training_success_percent: ''
+outcomes:
+  success: 20
+touchdown_vertical_speed_mps_mean: -0.772
+propellant_used_kg_mean: 83.4

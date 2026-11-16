@@ -1,0 +1,430 @@
+created_utc: '2026-11-16T19:35:14+00:00'
+command_line: scripts/run_software_in_the_loop.py episodes=20 seed=1000 run_name=s10_diagnosis_seed1000
+  variants=reference,parity_same_numerics,reference_eager
+scenario_name: s3_faults
+root_seed: 1000
+slot_seeds:
+  start: 5877065047313971771
+  plant: 8095751299282137969
+  surface: 8486306436800134602
+  sensors: 2610939333420634165
+  faults: 3812869490926757951
+  nav: 4129342949811339992
+  agent: 635811669638297521
+  actuators: 4164581276230664271
+  metrics: 9006852714563426018
+git:
+  commit: 9b77e95007a83aea8ae651f26ab9d50bed354cc0
+  uncommitted_changes: false
+versions:
+  lunarsim: 0.1.0
+  isaac_sim: 6.0.1.0
+  isaac_lab: 24.2.1
+  isaac_lab_commit: e86463df8a8d8dff275e50fdcfd892e10ba32ec1
+  torch: 2.11.0
+  python: 3.12.3
+gpu_name: NVIDIA GeForce RTX 5060
+extra:
+  variant: reference_eager
+  wall_time_s: 273.7
+  timing: {}
+resolved_scenario:
+  start:
+    binding: terminal_box
+    altitude_m:
+    - 5
+    - 50
+    v_vertical_mps:
+    - -6
+    - 0
+    v_horizontal_mps:
+    - -2
+    - 2
+    tilt_deg:
+    - 0
+    - 10
+    nav_error:
+      position_m: 1.0
+      velocity_mps: 0.2
+      attitude_deg: 0.1
+  plant:
+    binding: physx_site
+    solver_position_iterations: 16
+    solver_velocity_iterations: 1
+    contact_offset_m: 0.02
+    rest_offset_m: 0.0
+    max_depenetration_velocity_mps: 1.0
+    physx_scene:
+      solver_type: 0
+      enable_external_forces_every_iteration: false
+      bounce_threshold_velocity: 0.5
+  surface:
+    binding: flat
+    static_friction: 0.4
+    dynamic_friction: 0.4
+    restitution: 0.0
+  sensors:
+    binding: terminal_suite
+    imu:
+      gyro_bias_deg_per_h: 1.0
+      angle_random_walk_deg_per_sqrt_h: 0.07
+      accelerometer_bias_micro_g: 300.0
+      accelerometer_noise_micro_g_per_sqrt_hz: 35.0
+    radar_altimeter:
+      rate_hz: 20.0
+      minimum_range_m: 3.05
+      maximum_range_m: 7620.0
+      range_noise_m: 0.16
+      range_noise_per_m: 0.00012
+      beams:
+      - off_axis_deg: 0.0
+        azimuth_deg: 0.0
+    doppler_velocimeter:
+      rate_hz: 20.0
+      minimum_range_m: 2.0
+      maximum_range_m: 5000.0
+      range_noise_m: 0.16
+      range_noise_per_m: 0.00012
+      velocity_noise_mps: 0.0014
+      velocity_noise_per_m: 1.11e-06
+      beams:
+      - off_axis_deg: 25.0
+        azimuth_deg: 0.0
+      - off_axis_deg: 25.0
+        azimuth_deg: 120.0
+      - off_axis_deg: 25.0
+        azimuth_deg: 240.0
+    propellant_gauge:
+      rate_hz: 1.0
+      accuracy_fraction: 0.035
+  faults:
+    binding: schedule
+    targets:
+    - radar_altimeter
+    - doppler_velocimeter
+    classes:
+    - intermittent
+    - persistent
+    no_fault_fraction: 0.0
+    onset_altitude_m:
+    - 5
+    - 40
+    intermittent:
+      event_rate_per_s:
+      - 0.2
+      - 1.0
+      burst_length_s:
+      - 0.2
+      - 1.0
+      delay_s:
+      - 0.1
+      - 0.5
+    sizes:
+      bias_range_m:
+      - 0.5
+      - 5.0
+      bias_velocity_mps:
+      - 0.05
+      - 0.5
+      outlier_range_m:
+      - 5.0
+      - 20.0
+      outlier_velocity_mps:
+      - 0.5
+      - 3.0
+      drift_range_mps:
+      - 0.1
+      - 1.0
+      drift_velocity_mps2:
+      - 0.01
+      - 0.1
+      scale_deviation:
+      - 0.05
+      - 0.2
+  nav:
+    binding: ekf_fdi
+    initial_sigma:
+      position_m: 1.0
+      velocity_mps: 0.2
+      attitude_deg: 0.1
+      accelerometer_bias_micro_g: 300.0
+      gyro_bias_deg_per_h: 1.0
+    process_noise:
+      accelerometer_noise_micro_g_per_sqrt_hz: 35.0
+      angle_random_walk_deg_per_sqrt_h: 0.07
+      accelerometer_bias_random_walk_mps2_per_sqrt_s: 1.0e-05
+      gyro_bias_random_walk_deg_per_h_per_sqrt_s: 0.01
+    compile: false
+    detection:
+      gate_probability: 0.999
+      failure_after_rejections: 3
+      recovery_after_acceptances: 10
+      maximum_sample_age_s: 0.06
+      loss_after_s: 0.5
+  agent:
+    binding: ppo_mlp
+    policy_path: runs/ppo_gru_s3_seed0_to1500/policy.pt
+    action_mode: attitude_commands
+    maximum_tilt_deg: 15.0
+    policy_period_steps: 5
+    ppo:
+      num_steps_per_env: 24
+      max_iterations: 600
+      save_interval: 100
+      empirical_normalization: true
+      actor:
+        hidden_dims:
+        - 256
+        - 256
+        - 128
+        activation: elu
+        initial_noise_std: 0.5
+      critic:
+        hidden_dims:
+        - 256
+        - 256
+        - 128
+        activation: elu
+      algorithm:
+        num_learning_epochs: 5
+        num_mini_batches: 4
+        learning_rate: 0.0003
+        schedule: adaptive
+        gamma: 0.99
+        lam: 0.95
+        entropy_coef: 0.0
+        desired_kl: 0.01
+        max_grad_norm: 1.0
+        value_loss_coef: 1.0
+        use_clipped_value_loss: true
+        clip_param: 0.2
+      model: gru
+      recurrent:
+        rnn_hidden_dim: 128
+        rnn_num_layers: 1
+  actuators:
+    binding: engine_rcs_pulse
+    initial_throttle: hover
+  metrics:
+    binding: fault_response
+    contact_force_threshold_n: 100.0
+    settle_speed_mps: 0.02
+    settle_rate_deg_per_s: 0.5
+    settle_hold_s: 1.0
+    settle_timeout_s: 10.0
+    tip_over_tilt_deg: 45.0
+    maximum_horizontal_distance_m: 300.0
+    maximum_altitude_m: 200.0
+    nozzle_clearance_counts_as_failure: false
+    nozzle_failure_clearance_m: 0.0
+  training:
+    critic_observation: none
+    reward: null
+  lander:
+    name: apollo_lunar_module
+    mass:
+      mass_at_start_kg:
+        value: 7327.0
+        source: '[A11-MR] Table A-I, ''Lunar landing'': 16,153.2 lb'
+      descent_propellant_at_start_kg:
+        value: 349.3
+        source: '[A11-MR] sec. 9.13.1: 770 lb of descent propellant remained at engine
+          cutoff'
+      unusable_descent_propellant_kg:
+        value: 43.5
+        source: '[A11-MR] sec. 9.13.1: the 770 lb include 96 lb trapped in the manifolds'
+    inertia:
+      about_x_kg_m2:
+        value: 21970.0
+        source: '[A11-MR] Table A-I: Izz = 16,204 slug ft^2 (LM Z is the body x axis)'
+      about_y_kg_m2:
+        value: 18801.0
+        source: '[A11-MR] Table A-I (page A-11, read from the page image): Iyy = 13,867
+          slug ft^2. Earlier 13,667 was a text-extraction error'
+      about_z_kg_m2:
+        value: 17059.0
+        source: '[A11-MR] Table A-I: Ixx = 12,582 slug ft^2 (LM X, the thrust axis,
+          is the body z axis)'
+    geometry:
+      center_of_mass_height_above_footpad_plane_m:
+        value: 3.62
+        source: 'derived: c.g. station X = 213.5 in [A11-MR] minus footpad plane at
+          X = 70.84 in [LM-STRUCT] = 142.7 in'
+      center_of_mass_offset_x_m:
+        value: 0.0406
+        source: '[A11-MR] Table A-I ''Lunar landing'': c.g. Z = 1.6 in off the vehicle
+          axis (LM +Z is body +x)'
+      center_of_mass_offset_y_m:
+        value: -0.0102
+        source: '[A11-MR] Table A-I ''Lunar landing'': c.g. Y = 0.4 in off the vehicle
+          axis (LM +Y is body -y)'
+      descent_stage_width_m:
+        value: 4.216
+        source: '[AOH-LM3] Fig. 1-3: descent stage 13 ft 10 in across; modelled as
+          a cylinder of this diameter (the real stage is an octagon)'
+      descent_stage_height_m:
+        value: 1.749
+        source: '[AOH-LM3] Fig. 1-3: descent stage height 5 ft 8.86 in'
+      descent_stage_bottom_above_footpad_plane_m:
+        value: 1.43
+        source: '[AOH-LM3] Fig. 1-3: 4 ft 8.295 in from the footpad bottoms to the
+          descent stage underside, struts not stroked'
+      ascent_stage_width_m:
+        value: 4.293
+        source: '[AOH-LM3] Fig. 1-3: ascent stage envelope 14 ft 1 in across (LM Y,
+          body y); modelled as a box'
+      ascent_stage_depth_m:
+        value: 4.039
+        source: '[AOH-LM3] Fig. 1-3: ascent stage envelope 13 ft 3 in fore-aft (LM
+          Z, body x)'
+      ascent_stage_height_m:
+        value: 2.832
+        source: '[AOH-LM3] Fig. 1-3: ascent stage height 9 ft 3.495 in; it sits on
+          the descent stage, so its top is 6.011 m above the footpads (19 ft 8.65
+          in in the same figure)'
+      nozzle_exit_diameter_m:
+        value: 1.499
+        source: '[AOH-LM3] Table 2.3-1: descent engine nozzle exit diameter 59 inches'
+      nozzle_exit_height_above_footpad_plane_m:
+        value: 0.483
+        source: '[D-6850] p. 20: skirt clearance on a flat surface with no struts
+          stroked is 19 inches. The skirt is crushable (28 in, [AOH-LM3] sec. 2.3),
+          so it is not a collision shape; the touchdown metric reports its clearance'
+    descent_engine:
+      rated_thrust_n:
+        value: 46706.0
+        source: '[D-7143] p. 6: maximum rated thrust 10,500 lbf'
+      minimum_throttle_fraction:
+        value: 0.1
+        source: '[D-7143] p. 6-8: 10:1 throttle ratio, minimum 10 % of rated thrust'
+      maximum_throttle_fraction:
+        value: 0.65
+        source: '[D-7143] p. 6-8: 65 % to 92.5 % is a non-operating region; the fixed
+          throttle point (92.5 %) is not modelled'
+      specific_impulse_s:
+        value: 305.0
+        source: '[D-7143] p. 6: design requirement, 305 lbf s/lbm at the end of the
+          duty cycle'
+      thrust_lag_time_constant_s:
+        value: 0.08
+        source: '[KLUMPP] throttle routine: ''estimated DPS time constant of 0.08
+          second'''
+      maximum_throttle_rate_per_s:
+        value: 0.85
+        source: '[KLUMPP] throttle command pulse train: 85 % thrust change per second'
+      engine_off_below_fraction:
+        value: 0.05
+        source: 'model choice: a throttle command below half of the minimum throttle
+          shuts the engine down'
+      shutdown_thrust_decay_time_s:
+        value: 0.5
+        source: '[ROGERS-73] p. 124: ''For design purposes, a thrust-decay time of
+          approximately 0.5 second had been assumed''; the flown engine decayed over
+          ''several seconds'' (no number given), so 0.5 s is the softer design value.
+          Modelled as a straight-line fall to zero thrust after the engine is shut
+          down'
+    reaction_control_system:
+      jet_thrust_n:
+        value: 444.8
+        source: '[LM-NEWS] p. RC-1: 100 lbf per thruster, 16 thrusters in 4 clusters'
+      specific_impulse_s:
+        value: 281.0
+        source: '[LM-NEWS] Reaction Control: steady-state specific impulse 281 s'
+      minimum_pulse_duration_s:
+        value: 0.014
+        source: '[LM-NEWS] Reaction Control: pulses ''as short as 14 milliseconds'''
+      valve_delay_s:
+        value: 0.007
+        source: '[LM-NEWS] Reaction Control: valves fully open 7 ms after the on-command'
+      cluster_offset_along_body_axes_m:
+        value: 1.679
+        source: '[R-567] 6.4.1.4: up and down jets at LM Y = Z = +-1.67894 m, so each
+          cluster sits 1.679 m from the vehicle axis along both body x and y (on the
+          45 deg diagonals); agrees with [COX] Table I arm length 5.5 ft (1.676 m)'
+      horizontal_jet_offset_across_firing_axis_m:
+        value: 1.562
+        source: '[R-567] 6.4.1.4: a horizontal jet sits 1.5621 m from the vehicle
+          axis across its firing direction (this is its turning arm about the thrust
+          axis)'
+      horizontal_jet_offset_along_firing_axis_m:
+        value: 1.685
+        source: '[R-567] 6.4.1.4: a horizontal jet sits 1.68529 m from the vehicle
+          axis along its firing direction'
+      cluster_height_above_center_of_mass_m:
+        value: 1.029
+        source: 'derived: horizontal jets at station X = 254 in (6.4516 m, the RCS
+          reference plane, [R-567] 6.4.1) minus c.g. X = 213.5 in [A11-MR] = 40.5
+          in. Up and down jets (X = 258.8 and 248.7 in) are put in the same plane:
+          their height does not change any torque'
+    landing_gear:
+      number_of_legs:
+        value: 4
+        source: '[D-6850]: four cantilever legs, on the LM +-Y and +-Z axes'
+      footpad_radius_from_thrust_axis_m:
+        value: 4.256
+        source: '[D-6850] p. 6: footpad centre 167.57 in from the X axis'
+      footpad_diameter_m:
+        value: 0.94
+        source: '[D-6850] App. C p. 50: dish-shaped footpad, 37 in in diameter'
+      footpad_depth_m:
+        value: 0.178
+        source: '[D-6850] App. C p. 50: footpad approximately 7 in deep; modelled
+          as a spherical cap with its curved side down, fixed to the leg (the real
+          pad swivels on a ball joint)'
+      strut_stroke_m:
+        value: 0.813
+        source: '[D-6850] Fig. 7: primary strut stroke 32 in'
+      strut_stiffness_n_per_m:
+        value: 78800.0
+        source: 'derived, model choice: a linear spring that reaches the first honeycomb
+          crush load (4,500 lbf = 20.0 kN, [D-6850] Fig. 7) at the end of the first
+          crush stage (10 in = 0.254 m)'
+      strut_damping_ratio:
+        value: 1.0
+        source: 'model choice: critical damping against (vehicle mass / 4), because
+          crushed honeycomb does not spring back'
+      surface_probe_length_m:
+        value: 1.727
+        source: '[ROGERS-73] p. 124: ''Attached to each of three of the footpads is
+          a 1.73-meter (68 inch) probe designed to sense lunar-surface proximity'';
+          [D-6850] p. 8 gives 5.6 ft (1.707 m). 68 in = 1.727 m, measured here from
+          the lowest point of the dish along the body -z axis'
+      legs_with_surface_probes:
+        value:
+        - 2
+        - 3
+        - 4
+        source: '[D-6850] p. 8: probes on the -Z, +Y and -Y legs, none on the +Z (ladder)
+          leg. LunarSim leg 1 is the ladder leg (+x = LM +Z), legs 2, 3, 4 are +y,
+          -x, -y'
+      leg_mass_kg:
+        value: 55.2
+        source: '[D-6850] Table III: landing gear total 486.5 lb (220.7 kg) on Apollo
+          11, divided by four legs'
+    touchdown_limits:
+      maximum_vertical_speed_mps:
+        value: 3.048
+        source: '[D-6850] p. 3: 10 ft/s vertical at zero horizontal speed'
+      maximum_horizontal_speed_mps:
+        value: 1.219
+        source: '[D-6850] p. 3: 4 ft/s horizontal for vertical speed up to 7 ft/s'
+      vertical_speed_where_horizontal_limit_starts_to_drop_mps:
+        value: 2.134
+        source: '[D-6850] p. 3: above 7 ft/s vertical the horizontal limit falls linearly
+          to 0 at 10 ft/s'
+      maximum_tilt_deg:
+        value: 6.0
+        source: '[D-6850] p. 3: thrust axis within 6 deg of the local vertical'
+      maximum_tilt_rate_deg_per_s:
+        value: 2.0
+        source: '[D-6850] p. 3: attitude rate below 2 deg/s'
+  name: s3_faults
+  seed: 1000
+  observation:
+    include_navigation_health: true
+  env:
+    num_envs: 1
+    env_spacing_m: 30.0
+    physics_step_s: 0.005
+    physics_steps_per_control_step: 4
+    episode_length_s: 90.0
