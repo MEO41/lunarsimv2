@@ -1,0 +1,19 @@
+run: s5_trn_seed0_terminal
+kind: evaluation
+started_utc: '2026-11-16T18:56:07+00:00'
+code_commit: fe6ede0bce2b5fc2ba306057e795b393542fa80b
+uncommitted_changes: false
+scenario: s5_trn_terminal
+agent: zem_zev
+navigation: trn_ekf
+seed: 0
+command_line: scripts/run_mission.py mission=s5_trn num_envs=16 run_name=s5_trn_seed0
+  seed=0
+resumed_from: ''
+episodes: 16
+success_percent: 100.0
+final_training_success_percent: ''
+outcomes:
+  success: 16
+touchdown_vertical_speed_mps_mean: -1.27
+propellant_used_kg_mean: 305.2
