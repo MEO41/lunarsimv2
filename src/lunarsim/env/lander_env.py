@@ -249,9 +249,11 @@ class LanderEnv(DirectRLEnv):
         policy = estimate.mean
         if getattr(self, "include_navigation_health", False):
             policy = torch.cat((policy, estimate.health.to(policy.dtype)), dim=1)
-        observation = Observation(policy=policy)
+        observation = Observation(policy=policy, site_map=estimate.site_map)
         self.bus.write(MessageKey.OBSERVATION, observation, self._observation_builder)
         groups = {"policy": observation.policy}
+        if estimate.site_map is not None:
+            groups["site_map"] = estimate.site_map
         if getattr(self, "critic_observation", "none") == "truth":
             truth = self.bus.read(MessageKey.TRUTH_STATE, self._training_truth_reader)
             groups["critic"] = truth_observation_vector(truth)

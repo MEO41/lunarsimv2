@@ -11,6 +11,7 @@ these files only: ``lunarsim figures runs/<run_name>``.
 
 Script arguments: ``run_name=``, ``episodes_per_env=`` (default 1), ``logged_envs=`` (default 16),
 ``fault_grid=true`` (S3: the held-out fault test grid of ``slots/faults/fault_grid.py``).
+An agent with decision records (``site_pick_divert``, S6) gets them merged into the episode table.
 Every other ``key=value`` is a Hydra override of the scenario.
 """
 
@@ -34,6 +35,26 @@ from lunarsim.tools.run_manifest import write_manifest  # noqa: E402
 from lunarsim.tools.trajectory_log import TrajectoryLog  # noqa: E402
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
+
+
+def merge_agent_decision_records(episodes, agent):
+    """Add the agent's per-episode decision records (``drain_decision_records``, S6) to the episode table.
+
+    Rows are matched on (environment_index, episode_number). Agents without records leave the table as it is.
+    """
+    if not hasattr(agent, "drain_decision_records") or episodes.empty:
+        return episodes
+    import pandas
+
+    records = agent.drain_decision_records()
+    if not records:
+        return episodes
+    decisions = pandas.DataFrame({name: values.numpy() for name, values in records.items()})
+    merged = episodes.merge(decisions, on=["environment_index", "episode_number"], how="left")
+    if "decision_mass_estimate_kg" in merged and "start_mass_kg" in merged and "propellant_used_kg" in merged:
+        final_mass = merged["start_mass_kg"] - merged["propellant_used_kg"]
+        merged["divert_propellant_estimate_kg"] = merged["decision_mass_estimate_kg"] - final_mass
+    return merged
 
 
 def main() -> None:
@@ -69,6 +90,7 @@ def main() -> None:
         after_step=trajectory_log.record,
     )
     elapsed = time.perf_counter() - start_time
+    episodes = merge_agent_decision_records(episodes, agent)
 
     write_manifest(
         run_directory,

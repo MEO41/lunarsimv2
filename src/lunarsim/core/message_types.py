@@ -145,17 +145,35 @@ class Measurement:
 
 @dataclass
 class NavEstimate:
-    """Output of the navigation slot."""
+    """Output of the navigation slot.
+
+    ``site_map`` (milestone 4, S6) is the onboard hazard map of candidate landing sites, made by a
+    navigation binding that maps the ground (``nav: hazard_map``); None for the other bindings.
+    Channels and grid geometry are in :class:`SiteMapLayout` and in the scenario's shared data
+    (``site_map_geometry``).
+    """
 
     mean: Tensor  # (N, state_dimension), layout in NavigationStateLayout
     covariance: Tensor  # (N, state_dimension) or (N, state_dimension, state_dimension)
     health: Tensor  # (N, n_sensors) fault flags; (N, 0) when there are no sensors
+    site_map: Tensor | None = None  # (N, SiteMapLayout.CHANNELS, rows, columns)
 
     def __post_init__(self) -> None:
         """Check the shapes of all fields."""
         _first_dimension_of(self)
         if self.mean.dim() != 2 or self.health.dim() != 2:
             raise ValueError("NavEstimate.mean and NavEstimate.health must be 2-dimensional")
+        if self.site_map is not None and self.site_map.dim() != 4:
+            raise ValueError("NavEstimate.site_map must have shape (N, channels, rows, columns)")
+
+
+class SiteMapLayout:
+    """Channels of a site map: one cell per candidate landing site (footprint centre)."""
+
+    SAFE = 0  # 1.0 when the footprint passes every hazard criterion on the onboard map
+    MARGIN = 1  # smallest normalised margin to the limits; -1 where too little ground is known
+    COVERAGE = 2  # share of the footprint disk that the map knows
+    CHANNELS = 3
 
 
 class NavigationStateLayout:
@@ -176,9 +194,13 @@ class NavigationStateLayout:
 
 @dataclass
 class Observation:
-    """What an agent sees. Built by the environment from ``NavEstimate``, never from ``TruthState``."""
+    """What an agent sees. Built by the environment from ``NavEstimate``, never from ``TruthState``.
+
+    ``site_map`` is the estimate's onboard hazard map when the navigation binding makes one.
+    """
 
     policy: Tensor  # (N, observation_dimension)
+    site_map: Tensor | None = None  # (N, SiteMapLayout.CHANNELS, rows, columns)
 
     def __post_init__(self) -> None:
         """Check the shape."""

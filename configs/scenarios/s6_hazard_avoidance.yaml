@@ -1,0 +1,48 @@
+# @package _global_
+# S6 Hazard detection and avoidance with retargeting (scenario catalogue, section S6): from the
+# Apollo low gate, a pointed flash LiDAR maps the landing area, the agent picks a safe site and
+# diverts to it. Variant with the true map: s6_hazard_avoidance_truth_map.
+defaults:
+  - /start: approach_gate
+  - /plant: physx_site
+  - /surface: apollo17_taurus_littrow
+  - /sensors: hazard_detection_suite
+  - /faults: none
+  - /nav: hazard_map
+  - /agent: site_pick_divert
+  - /actuators: engine_rcs_pulse
+  - /metrics: site_safety
+  - /training: none
+  - /landers@lander: apollo_lunar_module
+  - _self_
+
+name: s6_hazard_avoidance
+seed: 0
+start:
+  nav_error:                 # model choice: the S2 values
+    position_m: 1.0
+    velocity_mps: 0.2
+    attitude_deg: 0.1
+surface:
+  outer_half_size_m: 800.0   # the start is up to 690 m from the terrain centre
+  rocks:
+    area_fraction: 0.05      # design S6: rock_density in [0, 0.1]; the measured law alone covers 0.37 %
+env:
+  num_envs: 64
+  env_spacing_m: 1.0
+  physics_step_s: 0.005
+  physics_steps_per_control_step: 4
+  episode_length_s: 180.0    # [D-6846] Table I: 108 s from low gate to touchdown, plus margin
+plant:
+  spawn_height_m: 200.0
+# Mass at low gate. Touchdown mass and remaining propellant are the preset's (Apollo 11, [A11-MR]);
+# the landing phase needs 599 ft/s ([D-6846] Table I: 6,775 - 6,176 fps), so by the rocket
+# equation with Isp 305 s ([D-7143]) the lander is exp(182.6 / 2,991) = 1.063 times heavier.
+lander:
+  mass:
+    mass_at_start_kg:
+      value: 7788.2
+      source: "derived: 7,327 kg [A11-MR] x exp(599 ft/s [D-6846] Table I / (305 s [D-7143] x g0))"
+    descent_propellant_at_start_kg:
+      value: 810.5
+      source: "derived: 349.3 kg at cutoff [A11-MR] plus the 461.2 kg the landing phase burns (rocket equation above)"

@@ -1,0 +1,16 @@
+binding: approach_gate
+# Start at the Apollo low gate, where the landing phase began (scenario S6).
+# Source: [D-6846] Bennett, "Apollo Experience Report - Mission Planning for Lunar Module Descent
+#         and Ascent", NASA TN D-6846 (1972). https://ntrs.nasa.gov/citations/19720018205
+#   p. 10: "the altitude decreases from 7000 to 500 feet, the range decreases from approximately
+#   4.5 nautical miles to 2000 feet"; landing-phase targets give "60 fps of forward velocity,
+#   16 fps of vertical descent rate, and an attitude of approximately 16 deg from the vertical
+#   at a 500-foot altitude". Table I p. 9: low gate 512 ft, altitude rate -16 fps.
+# The ranges around the nominal values are model choices (about +-5 %).
+downrange_m: [580.0, 640.0]          # [D-6846] 2,000 ft = 609.6 m
+crossrange_m: [-15.0, 15.0]          # model choice
+altitude_m: [140.0, 165.0]           # [D-6846] 500 ft = 152.4 m (footpad plane above the target height)
+forward_speed_mps: [17.4, 19.2]      # [D-6846] 60 ft/s = 18.29 m/s
+vertical_speed_mps: [-5.1, -4.65]    # [D-6846] -16 ft/s = -4.88 m/s
+pitch_deg: [14.0, 18.0]              # [D-6846] about 16 deg from the vertical, thrust tilted against the motion
+approach_azimuth_deg: [0.0, 0.0]     # fly along +x toward the target

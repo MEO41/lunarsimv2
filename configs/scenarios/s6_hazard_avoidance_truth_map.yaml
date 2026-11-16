@@ -1,0 +1,8 @@
+# @package _global_
+# S6 with the true hazard map and the true state (design variant: an upper limit for the agent).
+defaults:
+  - s6_hazard_avoidance
+  - override /sensors: terminal_suite
+  - override /nav: truth_with_hazard_map
+  - _self_
+name: s6_hazard_avoidance_truth_map

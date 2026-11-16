@@ -23,6 +23,11 @@ class TruthNavigation(BindingBase):
     def step(self, bus, dt: float) -> None:
         """Write the estimate: position, velocity, quaternion, body rates, mass, height above ground, probe contact."""
         truth: TruthState = bus.read(MessageKey.TRUTH_STATE, self)
+        bus.write(MessageKey.NAVIGATION_ESTIMATE, self.truth_estimate(truth), self)
+
+    @staticmethod
+    def truth_estimate(truth: TruthState) -> NavEstimate:
+        """Return the true state in NavigationStateLayout with zero covariance."""
         mean = torch.cat(
             (
                 truth.position,
@@ -35,9 +40,8 @@ class TruthNavigation(BindingBase):
             ),
             dim=1,
         ).to(torch.float32)
-        estimate = NavEstimate(
+        return NavEstimate(
             mean=mean,
             covariance=torch.zeros(mean.shape[0], NavigationStateLayout.DIMENSION, device=mean.device),
             health=torch.zeros(mean.shape[0], 0, device=mean.device),
         )
-        bus.write(MessageKey.NAVIGATION_ESTIMATE, estimate, self)

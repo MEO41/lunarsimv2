@@ -1,0 +1,18 @@
+# ekf plus the onboard hazard map built from the pointed flash LiDAR (scenario S6).
+defaults:
+  - ekf
+  - _self_
+binding: hazard_map
+hazard_map:
+  center_m: [0.0, 0.0]           # site frame: the map is centred on the nominal target
+  half_size_m: 40.0              # model choice: an 80 m square (divert budget below)
+  cell_size_m: 0.5               # model choice: two cells across a 1 m rock
+  maximum_cell_sigma_m: 0.15     # model choice: a quarter of the 0.61 m relief limit
+  candidate_spacing_m: 2.0       # model choice
+  assessment_period_s: 1.0       # model choice
+  environments_per_chunk: 16
+  hazard_criteria:               # [D-6850] Rogers, NASA TN D-6850 (1972) p. 3, LM design surface
+    maximum_mean_slope_deg: 6.0          # "a mean surface slope of 6 deg or less"
+    maximum_effective_slope_deg: 12.0    # "an effective slope of 12 deg or less, including the effects of depressions or protuberances"
+    maximum_relief_m: 0.6096             # "the vertical distance from the top of the highest protuberance to the bottom of the lowest depression would be 24 inches or less"
+    minimum_coverage: 0.5                # model choice

@@ -86,6 +86,9 @@ class ZeroEffortMissZeroEffortVelocityAgent(ClassicalLandingAgentBase):
         self.time_to_go_candidates = torch.arange(2.0, 80.5, 0.5, device=device)
 
         count = number_of_environments
+        # Gate point of every environment (site frame). All start above the configured target; a
+        # divert agent moves single environments with set_landing_targets.
+        self.gate_positions = self.gate_position.repeat(count, 1)
         self.needs_plan = torch.ones(count, dtype=torch.bool, device=device)
         self.in_final_descent = torch.zeros(count, dtype=torch.bool, device=device)
         self.planned_duration = torch.zeros(count, device=device)
@@ -95,9 +98,15 @@ class ZeroEffortMissZeroEffortVelocityAgent(ClassicalLandingAgentBase):
     def reset(self, env_ids: Tensor, gen: torch.Generator) -> None:
         """Forget the plan of the given environments; a new one is made at their next step."""
         super().reset(env_ids, gen)
+        self.gate_positions[env_ids] = self.gate_position
         self.needs_plan[env_ids] = True
         self.in_final_descent[env_ids] = False
         self.elapsed[env_ids] = 0.0
+
+    def set_landing_targets(self, env_ids: Tensor, target_xy: Tensor) -> None:
+        """Move the landing target of ``env_ids`` to site-frame (x, y) ``target_xy`` (K, 2) and plan again from the current state."""
+        self.gate_positions[env_ids, 0:2] = target_xy.to(self.gate_positions.dtype)
+        self.needs_plan[env_ids] = True
 
     def _plan(self, position: Tensor, velocity: Tensor, mass: Tensor) -> None:
         """Choose the time-to-go of every environment that starts a new episode."""
@@ -108,14 +117,14 @@ class ZeroEffortMissZeroEffortVelocityAgent(ClassicalLandingAgentBase):
         duration, feasible = choose_time_to_go(
             position,
             velocity,
-            self.gate_position.expand(count, 3),
+            self.gate_positions,
             self.gate_velocity.expand(count, 3),
             self.gravity,
             self.time_to_go_candidates,
             minimum_vertical,
             maximum_vertical,
             self.planning_tilt_tangent,
-            minimum_height=self.gate_position[2].expand(count),
+            minimum_height=self.gate_positions[:, 2],
             stretch_factor=self.time_to_go_stretch_factor,
             extra_time=self.time_to_go_extra,
         )
@@ -124,7 +133,7 @@ class ZeroEffortMissZeroEffortVelocityAgent(ClassicalLandingAgentBase):
         self.plan_was_feasible = torch.where(new_plan, feasible, self.plan_was_feasible)
         self.elapsed = torch.where(new_plan, torch.zeros_like(self.elapsed), self.elapsed)
         # A start at or below the gate goes straight to the final descent.
-        below_gate = position[:, 2] <= self.gate_position[2] + 0.5
+        below_gate = position[:, 2] <= self.gate_positions[:, 2] + 0.5
         self.in_final_descent = torch.where(new_plan, below_gate, self.in_final_descent)
         self.needs_plan[:] = False
 
@@ -149,7 +158,7 @@ class ZeroEffortMissZeroEffortVelocityAgent(ClassicalLandingAgentBase):
         # ---- guided phase: ZEM/ZEV to the gate ----
         time_to_go = (self.planned_duration - self.elapsed).clamp_min(self.minimum_time_to_go)
         miss, velocity_error = zero_effort_errors(
-            position, velocity, self.gate_position.expand(count, 3), self.gate_velocity.expand(count, 3), self.gravity, time_to_go
+            position, velocity, self.gate_positions, self.gate_velocity.expand(count, 3), self.gravity, time_to_go
         )
         guided_thrust_acceleration = zero_effort_acceleration_now(miss, velocity_error, time_to_go)
         minimum_vertical = self.preset.engine_minimum_thrust / mass

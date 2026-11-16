@@ -18,6 +18,7 @@ flowchart LR
     bindings_catalogue["Bindings catalogue"]
     classical_agents["Classical agents"]
     faults_and_detection["Faults and fault detection (milestone 3)"]
+    hazard_detection_and_avoidance["Hazard detection and avoidance (scenario S6, milestone 4)"]
     knowledge_graph_tooling["Knowledge graph tooling"]
     lander_articulation_model["Lander articulation model"]
     lander_preset_apollo_lm["Lander preset, Apollo LM"]
@@ -46,6 +47,7 @@ flowchart LR
   end
   subgraph plan
     pending_user_decisions["Pending user decisions"]
+    skipped_learning_work["Learning work skipped until more compute is available"]
     terrain_integration_plan["Terrain integration plan"]
   end
   subgraph research
@@ -78,6 +80,10 @@ flowchart LR
   drop_test_results -- "compares with" --> terrain_results
   faults_and_detection -- "part of" --> slot_loop_architecture
   faults_and_detection -- "extends" --> sensors_and_ekf
+  hazard_detection_and_avoidance -- "part of" --> milestone_roadmap_and_status
+  hazard_detection_and_avoidance -- "uses" --> measured_terrain_surface
+  hazard_detection_and_avoidance -- "uses" --> sensors_and_ekf
+  hazard_detection_and_avoidance -- "uses" --> classical_agents
   isaac_lab_quirks -- "applies to" --> workstation_setup_and_machines
   knowledge_graph_tooling -- "required by" --> rules_from_the_user
   lander_articulation_model -- "built from" --> lander_preset_apollo_lm
@@ -116,6 +122,8 @@ flowchart LR
   sensors_and_ekf -- "feeds" --> classical_agents
   sensors_and_ekf -- "feeds" --> ppo_landing_agent
   session_history -- "leads to" --> milestone_roadmap_and_status
+  skipped_learning_work -- "part of" --> milestone_roadmap_and_status
+  skipped_learning_work -- "follows" --> rules_from_the_user
   slot_loop_architecture -- "implements" --> project_goal_and_design_documents
   slot_loop_architecture -- "runs on" --> physx_contact_settings
   slot_loop_architecture -- "details in" --> bindings_catalogue
@@ -146,6 +154,7 @@ flowchart LR
 | [Bindings catalogue](bindings-catalogue.md) | component | current | Every binding that exists, per slot, with its file and what it does; the two scenario files. |
 | [Classical agents](classical-agents.md) | component | current | The four-step classical controller chain ending in ZEM/ZEV guidance, its parameters, and how it uses the observed height above ground. |
 | [Faults and fault detection (milestone 3)](faults-and-detection.md) | component | current | The seeded sensor-fault schedule (faults slot) and the ekf_fdi filter with chi-square gate, isolation and loss detection; test results. |
+| [Hazard detection and avoidance (scenario S6, milestone 4)](hazard-detection-and-avoidance.md) | component | current | The S6 chain - approach-gate start, pointed flash LiDAR, onboard hazard map, LM footprint criteria, site_pick_divert agent, site_safety metric - and the first results (31 % safe touchdowns with the LiDAR map, 83 % with the true map, 8 % at the nominal targets). |
 | [Knowledge graph tooling](knowledge-graph-tooling.md) | component | current | How this knowledge graph is stored, checked and regenerated, and the rule to update it in the same commit as the work. |
 | [Lander articulation model](lander-articulation-model.md) | component | current | How the lander is built in USD from the preset - two stage shapes, four legs with dish footpads on prismatic spring struts - and its simplifications. |
 | [Lander preset, Apollo LM](lander-preset-apollo-lm.md) | component | current | The Apollo LM-5 preset with its sourced numbers, the body frame, the corrections of 2026-11-15, and the values that are model choices. |
@@ -166,6 +175,7 @@ flowchart LR
 | [Results with the LM-accurate lander and real terrain](terrain-results.md) | result | current | ZEM/ZEV success on flat ground with the corrected lander (97.53 %) and on the Apollo 17 terrain with craters and rocks (96.78 %), with failure causes and ground statistics. |
 | [Open issues](open-issues.md) | issue | open | Known weak points of the model and the code, with what each one affects. |
 | [Pending user decisions](pending-user-decisions.md) | plan | waiting-for-user | Questions that wait for the user's answer; work that depends on them must not start before. |
+| [Learning work skipped until more compute is available](skipped-learning-work.md) | plan | open | The user's rule of 2026-11-16 (build through M7, no training longer than 20 minutes) and the list of every learning step left out on the way, to come back to. |
 | [Terrain integration plan](terrain-integration-plan.md) | plan | superseded | The plan (2026-11-14) for real Apollo 17 terrain and an LM-accurate lander; approved and built on 2026-11-15, kept as the record of what was agreed. |
 | [The apollo_lander_modeling folder](apollo-lander-modeling-folder.md) | research | current | The user's sibling working folder with the Apollo 17 terrain scene and the NASA LM mesh - what it has, what we take from it, and what we do not. |
 | [Apollo LM geometry research](apollo-lm-geometry-research.md) | research | current | Apollo LM landing-gear, body, nozzle and RCS geometry from primary NASA and Grumman documents, with page references; input for the lander changes. |

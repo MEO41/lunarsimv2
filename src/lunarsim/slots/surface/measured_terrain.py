@@ -16,6 +16,7 @@ ground under the lander.
 
 from __future__ import annotations
 
+import math
 from pathlib import Path
 
 import numpy
@@ -50,12 +51,39 @@ def crater_population_from_parameters(parameters: dict | None) -> CraterPopulati
     )
 
 
+def rock_area_fraction(coefficient: float, exponent: float, minimum_diameter: float, maximum_diameter: float) -> float:
+    """Return the share of the ground covered by rocks of a cumulative law N(>D) = coefficient * D^exponent.
+
+    Area = integral of (pi / 4) D^2 |dN/dD| dD from the smallest to the largest diameter, with
+    |dN/dD| = coefficient * |exponent| * D^(exponent - 1).
+    """
+    power = exponent + 2.0
+    if abs(power) < 1e-9:
+        integral = math.log(maximum_diameter / minimum_diameter)
+    else:
+        integral = (maximum_diameter**power - minimum_diameter**power) / power
+    return 0.25 * math.pi * coefficient * abs(exponent) * integral
+
+
 def rock_population_from_parameters(parameters: dict | None) -> RockPopulation | None:
-    """Build the rock statistics from the ``rocks:`` block of the surface config (None: no rocks)."""
+    """Build the rock statistics from the ``rocks:`` block of the surface config (None: no rocks).
+
+    ``area_fraction`` (optional, design S6 ``rock_density``) rescales the coefficient of the law so
+    that the rocks cover that share of the ground; the shape of the size distribution is kept.
+    """
     if not parameters or not parameters.get("enabled", True):
         return None
+    coefficient = float(parameters["cumulative_coefficient_per_m2"])
+    if parameters.get("area_fraction") is not None:
+        natural = rock_area_fraction(
+            coefficient, float(parameters["cumulative_exponent"]),
+            float(parameters["minimum_diameter_m"]), float(parameters["maximum_diameter_m"]),
+        )
+        coefficient = coefficient * float(parameters["area_fraction"]) / natural
+        if coefficient <= 0.0:
+            return None
     return RockPopulation(
-        cumulative_coefficient_per_m2=float(parameters["cumulative_coefficient_per_m2"]),
+        cumulative_coefficient_per_m2=coefficient,
         cumulative_exponent=float(parameters["cumulative_exponent"]),
         minimum_diameter_m=float(parameters["minimum_diameter_m"]),
         maximum_diameter_m=float(parameters["maximum_diameter_m"]),

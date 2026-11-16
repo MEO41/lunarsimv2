@@ -1,0 +1,25 @@
+# The S2 sensor suite plus a flash LiDAR on a pointing mount aimed at the landing area (S6).
+# The design's S6 row lists [imu, radar_alt, lidar_cheap]; the Doppler velocimeter stays, because
+# the filter needs velocity aiding (Apollo's landing radar also had velocity beams, [D-6846] p. 4).
+defaults:
+  - terminal_suite
+  - _self_
+# Source:
+#   [ASC-FLASH] Sornsin, Short, Bourbeau, Dahlin (Advanced Scientific Concepts), "Global Shutter
+#              Solid State Flash LIDAR for Spacecraft Navigation and Docking Applications" (about
+#              2019), Fig. 5 p. 4: 128 x 128 pixels, 6 deg field of view, 10 Hz, 2.8 m to 1 km,
+#              range error specification < 10 cm + 1 % of range.
+#              https://asc3d.com/wp-content/uploads/2020/05/11005-31-Final_RevE.pdf
+lidar:
+  rate_hz: 10.0                  # [ASC-FLASH]
+  field_of_view_deg: 6.0         # [ASC-FLASH]
+  pixels_per_side: 32            # model choice ("cheap"): every 4th pixel of the 128 x 128 array
+  minimum_range_m: 2.8           # [ASC-FLASH]
+  maximum_range_m: 1000.0        # [ASC-FLASH]
+  range_noise_m: 0.10            # [ASC-FLASH] specification, used as one sigma
+  range_noise_per_m: 0.01        # [ASC-FLASH] 1 % of range
+  ray_march_step_m: 0.5          # model choice: two steps across the smallest rock (0.75 m)
+  pointing:                      # model choices: an ideal mount aimed at the nominal target
+    target_m: [0.0, 0.0, 0.0]    # site frame
+    error_deg: 0.05              # one sigma per axis, per frame
+    mosaic: {rows: 3, columns: 3, step_deg: 5.0}   # 9 frames (0.9 s) cover about 16 x 16 deg

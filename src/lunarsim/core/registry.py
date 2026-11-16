@@ -24,8 +24,10 @@ class SlotLoopError(ValueError):
 TRUTH_SIDE_SLOTS = frozenset(
     {SlotName.START, SlotName.PLANT, SlotName.SURFACE, SlotName.SENSORS, SlotName.FAULTS, SlotName.METRICS}
 )
-# The only binding on the flight-software side that may read TruthState.
+# The only bindings on the flight-software side that may read TruthState: ``nav: truth`` and its
+# S6 variant with the true hazard map (design S6: "Set nav: truth with the true hazard map").
 TRUTH_NAVIGATION_NAME = "truth"
+TRUTH_NAVIGATION_NAMES = frozenset({TRUTH_NAVIGATION_NAME, "truth_with_hazard_map"})
 
 # Order in which the slots run during one control step, starting at a reset.
 # The plant appears twice: it first reports the state, and later takes the wrench.
@@ -147,12 +149,12 @@ def check_slot_loop(bindings: Mapping[str, Any]) -> None:
             )
         if binding.reads_truth:
             is_truth_navigation = (
-                slot == SlotName.NAVIGATION and getattr(binding, "registry_name", "") == TRUTH_NAVIGATION_NAME
+                slot == SlotName.NAVIGATION and getattr(binding, "registry_name", "") in TRUTH_NAVIGATION_NAMES
             )
             if slot not in TRUTH_SIDE_SLOTS and not is_truth_navigation:
                 raise SlotLoopError(
                     f"Truth leak: binding '{_describe(binding)}' in slot '{slot}' sets reads_truth=True. "
-                    f"Only truth-side slots {sorted(TRUTH_SIDE_SLOTS)} and 'nav: truth' may read TruthState"
+                    f"Only truth-side slots {sorted(TRUTH_SIDE_SLOTS)} and {sorted(TRUTH_NAVIGATION_NAMES)} navigation may read TruthState"
                 )
 
 

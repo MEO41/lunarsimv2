@@ -1,0 +1,13 @@
+# touchdown, plus the true footprint safety of the touched and the nominal site (S6).
+defaults:
+  - touchdown
+  - _self_
+binding: site_safety
+maximum_horizontal_distance_m: 1000.0   # the start is 600 m from the target
+maximum_altitude_m: 400.0
+assessment_cell_size_m: 0.25            # the detail grid of measured_terrain
+hazard_criteria:                        # [D-6850] p. 3, as in configs/nav/hazard_map.yaml
+  maximum_mean_slope_deg: 6.0
+  maximum_effective_slope_deg: 12.0
+  maximum_relief_m: 0.6096
+  minimum_coverage: 0.5

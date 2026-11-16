@@ -1,0 +1,10 @@
+# Pick a safe site from the onboard hazard map and divert to it with ZEM/ZEV guidance (S6).
+defaults:
+  - zem_zev
+  - _self_
+binding: site_pick_divert
+decision_altitude_m: 80.0          # model choice: the map is precise enough below about 100 m (1 % range noise)
+lock_altitude_m: 20.0              # model choice: no redesignation in the last 20 m
+maximum_divert_distance_m: 30.0    # model choice, inside the 80 m map (the LM carried 60 ft/s for redesignation, [D-6846] Table II)
+distance_weight_per_m: 0.005       # model choice: 0.1 of margin per 20 m of divert
+redesignation_margin: 0.1          # model choice: move again only for a clearly better site

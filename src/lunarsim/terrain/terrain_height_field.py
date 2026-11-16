@@ -48,10 +48,14 @@ class RegularHeightGrid:
         return RegularHeightGrid(self.origin_x, self.origin_y, self.cell_size, self.heights.to(device))
 
     def _cell_and_fractions(self, x: Tensor, y: Tensor) -> tuple[Tensor, Tensor, Tensor, Tensor]:
-        """Return cell indices (i, j) and the in-cell fractions (u, v), clamped to the grid."""
+        """Return cell indices (i, j) and the in-cell fractions (u, v), clamped to the grid.
+
+        Non-finite coordinates (for example a LiDAR pixel without a return) are mapped to the grid
+        corner, so they never index outside the grid; callers mask those points themselves.
+        """
         number_y, number_x = self.heights.shape
-        column = ((x - self.origin_x) / self.cell_size).clamp(0.0, number_x - 1.0)
-        row = ((y - self.origin_y) / self.cell_size).clamp(0.0, number_y - 1.0)
+        column = torch.nan_to_num((x - self.origin_x) / self.cell_size, nan=0.0, posinf=0.0, neginf=0.0).clamp(0.0, number_x - 1.0)
+        row = torch.nan_to_num((y - self.origin_y) / self.cell_size, nan=0.0, posinf=0.0, neginf=0.0).clamp(0.0, number_y - 1.0)
         i = column.floor().long().clamp(max=number_x - 2)
         j = row.floor().long().clamp(max=number_y - 2)
         return i, j, column - i, row - j

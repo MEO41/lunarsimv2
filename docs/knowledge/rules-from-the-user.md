@@ -40,6 +40,10 @@ These are the user's own instructions. They hold until the user changes them.
   not change the design silently.** When you explain, **use simple words**."
 - "**Small commits with clear messages.** Push them to https://github.com/MEO41/lunarsimv2.git".
   Keep `PROGRESS.md` up to date, and also this knowledge graph ([[knowledge-graph-tooling]]).
+- **Build through M7 without long training** (2026-11-16): "reach the M7 do not do anything that
+  requries training more than 20min lets see the end of the project later we can come back and do
+  the training when there we have more available compute. Also note that we skipped learning
+  part." Every skipped learning step is listed in [[skipped-learning-work]].
 - **Every run's results go to GitHub** (2026-11-15): "after every run take the results and commit
   them on github so when we need it we can look through the commits and the results to see what
   changed responsible for the results". Done by `scripts/push_run_results.sh` into `results/`

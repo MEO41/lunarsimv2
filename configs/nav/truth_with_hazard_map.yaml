@@ -1,0 +1,6 @@
+# Design S6 variant: "Set nav: truth with the true hazard map. This gives an upper limit for the
+# agent alone." Same map settings as nav: hazard_map, filled from the true ground.
+defaults:
+  - hazard_map
+  - _self_
+binding: truth_with_hazard_map

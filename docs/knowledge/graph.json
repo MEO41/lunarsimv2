@@ -32,7 +32,7 @@
       "title": "Bindings catalogue",
       "type": "component",
       "status": "current",
-      "updated": "2026-11-15",
+      "updated": "2026-11-16",
       "summary": "Every binding that exists, per slot, with its file and what it does; the two scenario files.",
       "path": "bindings-catalogue.md"
     },
@@ -80,6 +80,15 @@
       "updated": "2026-11-15",
       "summary": "The seeded sensor-fault schedule (faults slot) and the ekf_fdi filter with chi-square gate, isolation and loss detection; test results.",
       "path": "faults-and-detection.md"
+    },
+    {
+      "id": "hazard-detection-and-avoidance",
+      "title": "Hazard detection and avoidance (scenario S6, milestone 4)",
+      "type": "component",
+      "status": "current",
+      "updated": "2026-11-16",
+      "summary": "The S6 chain - approach-gate start, pointed flash LiDAR, onboard hazard map, LM footprint criteria, site_pick_divert agent, site_safety metric - and the first results (31 % safe touchdowns with the LiDAR map, 83 % with the true map, 8 % at the nominal targets).",
+      "path": "hazard-detection-and-avoidance.md"
     },
     {
       "id": "isaac-lab-quirks",
@@ -262,6 +271,15 @@
       "path": "session-history.md"
     },
     {
+      "id": "skipped-learning-work",
+      "title": "Learning work skipped until more compute is available",
+      "type": "plan",
+      "status": "open",
+      "updated": "2026-11-16",
+      "summary": "The user's rule of 2026-11-16 (build through M7, no training longer than 20 minutes) and the list of every learning step left out on the way, to come back to.",
+      "path": "skipped-learning-work.md"
+    },
+    {
       "id": "slot-loop-architecture",
       "title": "Slot loop architecture",
       "type": "component",
@@ -370,6 +388,11 @@
       "source": "apollo17-height-maps",
       "target": "apollo-lander-modeling-folder",
       "relation": "first worked with in"
+    },
+    {
+      "source": "bindings-catalogue",
+      "target": "hazard-detection-and-avoidance",
+      "relation": "mentions"
     },
     {
       "source": "bindings-catalogue",
@@ -518,6 +541,11 @@
     },
     {
       "source": "decisions-log",
+      "target": "skipped-learning-work",
+      "relation": "mentions"
+    },
+    {
+      "source": "decisions-log",
       "target": "pending-user-decisions",
       "relation": "mentions"
     },
@@ -550,6 +578,31 @@
       "source": "faults-and-detection",
       "target": "sensors-and-ekf",
       "relation": "extends"
+    },
+    {
+      "source": "hazard-detection-and-avoidance",
+      "target": "skipped-learning-work",
+      "relation": "mentions"
+    },
+    {
+      "source": "hazard-detection-and-avoidance",
+      "target": "milestone-roadmap-and-status",
+      "relation": "part of"
+    },
+    {
+      "source": "hazard-detection-and-avoidance",
+      "target": "measured-terrain-surface",
+      "relation": "uses"
+    },
+    {
+      "source": "hazard-detection-and-avoidance",
+      "target": "sensors-and-ekf",
+      "relation": "uses"
+    },
+    {
+      "source": "hazard-detection-and-avoidance",
+      "target": "classical-agents",
+      "relation": "uses"
     },
     {
       "source": "isaac-lab-quirks",
@@ -778,6 +831,16 @@
     },
     {
       "source": "milestone-roadmap-and-status",
+      "target": "hazard-detection-and-avoidance",
+      "relation": "mentions"
+    },
+    {
+      "source": "milestone-roadmap-and-status",
+      "target": "skipped-learning-work",
+      "relation": "mentions"
+    },
+    {
+      "source": "milestone-roadmap-and-status",
       "target": "project-goal-and-design-documents",
       "relation": "follows"
     },
@@ -968,6 +1031,11 @@
     },
     {
       "source": "rules-from-the-user",
+      "target": "skipped-learning-work",
+      "relation": "mentions"
+    },
+    {
+      "source": "rules-from-the-user",
       "target": "testing-and-commands",
       "relation": "mentions"
     },
@@ -1075,6 +1143,36 @@
       "source": "session-history",
       "target": "milestone-roadmap-and-status",
       "relation": "leads to"
+    },
+    {
+      "source": "skipped-learning-work",
+      "target": "pending-user-decisions",
+      "relation": "mentions"
+    },
+    {
+      "source": "skipped-learning-work",
+      "target": "paper-one-results",
+      "relation": "mentions"
+    },
+    {
+      "source": "skipped-learning-work",
+      "target": "faults-and-detection",
+      "relation": "mentions"
+    },
+    {
+      "source": "skipped-learning-work",
+      "target": "hazard-detection-and-avoidance",
+      "relation": "mentions"
+    },
+    {
+      "source": "skipped-learning-work",
+      "target": "milestone-roadmap-and-status",
+      "relation": "part of"
+    },
+    {
+      "source": "skipped-learning-work",
+      "target": "rules-from-the-user",
+      "relation": "follows"
     },
     {
       "source": "slot-loop-architecture",

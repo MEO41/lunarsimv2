@@ -13,6 +13,11 @@ from lunarsim.core.message_types import Observation
 from lunarsim.core.registry import get_binding_class
 
 
+def observation_from_groups(observations: dict) -> Observation:
+    """Return the agent's Observation from the environment's observation groups (policy, optional site map)."""
+    return Observation(policy=observations["policy"], site_map=observations.get("site_map"))
+
+
 def build_agent(environment: Any):
     """Create the agent that the environment's scenario names in its ``agent`` slot."""
     import lunarsim.agents  # noqa: F401  (registers the agents)
@@ -50,7 +55,7 @@ def run_agent_in_environment(
     control_step_duration = environment.clock.control_step_duration
     for step_index in range(number_of_steps):
         with torch.inference_mode():
-            command = agent.compute_command(Observation(policy=observations["policy"]), control_step_duration)
+            command = agent.compute_command(observation_from_groups(observations), control_step_duration)
             observations, _, terminated, truncated, _ = environment.step(command.to_action_tensor())
             finished = terminated | truncated
             if bool(finished.any()):
@@ -90,7 +95,7 @@ def collect_episodes(
     frames, collected_rows = [], 0
     for step_index in range(maximum_steps):
         with torch.inference_mode():
-            command = agent.compute_command(Observation(policy=observations["policy"]), control_step_duration)
+            command = agent.compute_command(observation_from_groups(observations), control_step_duration)
             observations, _, terminated, truncated, _ = environment.step(command.to_action_tensor())
             finished = terminated | truncated
             if bool(finished.any()):
