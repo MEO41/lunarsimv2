@@ -1,0 +1,53 @@
+rule: '1: start above 100 ft, grain eroded mass nearest the Apollo 11 middle (60.5
+  kg); 2: lowest start (committed run)'
+landers:
+  35:
+    rerun:
+      start_altitude_m: 38.1423
+      outcome: success
+      grain_eroded_mass_kg: 59.2987
+      ejecta_mass_kg: 33.06
+      grain_erosion_start_nozzle_height_m: 38.5584
+      erosion_start_nozzle_height_m: 30.4622
+      dust_blinded_time_s: 21.3003
+      grain_dust_blinded_time_s: 0.0
+      grain_peak_optical_depth: 0.0048
+      grain_peak_number_density_per_m3: 3179443.75
+      episode_duration_s: 31.76
+    committed:
+      start_altitude_m: 38.1423
+      outcome: success
+      grain_eroded_mass_kg: 59.2987
+      ejecta_mass_kg: 33.06
+      grain_erosion_start_nozzle_height_m: 38.5584
+      erosion_start_nozzle_height_m: 30.4622
+      dust_blinded_time_s: 21.3003
+      grain_dust_blinded_time_s: 0.0
+      grain_peak_optical_depth: 0.0048
+      grain_peak_number_density_per_m3: 3179443.75
+      episode_duration_s: 31.76
+  19:
+    rerun:
+      start_altitude_m: 5.8555
+      outcome: hard_horizontal
+      grain_eroded_mass_kg: 14.8945
+      ejecta_mass_kg: 6.6424
+      grain_erosion_start_nozzle_height_m: 6.3153
+      erosion_start_nozzle_height_m: 6.3153
+      dust_blinded_time_s: 3.42
+      grain_dust_blinded_time_s: 0.0
+      grain_peak_optical_depth: 0.0169
+      grain_peak_number_density_per_m3: 6163924.5
+      episode_duration_s: 8.1
+    committed:
+      start_altitude_m: 5.8555
+      outcome: hard_horizontal
+      grain_eroded_mass_kg: 14.8945
+      ejecta_mass_kg: 6.6424
+      grain_erosion_start_nozzle_height_m: 6.3153
+      erosion_start_nozzle_height_m: 6.3153
+      dust_blinded_time_s: 3.42
+      grain_dust_blinded_time_s: 0.0
+      grain_peak_optical_depth: 0.0169
+      grain_peak_number_density_per_m3: 6163924.5
+      episode_duration_s: 8.1

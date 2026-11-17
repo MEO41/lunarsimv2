@@ -1,0 +1,20 @@
+run: s8_plume_grains_video_seed0
+kind: evaluation
+started_utc: '2026-11-17T10:59:27+00:00'
+code_commit: 9f2d297d10d12e6cf18d1b15570ec61f4ebb2638
+uncommitted_changes: true
+scenario: s8_plume_check_l2
+agent: zem_zev
+navigation: ekf_fdi
+seed: 0
+command_line: scripts/record_plume_grain_video.py
+resumed_from: ''
+episodes: 64
+success_percent: 95.31
+final_training_success_percent: ''
+outcomes:
+  success: 61
+  hard_horizontal: 2
+  tilt_at_contact: 1
+touchdown_vertical_speed_mps_mean: -1.303
+propellant_used_kg_mean: 105.6
