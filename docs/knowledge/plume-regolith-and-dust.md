@@ -87,6 +87,32 @@ The grains erode from the first step of every landing (S8 starts at 5-50 m; the 
 exceeds the threshold well above 100 ft), so their "erosion start height" is the start height,
 not an onset; L1's onset is its 100 ft rule.
 
+### Video check (2026-11-17)
+
+User: "I want a video to visual confirm". `scripts/record_plume_grain_video.py` flew the
+committed check again (64 landers, seed 0) and recorded two landers' grain parcels. The rerun
+gave the same numbers as the committed run for both, to the last digit
+(`results/s8_plume_grains_video_seed0/chosen_landers.yaml`):
+
+- lander 35, start 38 m, landed: the high-start lander whose grain eroded mass (59 kg) is
+  nearest the middle of the Apollo 11 range; L1 33 kg; L1 blinded 21.3 s, grains 0 s;
+- lander 19, start 5.9 m, `hard_horizontal`: the lowest start; grains 15 kg, L1 7 kg.
+
+The video (`runs/s8_plume_grains_video_seed0/plume_grains.mp4`, 43 s, not in git) shows the
+parcels in 3D and in a true-scale side view. What it shows, measured from the recording:
+
+- the grains leave as a thin sheet that rises with distance (2.1 deg), out to the 700 m edge;
+  the median live parcel is 350 m out, the highest about 57 m up;
+- only 4-8 % of the live parcels are inside the 60 m x 6 m box where the optical depth is
+  counted. The grains cross it in a fraction of a second, so the box is nearly empty. This is
+  why the optical depth stays below 0.02 while L1 reports the sensors blinded at the same time;
+- the coarse bins make up most of the live parcels (181 and 362 um: 67-68 %). The finest grains
+  fly at up to 3.2 km/s and leave the 700 m domain in about 0.2 s.
+
+So the video confirms the reading above: the grain model works as built, and its thin cloud
+comes from the physics it models (Roberts erosion, one 2.1 deg sheet, ballistic flight), not
+from a bug in the counting.
+
 ### Development run (16 landers), kept for the record
 
 | | L1 | L2 grains | Apollo reference |

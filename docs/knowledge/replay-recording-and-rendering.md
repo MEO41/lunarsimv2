@@ -35,7 +35,17 @@ site axes, which are tilted far from the site), renders the terminal phase in 3D
 plots, 3D and the end card with ffmpeg: `runs/<run>_video/mission.mp4` (3 min 46 s for
 `s7_full_mission_video_seed0`, lander 0).
 
-Users: `scripts/record_landing_videos.py` (landing successes and failures),
+Plume grain video (M5 L2, 2026-11-17): `ReplayRecorder(grain_landers=[...])` also keeps, for
+those landers only, every live grain parcel per frame (offset from the body, height above ground,
+size bin; about 19 MB per lander, compressed, for the S8 run) and, for every lander, the readings of both plume
+levels (`GRAIN_COLUMNS`). `render_replay.py` then draws the parcels as `UsdGeom.Points` coloured
+by size; their width is 5 mrad times the distance to the camera (`grain_dot_angle_rad`), so every
+dot is about 6 px. A fixed 0.15 m width was invisible: most parcels are 100-700 m out. It also
+places a true-scale side view (`tools/plume_grain_video.py`) to the right (frame 1920 x 720).
+`scripts/record_plume_grain_video.py` flies the check and renders it; results in
+[[plume-regolith-and-dust]].
+
+Users: `scripts/record_plume_grain_video.py`, `scripts/record_landing_videos.py` (landing successes and failures),
 `scripts/run_drop_test.py` (`flips.npz`), `scripts/contact_check.py` (`contacts.npz`).
 
 Why a physics-free stage: in a live Isaac Lab scene the renderer drew the lander at its first

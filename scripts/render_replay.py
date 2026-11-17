@@ -13,7 +13,13 @@ wide view on top and a close-up of each footpad below. When contacts were record
 arrow stands beside every footpad that carries more than 100 N, along the force from that leg's
 contact sensor (1 m per 3 kN), and the captions give each pad's force and its gap to the ground.
 
-Options: ``replay``, ``mode`` (video or stills), ``width`` (1280), ``height`` (720).
+When the replay holds plume grains (``ReplayRecorder(grain_landers=...)``), the video also draws
+each live grain parcel as a dot coloured by grain size (``grain_dot_angle_rad`` wide as seen
+from the camera, so near and far parcels look the same size; far larger than the grains) and puts a true-scale side view with both plume levels' readings to the right
+of the 3D view (``lunarsim.tools.plume_grain_video``); the frame is then 1920 wide.
+
+Options: ``replay``, ``mode`` (video or stills), ``width`` (1280), ``height`` (720),
+``camera_distance_m`` (20), ``camera_height_m`` (5, above the lander), ``grain_dot_angle_rad`` (0.005).
 """
 
 import argparse
@@ -42,12 +48,14 @@ CAMERA_CLEARANCE_ABOVE_GROUND_M = 3.0
 CAMERA_SIDE_ANGLE_RAD = 0.6  # look across the slope a little, not straight up it
 
 
-def camera_eye(renderer: ReplayRenderer, target: numpy.ndarray) -> numpy.ndarray:
+def camera_eye(renderer: ReplayRenderer, target: numpy.ndarray, distance: float = CAMERA_DISTANCE_M,
+               height: float = CAMERA_HEIGHT_ABOVE_TARGET_M) -> numpy.ndarray:
     """Return a camera position on the downhill side of ``target`` that stays above the ground.
 
     On flat ground the camera looks from the south-west. On a slope it looks from downhill and a
     little to the side, so the hill does not hide the lander, and it is raised until it is at
-    least 3 m above the ground under it and under the point halfway to the target.
+    least 3 m above the ground under it and under the point halfway to the target. ``distance``
+    and ``height`` are the horizontal distance and the height above the target.
     """
     import torch
 
@@ -59,9 +67,9 @@ def camera_eye(renderer: ReplayRenderer, target: numpy.ndarray) -> numpy.ndarray
     downhill = downhill / numpy.linalg.norm(downhill)
     cosine, sine = numpy.cos(CAMERA_SIDE_ANGLE_RAD), numpy.sin(CAMERA_SIDE_ANGLE_RAD)
     direction = numpy.array([cosine * downhill[0] - sine * downhill[1], sine * downhill[0] + cosine * downhill[1]])
-    eye = numpy.array([*(target[:2] + CAMERA_DISTANCE_M * direction), target[2] + CAMERA_HEIGHT_ABOVE_TARGET_M])
+    eye = numpy.array([*(target[:2] + distance * direction), target[2] + height])
     for fraction in (1.0, 0.5):
-        sample = target[:2] + fraction * CAMERA_DISTANCE_M * direction
+        sample = target[:2] + fraction * distance * direction
         ground = float(renderer.height_field.height_at(torch.tensor([sample[0]]), torch.tensor([sample[1]])))
         eye[2] = max(eye[2], ground + CAMERA_CLEARANCE_ABOVE_GROUND_M)
     return eye
@@ -70,7 +78,8 @@ TOUCHING_GAP_LIMIT_M = 0.03  # contact offset 2 cm plus 1 cm
 
 def read_options() -> dict[str, str]:
     """Return the ``key=value`` options with their defaults."""
-    options = {"replay": "", "mode": "video", "width": "1280", "height": "720"}
+    options = {"replay": "", "mode": "video", "width": "1280", "height": "720",
+               "camera_distance_m": str(CAMERA_DISTANCE_M), "camera_height_m": str(CAMERA_HEIGHT_ABOVE_TARGET_M), "grain_dot_angle_rad": "0.005"}
     for argument in script_arguments:
         key, _, value = argument.partition("=")
         if key not in options:
@@ -108,11 +117,26 @@ def force_line(row: numpy.ndarray, columns: dict[str, int]) -> str:
     return "footpad forces (kN): " + "   ".join(f"leg {leg + 1}: {force:5.2f}" for leg, force in enumerate(forces))
 
 
-def render_video(renderer: ReplayRenderer, replay, columns: dict[str, int], output: Path) -> None:
-    """Render every clip following the lander and join the frames into an MP4."""
+def grain_readings(row: numpy.ndarray, columns: dict[str, int]) -> dict[str, float]:
+    """Return the frame's plume readings of both levels and its time, for the side panel."""
+    from lunarsim.tools.replay_recording import GRAIN_COLUMNS
+
+    return {name: float(row[columns[name]]) for name in (*GRAIN_COLUMNS, "time")}
+
+
+def render_video(renderer: ReplayRenderer, replay, columns: dict[str, int], output: Path, options: dict[str, str]) -> None:
+    """Render every clip following the lander (with its grains and side panel if recorded) and join the frames into an MP4."""
     frames, valid = replay["frames"], replay["valid"]
     rate = float(replay["frames_per_second"])
     has_contacts = "leg_1_force_x" in columns
+    distance, height = float(options["camera_distance_m"]), float(options["camera_height_m"])
+    panel = None
+    if "grain_offsets" in replay:
+        from lunarsim.tools.plume_grain_video import GrainSidePanel
+
+        panel = GrainSidePanel(replay, width_px=renderer.height * 8 // 9, height_px=renderer.height)
+        grain_offsets, grain_bins = replay["grain_offsets"], replay["grain_bins"]
+        dot_angle = float(options["grain_dot_angle_rad"])
     directory = output.with_suffix("")
     if directory.exists():
         shutil.rmtree(directory)
@@ -129,18 +153,34 @@ def render_video(renderer: ReplayRenderer, replay, columns: dict[str, int], outp
             row = frames[index, clip]
             target = row[:3].astype(numpy.float64) - numpy.array([0.0, 0.0, 1.0])
             target_smooth = target if target_smooth is None else 0.85 * target_smooth + 0.15 * target
-            eye = camera_eye(renderer, target_smooth)
+            eye = camera_eye(renderer, target_smooth, distance, height)
             eye_smooth = eye if eye_smooth is None else 0.9 * eye_smooth + 0.1 * eye
             renderer.look(eye_smooth, target_smooth)
             renderer.place(clip, row, columns)
+            if panel is not None:
+                offsets, bins = grain_offsets[index, clip], grain_bins[index, clip]
+                alive = numpy.isfinite(offsets[:, 0])
+                world = row[:3].astype(numpy.float64) + offsets[alive, :3]
+                widths = dot_angle * numpy.linalg.norm(world - eye_smooth, axis=1)  # same size on screen near and far
+                renderer.place_grains(clip, world, panel.colors[bins[alive].astype(int)], widths)
             pixels = renderer.capture()
             if position < 8:
                 continue  # let the renderer converge on the first view
             lines = [str(replay["clip_titles"][clip]), str(replay["clip_details"][clip]), live_line(row, columns)]
             if has_contacts:
                 lines.append(force_line(row, columns))
+            if panel is not None:
+                lines.append(f"dots: grain parcels, all drawn {dot_angle * 1000:.0f} mrad wide whatever their distance "
+                             "(real grains 4-512 um); colour = size, as on the right")
             title_color = (120, 220, 120) if "SUCCESS" in lines[0] or "AT REST" in lines[0] else (255, 120, 120)
-            draw_caption(Image.fromarray(pixels), lines, title_color).save(directory / f"frame_{written:06d}.png")
+            image = draw_caption(Image.fromarray(pixels), lines, title_color, size=16 if panel is not None else 18)
+            if panel is not None:
+                side = Image.fromarray(panel.draw(grain_offsets[index, clip], grain_bins[index, clip], grain_readings(row, columns)))
+                combined = Image.new("RGB", (image.width + side.width, image.height))
+                combined.paste(image, (0, 0))
+                combined.paste(side, (image.width, 0))
+                image = combined
+            image.save(directory / f"frame_{written:06d}.png")
             written += 1
         print(f"[render] clip {clip + 1}/{frames.shape[1]} done, {written} frames", flush=True)
     subprocess.run(
@@ -208,7 +248,7 @@ def main() -> None:
         replay["frames"].shape[1], int(options["width"]), int(options["height"]),
     )
     if options["mode"] == "video":
-        render_video(renderer, replay, columns, replay_path.with_suffix(".mp4"))
+        render_video(renderer, replay, columns, replay_path.with_suffix(".mp4"), options)
     else:
         render_stills(renderer, replay, columns, replay_path.parent / f"{replay_path.stem}_stills")
 

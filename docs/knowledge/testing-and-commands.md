@@ -3,7 +3,7 @@ id: testing-and-commands
 title: Testing and commands
 type: environment
 status: current
-updated: 2026-11-16
+updated: 2026-11-17
 summary: How to run the tests, scenarios, evaluations, benchmarks, figures and the knowledge-graph check.
 ---
 
@@ -50,6 +50,7 @@ python scripts/render_replay.py replay=runs/landing_videos/landings.npz mode=vid
 python scripts/contact_check.py                                                   # then:
 python scripts/render_replay.py replay=runs/contact_check/contacts.npz mode=stills
 python scripts/render_replay.py replay=runs/drop_test_5m/flips.npz mode=video
+python scripts/record_plume_grain_video.py   # M5 L2 grains: 64 landers, 2 recorded, rendered (about 20 min on the RTX 5060)
 bash scripts/push_run_results.sh                  # results of every finished run -> results/ on GitHub (user rule)
 python scripts/archive_run_results.py runs/<run_name>   # only copy into results/ (no commit)
 lunarsim figures runs/<run_name>

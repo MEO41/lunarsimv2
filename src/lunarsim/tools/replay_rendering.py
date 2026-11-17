@@ -104,6 +104,7 @@ class ReplayRenderer:
 
         lander_file = write_lander_usd(self.preset, Path(tempfile.gettempdir()) / "lunarsim_assets")
         self.landers, self.leg_translate_operations, self.arrows = [], [], []
+        self.grain_points = {}  # lander index -> UsdGeom.Points, made by place_grains
         for index in range(number_of_landers):
             path = f"/World/Lander_{index}"
             prim = stage.DefinePrim(path, "Xform")
@@ -191,13 +192,38 @@ class ReplayRenderer:
         w, x, y, z = (float(value) for value in row[3:7])
         return numpy.array([2.0 * (x * z + w * y), 2.0 * (y * z - w * x), 1.0 - 2.0 * (x * x + y * y)])
 
+    def place_grains(self, index: int, points: numpy.ndarray, colors: numpy.ndarray, widths_m: numpy.ndarray) -> None:
+        """Draw the grain parcels of lander ``index`` as dots: world ``points`` (P, 3), RGB ``colors`` (P, 3), ``widths_m`` (P,).
+
+        The dots are far larger than the grains (4-512 microns), so that the cloud can be seen
+        (the caller sizes them by their distance to the camera); the point prim is made on first use.
+        """
+        from pxr import UsdGeom, Vt
+
+        if index not in self.grain_points:
+            prim = UsdGeom.Points.Define(self.stage, f"/World/Grains_{index}")
+            prim.CreateWidthsAttr()
+            prim.SetWidthsInterpolation(UsdGeom.Tokens.vertex)
+            prim.CreateDisplayColorPrimvar(UsdGeom.Tokens.vertex)
+            self.grain_points[index] = prim
+        prim = self.grain_points[index]
+        if len(points) == 0:
+            UsdGeom.Imageable(prim).MakeInvisible()
+            return
+        UsdGeom.Imageable(prim).MakeVisible()
+        prim.GetPointsAttr().Set(Vt.Vec3fArray.FromNumpy(points.astype(numpy.float32)))
+        prim.GetWidthsAttr().Set(Vt.FloatArray.FromNumpy(widths_m.astype(numpy.float32)))
+        prim.GetDisplayColorPrimvar().Set(Vt.Vec3fArray.FromNumpy(colors.astype(numpy.float32)))
+
     def hide(self, index: int) -> None:
-        """Move lander ``index`` far below the ground and hide its arrows."""
+        """Move lander ``index`` far below the ground and hide its arrows and grains."""
         from pxr import Gf, UsdGeom
 
         UsdGeom.Xformable(self.landers[index]).GetOrderedXformOps()[0].Set(Gf.Vec3d(0.0, 0.0, -1000.0))
         for root, *_ in self.arrows[index]:
             UsdGeom.Imageable(root).MakeInvisible()
+        if index in self.grain_points:
+            UsdGeom.Imageable(self.grain_points[index]).MakeInvisible()
 
     def look(self, eye, target) -> None:
         """Point the camera from ``eye`` at ``target``."""

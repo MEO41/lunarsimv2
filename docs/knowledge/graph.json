@@ -284,7 +284,7 @@
       "title": "Session history",
       "type": "history",
       "status": "current",
-      "updated": "2026-11-15",
+      "updated": "2026-11-17",
       "summary": "Timeline of the work so far with commit hashes, so a new session knows how the project got here.",
       "path": "session-history.md"
     },
@@ -356,7 +356,7 @@
       "title": "Testing and commands",
       "type": "environment",
       "status": "current",
-      "updated": "2026-11-16",
+      "updated": "2026-11-17",
       "summary": "How to run the tests, scenarios, evaluations, benchmarks, figures and the knowledge-graph check.",
       "path": "testing-and-commands.md"
     },
@@ -1165,6 +1165,11 @@
       "source": "project-goal-and-design-documents",
       "target": "slot-loop-architecture",
       "relation": "governs"
+    },
+    {
+      "source": "replay-recording-and-rendering",
+      "target": "plume-regolith-and-dust",
+      "relation": "mentions"
     },
     {
       "source": "replay-recording-and-rendering",
