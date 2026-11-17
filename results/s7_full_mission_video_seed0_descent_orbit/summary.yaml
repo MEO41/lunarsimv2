@@ -1,0 +1,19 @@
+run: s7_full_mission_video_seed0_descent_orbit
+kind: evaluation
+started_utc: '2026-11-17T07:57:43+00:00'
+code_commit: ad2358c954b717d4ce6c638860faf7e78d092558
+uncommitted_changes: false
+scenario: s7_phase_descent_orbit
+agent: scripted_burns
+navigation: truth_noise
+seed: 0
+command_line: scripts/run_mission.py mission=s7_full_mission num_envs=16 run_name=s7_full_mission_video_seed0
+  seed=0 record=0
+resumed_from: ''
+episodes: 16
+success_percent: 100.0
+final_training_success_percent: ''
+outcomes:
+  success: 16
+gate_reached_percent: 100.0
+propellant_used_kg_mean: 139.3
