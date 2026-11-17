@@ -39,6 +39,7 @@ python scripts/export_policy.py run=runs/ppo_mlp_s1_seed0 checkpoint=model_500.p
 python scripts/benchmark_environment.py scenario=s1_terminal_truth num_envs=1024 steps=500
 python scripts/run_mission.py mission=s7_full_mission num_envs=16 run_name=s7_full_mission_seed0 seed=0   # S7 orbit to touchdown, phase by phase
 python scripts/run_mission.py mission=s5_trn num_envs=16 run_name=s5_trn_seed0 seed=0                     # S5 TRN descent
+python scripts/run_mission.py mission=s7_full_mission num_envs=16 seed=0 run_name=s7_full_mission_video_seed0 record=0 && python scripts/render_mission_video.py run=s7_full_mission_video_seed0 lander=0   # S7 video
 python scripts/export_policy_onnx.py policy=runs/ppo_gru_s3_seed0_to1500/policy.pt kind=gru hidden_size=128   # S10 policy node
 python scripts/run_software_in_the_loop.py episodes=20 seed=1000 run_name=s10_seed1000                       # S10 parity and timing
 python scripts/render_lander_image.py --enable_cameras replay=runs/contact_check/contacts.npz clip=1 output=docs/figures/lander_at_rest.png   # on the Apollo 17 terrain (needs the contact-check recording); without replay= on flat ground

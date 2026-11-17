@@ -3,7 +3,7 @@ id: replay-recording-and-rendering
 title: Replay recording and rendering
 type: component
 status: current
-updated: 2026-11-15
+updated: 2026-11-17
 summary: How runs are recorded frame by frame and rendered later as videos or stills, on a physics-free stage, with footpad force arrows.
 ---
 
@@ -24,6 +24,16 @@ renderer needs the camera extension:
    lander per clip), sets the transforms from the recording, draws a green force arrow beside
    each loaded footpad, follows the lander with the camera, writes captions with PIL, and joins
    the frames with ffmpeg.
+
+Mission video (S7, 2026-11-17): `scripts/run_mission.py ... record=<lander>` saves that lander's
+trajectory in every phase (`src/lunarsim/tools/mission_trajectory_recording.py`,
+`trajectory_lander<i>.npz`) and the PhysX phase's `replay.npz`. `scripts/render_mission_video.py`
+draws the descent orbit (100x) and the powered descent (braking 15x, approach 3x) as plots
+(`src/lunarsim/tools/mission_video.py`; speeds and thrust axis against the local vertical, not the
+site axes, which are tilted far from the site), renders the terminal phase in 3D with
+`render_replay.py` (real time; `terminal=reuse` keeps an earlier render) and joins title cards,
+plots, 3D and the end card with ffmpeg: `runs/<run>_video/mission.mp4` (3 min 46 s for
+`s7_full_mission_video_seed0`, lander 0).
 
 Users: `scripts/record_landing_videos.py` (landing successes and failures),
 `scripts/run_drop_test.py` (`flips.npz`), `scripts/contact_check.py` (`contacts.npz`).

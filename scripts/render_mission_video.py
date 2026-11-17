@@ -10,6 +10,7 @@ Steps: title card; descent orbit (``orbit_speed``, default 100 times real time);
 approach (3x) as altitude over range (:mod:`lunarsim.tools.mission_video`); the PhysX terminal
 phase rendered in 3D on the Apollo 17 terrain by ``scripts/render_replay.py`` (real time); an end
 card with the landing result. ffmpeg joins them into ``runs/<run>_video/mission.mp4``.
+``terminal=reuse`` keeps an existing 3D render of the terminal phase.
 """
 
 import shutil
@@ -38,7 +39,7 @@ def encode(frames: Path, output: Path) -> None:
 
 def main() -> None:
     """Parse ``key=value`` options, draw the plot parts, render the terminal phase, join everything."""
-    options = {"run": "s7_full_mission_video_seed0", "lander": "0", "orbit_speed": "100", "braking_speed": "15", "approach_speed": "3"}
+    options = {"run": "s7_full_mission_video_seed0", "lander": "0", "orbit_speed": "100", "braking_speed": "15", "approach_speed": "3", "terminal": "render"}
     for argument in sys.argv[1:]:
         key, _, value = argument.partition("=")
         if key not in options:
@@ -47,9 +48,9 @@ def main() -> None:
     run, lander = options["run"], int(options["lander"])
     runs = REPOSITORY_ROOT / "runs"
     output = runs / f"{run}_video"
-    if output.exists():
-        shutil.rmtree(output)
     frames = output / "frames"
+    if frames.exists():
+        shutil.rmtree(frames)
     frames.mkdir(parents=True)
 
     braking_log = runs / f"{run}_descent_orbit" / "episodes.parquet"
@@ -57,6 +58,7 @@ def main() -> None:
     site = site_from_parameters(scenario.slots["plant"].parameters["site"])
     site_direction = site.origin_mcmf().numpy()
     site_direction = site_direction / numpy.linalg.norm(site_direction)
+    site_basis = site.east_north_up().numpy()
     mass = scenario.lander["mass"]
     dry_mass = float(mass["mass_at_start_kg"]["value"]) - float(mass["descent_propellant_at_start_kg"]["value"]) + float(mass["unusable_descent_propellant_kg"]["value"])
     trajectory = f"trajectory_lander{lander}.npz"
@@ -70,16 +72,18 @@ def main() -> None:
         "Descent orbit and powered descent: float64 orbit simulation, drawn as plots",
         "Terminal phase: PhysX on the Apollo 17 height map, rendered in 3D",
     ], 4.0)
-    number = orbit_frames(frames, number, orbit, site_direction, site.radius_m, float(options["orbit_speed"]), dry_mass)
+    number = orbit_frames(frames, number, orbit, site_direction, site.radius_m, float(options["orbit_speed"]), dry_mass, site_basis)
     number = title_card(frames, number, ["2  Powered descent", "PDI at the 15 km perilune; braking to the high gate, approach to the low gate"], 2.0)
-    number = descent_frames(frames, number, [("BRAKING", braking, float(options["braking_speed"])), ("APPROACH", approach, float(options["approach_speed"]))], site_direction, site.radius_m, dry_mass)
+    number = descent_frames(frames, number, [("BRAKING", braking, float(options["braking_speed"])), ("APPROACH", approach, float(options["approach_speed"]))], site_direction, site.radius_m, dry_mass, site_basis)
     number = title_card(frames, number, ["3  Terminal phase in PhysX", "Handoff at the low gate (float64 orbit frame to the site frame), hazard map, site choice, touchdown", "real time"], 3.0)
     encode(frames, output / "part_1_plots.mp4")
     shutil.rmtree(frames)
     print(f"[video] plots: {number} frames", flush=True)
 
     replay = runs / f"{run}_terminal" / "replay.npz"
-    subprocess.run([sys.executable, str(REPOSITORY_ROOT / "scripts" / "render_replay.py"), f"replay={replay}", "mode=video"], check=True)
+    # terminal=reuse keeps the 3D render of an earlier call (it takes most of the time).
+    if options["terminal"] != "reuse" or not replay.with_suffix(".mp4").exists():
+        subprocess.run([sys.executable, str(REPOSITORY_ROOT / "scripts" / "render_replay.py"), f"replay={replay}", "mode=video"], check=True)
     shutil.copy2(replay.with_suffix(".mp4"), output / "part_2_terminal.mp4")
 
     episodes = pandas.read_parquet(runs / f"{run}_terminal" / "episodes.parquet")

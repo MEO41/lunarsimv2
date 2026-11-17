@@ -257,7 +257,7 @@
       "title": "Replay recording and rendering",
       "type": "component",
       "status": "current",
-      "updated": "2026-11-15",
+      "updated": "2026-11-17",
       "summary": "How runs are recorded frame by frame and rendered later as videos or stills, on a physics-free stage, with footpad force arrows.",
       "path": "replay-recording-and-rendering.md"
     },
@@ -984,6 +984,11 @@
     {
       "source": "orbit-to-touchdown-mission",
       "target": "slot-loop-architecture",
+      "relation": "mentions"
+    },
+    {
+      "source": "orbit-to-touchdown-mission",
+      "target": "replay-recording-and-rendering",
       "relation": "mentions"
     },
     {

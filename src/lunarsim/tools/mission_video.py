@@ -74,9 +74,26 @@ def save_frame(figure, directory: Path, number: int) -> int:
     return number + 1
 
 
-def telemetry_lines(phase_name: str, row: dict[str, float], speed_up: float, dry_mass: float) -> list[str]:
-    """Return the telemetry panel's lines for one sample (time is the mission time from the start)."""
-    horizontal = float(numpy.hypot(row["site_velocity_x"], row["site_velocity_y"]))
+def local_frame(row: dict[str, float], site_basis: numpy.ndarray) -> tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
+    """Return the Moon-fixed velocity, the local up (radial) direction and the body +z axis, all in MCMF.
+
+    The recorded velocity and attitude are in the SITE frame; far from the site its axes are tilted
+    against the local vertical, so speeds and the thrust axis are taken against the local up instead.
+    ``site_basis`` has the site's east, north and up directions (MCMF) as columns.
+    """
+    velocity = site_basis @ numpy.array([row["site_velocity_x"], row["site_velocity_y"], row["site_velocity_z"]])
+    position = numpy.array([row["mcmf_x"], row["mcmf_y"], row["mcmf_z"]])
+    up = position / numpy.linalg.norm(position)
+    w, x, y, z = row["quaternion_w"], row["quaternion_x"], row["quaternion_y"], row["quaternion_z"]
+    body_z = site_basis @ numpy.array([2 * (x * z + w * y), 2 * (y * z - w * x), 1 - 2 * (x * x + y * y)])
+    return velocity, up, body_z
+
+
+def telemetry_lines(phase_name: str, row: dict[str, float], speed_up: float, dry_mass: float, site_basis: numpy.ndarray) -> list[str]:
+    """Return the telemetry panel's lines for one sample (time is the mission time from the start); speeds against the local vertical."""
+    velocity, up, _ = local_frame(row, site_basis)
+    vertical = float(velocity @ up)
+    horizontal = float(numpy.linalg.norm(velocity - vertical * up))
     minutes, seconds = divmod(row["time"], 60.0)
     altitude = f"{row['altitude'] / 1000:8.2f} km" if row["altitude"] > 5000.0 else f"{row['altitude']:8.0f} m"
     return [
@@ -84,7 +101,7 @@ def telemetry_lines(phase_name: str, row: dict[str, float], speed_up: float, dry
         f"mission time  {int(minutes):3d}:{seconds:04.1f}",
         f"altitude      {altitude}",
         f"horizontal    {horizontal:8.1f} m/s",
-        f"vertical      {row['site_velocity_z']:+8.1f} m/s",
+        f"vertical      {vertical:+8.1f} m/s",
         f"throttle      {100 * row['throttle']:8.1f} %",
         f"mass          {row['mass']:8.0f} kg",
         f"propellant    {row['mass'] - dry_mass:8.0f} kg",
@@ -113,7 +130,7 @@ def title_card(directory: Path, number: int, lines: list[str], seconds: float) -
     return number + count
 
 
-def orbit_frames(directory: Path, number: int, phase: dict[str, numpy.ndarray], site_direction: numpy.ndarray, site_radius: float, speed_up: float, dry_mass: float) -> int:
+def orbit_frames(directory: Path, number: int, phase: dict[str, numpy.ndarray], site_direction: numpy.ndarray, site_radius: float, speed_up: float, dry_mass: float, site_basis: numpy.ndarray) -> int:
     """Draw the descent orbit seen from the orbit plane's normal; return the next frame number."""
     position = numpy.stack((phase["mcmf_x"], phase["mcmf_y"], phase["mcmf_z"]), axis=1) / 1000.0
     normal = numpy.cross(position[0], position[len(position) // 4])
@@ -145,28 +162,27 @@ def orbit_frames(directory: Path, number: int, phase: dict[str, numpy.ndarray], 
         axes.set_aspect("equal")
         axes.axis("off")
         figure.text(0.03, 0.92, "1  Descent orbit: DOI burn, then half an orbit down to the 15 km perilune", color=TEXT, fontsize=14)
-        draw_panel(figure, telemetry_lines("DESCENT ORBIT", row_at(phase, index), speed_up, dry_mass))
+        draw_panel(figure, telemetry_lines("DESCENT ORBIT", row_at(phase, index), speed_up, dry_mass, site_basis))
         number = save_frame(figure, directory, number)
     return number
 
 
-def thrust_axis_on_screen(row: dict[str, float]) -> numpy.ndarray:
-    """Return the thrust axis (body +z) as (forward, up): forward is the flight direction, to the right on screen."""
-    w, x, y, z = row["quaternion_w"], row["quaternion_x"], row["quaternion_y"], row["quaternion_z"]
-    body_z = numpy.array([2 * (x * z + w * y), 2 * (y * z - w * x), 1 - 2 * (x * x + y * y)])
-    horizontal = numpy.array([row["site_velocity_x"], row["site_velocity_y"]])
+def thrust_axis_on_screen(row: dict[str, float], site_basis: numpy.ndarray) -> numpy.ndarray:
+    """Return the thrust axis (body +z) as (forward, up) against the local vertical: forward is the flight direction, right on screen."""
+    velocity, up, body_z = local_frame(row, site_basis)
+    horizontal = velocity - (velocity @ up) * up
     speed = float(numpy.linalg.norm(horizontal))
-    forward = horizontal / speed if speed > 0.5 else numpy.array([-1.0, 0.0])  # S7 flies west (-x)
-    return numpy.array([body_z[0] * forward[0] + body_z[1] * forward[1], body_z[2]])
+    forward = horizontal / speed if speed > 0.5 else -site_basis[:, 0]  # S7 flies west
+    return numpy.array([float(body_z @ forward), float(body_z @ up)])
 
 
-def draw_lander(axes, centre: numpy.ndarray, row: dict[str, float], height: float, x_per_y: float) -> None:
+def draw_lander(axes, centre: numpy.ndarray, row: dict[str, float], height: float, x_per_y: float, site_basis: numpy.ndarray) -> None:
     """Draw the lander symbol: a body along the thrust axis and a flame whose length follows the throttle.
 
     ``height`` is the symbol size in data y units; ``x_per_y`` converts a screen-equal length to data
     x units. The x axis is inverted (range falls to the right), so a step right lowers x.
     """
-    axis = thrust_axis_on_screen(row)
+    axis = thrust_axis_on_screen(row, site_basis)
     axis /= max(float(numpy.linalg.norm(axis)), 1e-9)
     side = numpy.array([-axis[1], axis[0]])
 
@@ -181,7 +197,7 @@ def draw_lander(axes, centre: numpy.ndarray, row: dict[str, float], height: floa
         axes.add_patch(plt.Polygon(flame, closed=True, color=BURN, alpha=0.9, zorder=4))
 
 
-def descent_frames(directory: Path, number: int, phases: list[tuple[str, dict, float]], site_direction: numpy.ndarray, site_radius: float, dry_mass: float) -> int:
+def descent_frames(directory: Path, number: int, phases: list[tuple[str, dict, float]], site_direction: numpy.ndarray, site_radius: float, dry_mass: float, site_basis: numpy.ndarray) -> int:
     """Draw braking and approach as altitude over range (two panels); return the next frame number."""
     ranges = [surface_range(phase, site_direction, site_radius) for _, phase, _ in phases]
     altitudes = [phase["altitude"] for _, phase, _ in phases]
@@ -206,7 +222,7 @@ def descent_frames(directory: Path, number: int, phases: list[tuple[str, dict, f
                 centre = numpy.array([ranges[phase_number][index] * scale, row["altitude"] * scale])
                 if x_limit[1] <= centre[0] <= x_limit[0] and y_limit[0] <= centre[1] <= y_limit[1]:
                     x_per_y = ((x_limit[0] - x_limit[1]) / (box[2] * WIDTH_INCHES)) / ((y_limit[1] - y_limit[0]) / (box[3] * HEIGHT_INCHES))
-                    draw_lander(axes, centre, row, 0.07 * (y_limit[1] - y_limit[0]), x_per_y)
+                    draw_lander(axes, centre, row, 0.07 * (y_limit[1] - y_limit[0]), x_per_y, site_basis)
                 axes.set_xlim(*x_limit)
                 axes.set_ylim(*y_limit)
                 axes.tick_params(colors=TEXT, labelsize=9)
@@ -216,6 +232,6 @@ def descent_frames(directory: Path, number: int, phases: list[tuple[str, dict, f
                 axes.set_ylabel(f"altitude ({unit})", color=TEXT)
                 axes.set_title(title, color=TEXT, fontsize=11)
             figure.text(0.05, 0.92, f"2  Powered descent, {name.lower()}: Apollo-style quadratic guidance", color=TEXT, fontsize=14)
-            draw_panel(figure, telemetry_lines(name, row, speed_up, dry_mass))
+            draw_panel(figure, telemetry_lines(name, row, speed_up, dry_mass, site_basis))
             number = save_frame(figure, directory, number)
     return number

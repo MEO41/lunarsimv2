@@ -136,6 +136,12 @@ at the low gate 2.95 m mean (1.3 to 12.7 m) from a 50 m start error; terminal **
 landing error 0.75 m mean (1.5 m at most). The filter's gate rejected 8 to 164 terrain fixes per
 lander (health column `fixes_rejected`).
 
+## Mission video
+
+`runs/s7_full_mission_video_seed0_video/mission.mp4` (not in git, 23 MB): lander 0 of the seed 0
+run, recorded with `record=0` (the run repeats the committed S7 numbers exactly); see
+[[replay-recording-and-rendering]].
+
 ## Limits
 
 - The terminal phase is the classical S6 chain; the design's learned `ppo_gru` for S7 and S5 is
