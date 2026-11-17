@@ -49,6 +49,7 @@ summary: Timeline of the work so far with commit hashes, so a new session knows 
 | — | Drop test on a steep part of the map ([[drop-test-results]]); landing video script |
 | 2026-11-16 | User: "reach the M7", no training over 20 min. M4 hazard part (S6), M5 (S8, L2 stopped), M6 (S7, S5; [[orbit-to-touchdown-mission]]) built without learning; M7 bridge and S10 ([[software-in-the-loop-bridge]]) |
 | 2026-11-17 | S7 mission video and README GIF; M5 L2 built as torch grains (user: "It has to be efficiently run on the gpu") and the L1 vs L2 check; grain video for a visual check (user: "I want a video to visual confirm"), then a realistic render (user: "Video look only") |
+| 2026-11-17 | User: "Lets go back to the terrain navigation and landing site selection part", chose "S6: close the LiDAR gap". Measured LiDAR noise (94 % safe) vs specification (31 %); the true-map 83 % found to be the agent's landing accuracy ([[hazard-detection-and-avoidance]]) |
 
 ## Next
 

@@ -3,7 +3,7 @@ id: open-issues
 title: Open issues
 type: issue
 status: open
-updated: 2026-11-16
+updated: 2026-11-17
 summary: Known weak points of the model and the code, with what each one affects.
 ---
 
@@ -14,7 +14,8 @@ summary: Known weak points of the model and the code, with what each one affects
 | L1 plume: dust shape below the onset, full-dust height, ground-effect force and ejecta rate are model choices | S8 dust time, ejecta mass, plume force | L3 calibration ([[plume-regolith-and-dust]]) |
 | Footpad soil: no bulldozing resistance when a sunk pad slides; pad velocity is the link origin's (no rotation term); ground under a pad sampled at 7 points | S8 slide distance, sinkage on rocks | Compare with the Apollo 11 slide of 18 to 22 in ([D-6850] p. 18) |
 | S6 LiDAR mount is ideal (no angle limits, no lag) and aims at the nominal target | S6 map coverage | Gimbal limits from a flight LiDAR if a source is found |
-| S6 onboard map is limited by the 1 % of range noise of the flash LiDAR: no site is known safe above about 100 m | S6 safe-touchdown rate (31 % vs 83 % with the true map) | Full 128 x 128 pixels, longer averaging, or a lower-noise sensor model with a source |
+| S6 default LiDAR noise is the ASC specification (10 cm + 1 % of range, an upper bound) used as one sigma; the measured errors are about 10 times smaller and give 94 % safe touchdowns instead of 31 % | S6 and S7 safe-touchdown rates | User decides the default ([[pending-user-decisions]] item 5; [[hazard-detection-and-avoidance]]) |
+| S6 agent lands 0.8-0.9 m from its chosen site when it re-plans early (shortest feasible time-to-go), and the footprint check assumes an exact touchdown; this caps the true-map run at 83 % | S6 safe-touchdown rate with a good map | Fix proposed to the user ([[pending-user-decisions]] item 5) |
 | Linear strut spring along body z; real struts are inclined honeycomb crushers. Peak leg forces 19–71 kN in successful landings, above the real crush loads (20 and 42 kN) | Leg loads; not touchdown speeds or tilt | Crush model later (milestone 5 footpads); see [[lander-articulation-model]] |
 | Dish footpad is fixed to its leg (real one swivels on a ball joint); stages are a cylinder and a box | Contact on rough ground | Accept for now |
 | Nozzle has no collision shape (crushable skirt); a rock under it is recorded as low clearance, not as a force | Rock strikes under the engine | `minimum_nozzle_clearance_m` in the records |

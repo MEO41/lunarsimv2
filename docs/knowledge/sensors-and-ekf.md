@@ -3,7 +3,7 @@ id: sensors-and-ekf
 title: Sensors and EKF (milestone 2)
 type: component
 status: current
-updated: 2026-11-15
+updated: 2026-11-17
 summary: The terminal_suite sensor binding (IMU, radar altimeter, Doppler velocimeter, propellant gauge, probe switches), the ekf navigation, scenario S2 and the consistency results.
 ---
 
@@ -29,7 +29,7 @@ summary: The terminal_suite sensor binding (IMU, radar altimeter, Doppler veloci
 | Doppler velocimeter | 3 beams 25° off axis (**model choice**), 20 Hz, 2 m to 5 km, σ_v = 1.4 mm/s + 1.1e-6·range, σ_r = 0.16 m + 1.2e-4·range | NDL, IM-1 flight calibration (Karlgaard et al. 2025) |
 | Propellant gauge | 3.5 % of the load at start, 1 Hz (rate **model choice**) | Apollo 10 DPS evaluation (NASA CR-101869) |
 | Probe switches | contact light, every step | [[lander-preset-apollo-lm]] |
-| Flash LiDAR (`lidar_cheap`, only in `sensors=terminal_suite_with_lidar`) | 32 × 32 of the 128 × 128 pixels (**model choice**), 6° field of view, 10 Hz, 2.8 m to 1 km, σ = 0.10 m + 1 % of range, boresight 30° off −z toward +x (**model choice**) | ASC flash LiDAR of OSIRIS-REx (Sornsin et al., ASC); ALHAT/Morpheus flash LiDAR (8 cm, but 150 m minimum range) as the alternative |
+| Flash LiDAR (`lidar_cheap`, only in `sensors=terminal_suite_with_lidar`) | 32 × 32 of the 128 × 128 pixels (**model choice**), 6° field of view, 10 Hz, 2.8 m to 1 km, σ = 0.10 m + 1 % of range, boresight 30° off −z toward +x (**model choice**) | ASC flash LiDAR of OSIRIS-REx (Sornsin et al., ASC); ALHAT/Morpheus flash LiDAR (8 cm, but 150 m minimum range) as the alternative. Note (2026-11-17): the 10 cm + 1 % is the ASC **specification** ("< ...", an upper bound); the measured RMS errors in the same paper (Table 1) are about 10 times smaller at 300-1,000 m; S6 variants use them ([[hazard-detection-and-avoidance]]) |
 
 ## Filter
 

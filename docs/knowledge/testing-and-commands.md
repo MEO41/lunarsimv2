@@ -15,7 +15,7 @@ Activate the Isaac environment first ([[workstation-setup-and-machines]]).
 
 | Command | What | Needs GPU |
 | --- | --- | --- |
-| `python -m pytest tests/unit -q` | 198 CPU tests (core, preset, controllers, records, figures, terrain, knowledge graph, reward, action adapter, engine cut-off, EKF on a synthetic flight, hazards, regolith, frames, orbit plant, TRN, dust streaks) | no |
+| `python -m pytest tests/unit -q` | 201 CPU tests (core, preset, controllers, records, figures, terrain, knowledge graph, reward, action adapter, engine cut-off, EKF on a synthetic flight, hazards, regolith, frames, orbit plant, TRN, dust streaks, LiDAR noise table) | no |
 | `python scripts/run_isaac_tests.py` | `tests/physics` + `tests/smoke` (27 files, including the probe test, the EKF gate test, the PPO smoke tests, S6, S8, the S7/S5 mission phases, S10 and the L2 grains), one simulator process per file; the terrain test is skipped without the height maps | yes |
 | `python scripts/run_isaac_tests.py physics` | one folder | yes |
 | `python scripts/run_isaac_tests.py tests/smoke/test_null_loop_environment.py` | one file | yes |

@@ -86,8 +86,8 @@
       "title": "Hazard detection and avoidance (scenario S6, milestone 4)",
       "type": "component",
       "status": "current",
-      "updated": "2026-11-16",
-      "summary": "The S6 chain - approach-gate start, pointed flash LiDAR, onboard hazard map, LM footprint criteria, site_pick_divert agent, site_safety metric - and the first results (31 % safe touchdowns with the LiDAR map, 83 % with the true map, 8 % at the nominal targets).",
+      "updated": "2026-11-17",
+      "summary": "The S6 chain - approach-gate start, pointed flash LiDAR, onboard hazard map, LM footprint criteria, site_pick_divert agent, site_safety metric - the first results (31 % safe touchdowns with the LiDAR map, 83 % with the true map) and the LiDAR comparison (94 % with the ASC LiDAR's measured noise; the 83 % 'upper limit' is set by the agent's landing accuracy, not by the map).",
       "path": "hazard-detection-and-avoidance.md"
     },
     {
@@ -185,7 +185,7 @@
       "title": "Open issues",
       "type": "issue",
       "status": "open",
-      "updated": "2026-11-16",
+      "updated": "2026-11-17",
       "summary": "Known weak points of the model and the code, with what each one affects.",
       "path": "open-issues.md"
     },
@@ -275,7 +275,7 @@
       "title": "Sensors and EKF (milestone 2)",
       "type": "component",
       "status": "current",
-      "updated": "2026-11-15",
+      "updated": "2026-11-17",
       "summary": "The terminal_suite sensor binding (IMU, radar altimeter, Doppler velocimeter, propellant gauge, probe switches), the ekf navigation, scenario S2 and the consistency results.",
       "path": "sensors-and-ekf.md"
     },
@@ -602,6 +602,11 @@
       "relation": "mentions"
     },
     {
+      "source": "decisions-log",
+      "target": "pending-user-decisions",
+      "relation": "mentions"
+    },
+    {
       "source": "drop-test-results",
       "target": "open-issues",
       "relation": "mentions"
@@ -634,6 +639,11 @@
     {
       "source": "hazard-detection-and-avoidance",
       "target": "skipped-learning-work",
+      "relation": "mentions"
+    },
+    {
+      "source": "hazard-detection-and-avoidance",
+      "target": "pending-user-decisions",
       "relation": "mentions"
     },
     {
@@ -928,6 +938,16 @@
     },
     {
       "source": "open-issues",
+      "target": "pending-user-decisions",
+      "relation": "mentions"
+    },
+    {
+      "source": "open-issues",
+      "target": "hazard-detection-and-avoidance",
+      "relation": "mentions"
+    },
+    {
+      "source": "open-issues",
       "target": "lander-articulation-model",
       "relation": "mentions"
     },
@@ -1044,6 +1064,11 @@
     {
       "source": "pending-user-decisions",
       "target": "software-in-the-loop-bridge",
+      "relation": "mentions"
+    },
+    {
+      "source": "pending-user-decisions",
+      "target": "hazard-detection-and-avoidance",
       "relation": "mentions"
     },
     {
@@ -1228,6 +1253,11 @@
     },
     {
       "source": "sensors-and-ekf",
+      "target": "hazard-detection-and-avoidance",
+      "relation": "mentions"
+    },
+    {
+      "source": "sensors-and-ekf",
       "target": "slot-loop-architecture",
       "relation": "part of"
     },
@@ -1304,6 +1334,11 @@
     {
       "source": "session-history",
       "target": "software-in-the-loop-bridge",
+      "relation": "mentions"
+    },
+    {
+      "source": "session-history",
+      "target": "hazard-detection-and-avoidance",
       "relation": "mentions"
     },
     {

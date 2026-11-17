@@ -1,0 +1,19 @@
+run: s6_lidar_full_pixels_seed0
+kind: evaluation
+started_utc: '2026-11-17T13:59:10+00:00'
+code_commit: 2c535a741c247a056eda079e4e4231c061f0344e
+uncommitted_changes: false
+scenario: s6_hazard_avoidance
+agent: site_pick_divert
+navigation: hazard_map
+seed: 0
+command_line: scripts/evaluate_agent.py scenario=s6_hazard_avoidance sensors.lidar.pixels_per_side=128
+  num_envs=64 run_name=s6_lidar_full_pixels_seed0
+resumed_from: ''
+episodes: 64
+success_percent: 100.0
+final_training_success_percent: ''
+outcomes:
+  success: 64
+touchdown_vertical_speed_mps_mean: -1.436
+propellant_used_kg_mean: 466.0

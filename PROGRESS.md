@@ -59,6 +59,11 @@ Last update: 2026-11-15
   CPU/ONNX nodes miss the 1 m tolerance by float rounding (user decision 4). ROS 2 transport
   untested (not installed).
 
+- **S6 LiDAR comparison (2026-11-17).** Measured ASC noise and ALHAT sensor variants, six runs
+  and `results/s6_lidar_comparison/`: 94 % safe touchdowns with the measured noise against 31 %
+  with the specification; the true-map 83 % is the agent's landing accuracy after an early
+  re-plan (`docs/knowledge/hazard-detection-and-avoidance.md`).
+
 ## In progress
 - Nothing running. Next: the user's decisions in `docs/knowledge/pending-user-decisions.md`.
   Learned work skipped in M3 to M6 is listed in `docs/knowledge/skipped-learning-work.md`.

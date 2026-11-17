@@ -1,0 +1,351 @@
+reference: s6_lidar_specification_seed0
+nominal: s6_nominal_target_seed0
+criteria:
+  maximum_mean_slope_deg: 6.0
+  maximum_effective_slope_deg: 12.0
+  maximum_relief_m: 0.6096
+  source: '[D-6850] Rogers, NASA TN D-6850 p. 3'
+runs:
+- run: s6_nominal_target_seed0
+  landers: 64
+  landing_success_percent: 85.9
+  safe_touchdown_percent: 7.8
+  safe_touchdown_95_percent_interval:
+  - 3.4
+  - 17.0
+  nominal_target_safe_percent: 7.8
+  no_safe_site_at_first_decision_percent: 0.0
+  redesignations:
+    mean: 0.0
+    max: 0.0
+  divert_distance_m:
+    mean: 0.77
+    max: 1.54
+  propellant_used_kg:
+    mean: 307.8
+    max: 328.0
+  propellant_from_first_decision_kg:
+    mean: null
+    max: null
+  first_decision_time_s:
+    mean: null
+    max: null
+  landing_duration_s:
+    mean: 69.3
+    max: 73.2
+  under_footpads:
+    mean_slope_deg:
+      mean: 3.09
+      max: 7.97
+    effective_slope_deg:
+      mean: 6.01
+      max: 11.75
+    relief_m:
+      mean: 1.05
+      max: 2.514
+  unsafe_causes:
+    unsafe_touchdowns: 59
+    relief_over_limit: 58
+    mean_slope_over_limit: 7
+    effective_slope_over_limit: 0
+  divert_propellant_over_nominal_flight_kg:
+    mean: 0.0
+    min: 0.0
+    max: 0.0
+  against_reference:
+    safe_here_only: 0
+    safe_in_reference_only: 15
+- run: s6_lidar_specification_seed0
+  landers: 64
+  landing_success_percent: 100.0
+  safe_touchdown_percent: 31.2
+  safe_touchdown_95_percent_interval:
+  - 21.2
+  - 43.4
+  nominal_target_safe_percent: 7.8
+  no_safe_site_at_first_decision_percent: 100.0
+  redesignations:
+    mean: 2.44
+    max: 5.0
+  divert_distance_m:
+    mean: 5.6
+    max: 13.11
+  propellant_used_kg:
+    mean: 445.3
+    max: 518.9
+  propellant_from_first_decision_kg:
+    mean: 365.6
+    max: 469.7
+  first_decision_time_s:
+    mean: 16.99
+    max: 21.64
+  landing_duration_s:
+    mean: 104.8
+    max: 123.4
+  under_footpads:
+    mean_slope_deg:
+      mean: 2.75
+      max: 5.0
+    effective_slope_deg:
+      mean: 4.55
+      max: 8.78
+    relief_m:
+      mean: 0.655
+      max: 1.193
+  unsafe_causes:
+    unsafe_touchdowns: 44
+    relief_over_limit: 44
+    mean_slope_over_limit: 0
+    effective_slope_over_limit: 0
+  divert_propellant_over_nominal_flight_kg:
+    mean: 137.5
+    min: 23.0
+    max: 212.1
+  against_reference:
+    safe_here_only: 0
+    safe_in_reference_only: 0
+- run: s6_lidar_full_pixels_seed0
+  landers: 64
+  landing_success_percent: 100.0
+  safe_touchdown_percent: 53.1
+  safe_touchdown_95_percent_interval:
+  - 41.1
+  - 64.8
+  nominal_target_safe_percent: 7.8
+  no_safe_site_at_first_decision_percent: 100.0
+  redesignations:
+    mean: 2.92
+    max: 6.0
+  divert_distance_m:
+    mean: 13.22
+    max: 28.78
+  propellant_used_kg:
+    mean: 466.0
+    max: 530.7
+  propellant_from_first_decision_kg:
+    mean: 386.2
+    max: 494.2
+  first_decision_time_s:
+    mean: 16.99
+    max: 21.62
+  landing_duration_s:
+    mean: 110.0
+    max: 126.3
+  under_footpads:
+    mean_slope_deg:
+      mean: 1.97
+      max: 2.97
+    effective_slope_deg:
+      mean: 3.27
+      max: 10.23
+    relief_m:
+      mean: 0.533
+      max: 0.922
+  unsafe_causes:
+    unsafe_touchdowns: 30
+    relief_over_limit: 30
+    mean_slope_over_limit: 0
+    effective_slope_over_limit: 0
+  divert_propellant_over_nominal_flight_kg:
+    mean: 158.2
+    min: 31.6
+    max: 223.0
+  against_reference:
+    safe_here_only: 21
+    safe_in_reference_only: 7
+- run: s6_lidar_measured_noise_seed0
+  landers: 64
+  landing_success_percent: 100.0
+  safe_touchdown_percent: 93.8
+  safe_touchdown_95_percent_interval:
+  - 85.0
+  - 97.5
+  nominal_target_safe_percent: 7.8
+  no_safe_site_at_first_decision_percent: 100.0
+  redesignations:
+    mean: 2.98
+    max: 6.0
+  divert_distance_m:
+    mean: 15.82
+    max: 30.94
+  propellant_used_kg:
+    mean: 431.7
+    max: 517.6
+  propellant_from_first_decision_kg:
+    mean: 351.9
+    max: 451.3
+  first_decision_time_s:
+    mean: 16.99
+    max: 21.64
+  landing_duration_s:
+    mean: 101.2
+    max: 122.8
+  under_footpads:
+    mean_slope_deg:
+      mean: 1.86
+      max: 3.02
+    effective_slope_deg:
+      mean: 2.81
+      max: 7.89
+    relief_m:
+      mean: 0.332
+      max: 0.903
+  unsafe_causes:
+    unsafe_touchdowns: 4
+    relief_over_limit: 4
+    mean_slope_over_limit: 0
+    effective_slope_over_limit: 0
+  divert_propellant_over_nominal_flight_kg:
+    mean: 123.9
+    min: -27.6
+    max: 213.6
+  against_reference:
+    safe_here_only: 42
+    safe_in_reference_only: 2
+- run: s6_lidar_measured_noise_full_pixels_seed0
+  landers: 64
+  landing_success_percent: 98.4
+  safe_touchdown_percent: 71.9
+  safe_touchdown_95_percent_interval:
+  - 59.9
+  - 81.4
+  nominal_target_safe_percent: 7.8
+  no_safe_site_at_first_decision_percent: 4.7
+  redesignations:
+    mean: 1.23
+    max: 5.0
+  divert_distance_m:
+    mean: 16.04
+    max: 29.95
+  propellant_used_kg:
+    mean: 326.2
+    max: 495.0
+  propellant_from_first_decision_kg:
+    mean: 246.5
+    max: 419.0
+  first_decision_time_s:
+    mean: 16.99
+    max: 21.62
+  landing_duration_s:
+    mean: 74.8
+    max: 117.5
+  under_footpads:
+    mean_slope_deg:
+      mean: 1.71
+      max: 3.03
+    effective_slope_deg:
+      mean: 3.14
+      max: 12.51
+    relief_m:
+      mean: 0.445
+      max: 1.416
+  unsafe_causes:
+    unsafe_touchdowns: 18
+    relief_over_limit: 18
+    mean_slope_over_limit: 0
+    effective_slope_over_limit: 1
+  divert_propellant_over_nominal_flight_kg:
+    mean: 18.4
+    min: -33.1
+    max: 181.9
+  against_reference:
+    safe_here_only: 29
+    safe_in_reference_only: 3
+- run: s6_lidar_alhat_seed0
+  landers: 64
+  landing_success_percent: 100.0
+  safe_touchdown_percent: 81.2
+  safe_touchdown_95_percent_interval:
+  - 70.0
+  - 88.9
+  nominal_target_safe_percent: 7.8
+  no_safe_site_at_first_decision_percent: 0.0
+  redesignations:
+    mean: 0.72
+    max: 4.0
+  divert_distance_m:
+    mean: 16.46
+    max: 29.62
+  propellant_used_kg:
+    mean: 306.0
+    max: 379.2
+  propellant_from_first_decision_kg:
+    mean: 226.3
+    max: 314.3
+  first_decision_time_s:
+    mean: 16.99
+    max: 21.64
+  landing_duration_s:
+    mean: 69.8
+    max: 88.4
+  under_footpads:
+    mean_slope_deg:
+      mean: 1.96
+      max: 5.16
+    effective_slope_deg:
+      mean: 3.05
+      max: 9.67
+    relief_m:
+      mean: 0.383
+      max: 1.204
+  unsafe_causes:
+    unsafe_touchdowns: 12
+    relief_over_limit: 12
+    mean_slope_over_limit: 0
+    effective_slope_over_limit: 0
+  divert_propellant_over_nominal_flight_kg:
+    mean: -1.8
+    min: -30.2
+    max: 64.9
+  against_reference:
+    safe_here_only: 36
+    safe_in_reference_only: 4
+- run: s6_truth_map_seed0
+  landers: 64
+  landing_success_percent: 100.0
+  safe_touchdown_percent: 82.8
+  safe_touchdown_95_percent_interval:
+  - 71.8
+  - 90.1
+  nominal_target_safe_percent: 7.8
+  no_safe_site_at_first_decision_percent: 0.0
+  redesignations:
+    mean: 0.0
+    max: 0.0
+  divert_distance_m:
+    mean: 18.7
+    max: 30.93
+  propellant_used_kg:
+    mean: 305.4
+    max: 384.0
+  propellant_from_first_decision_kg:
+    mean: 226.8
+    max: 314.7
+  first_decision_time_s:
+    mean: 17.0
+    max: 21.8
+  landing_duration_s:
+    mean: 69.6
+    max: 89.7
+  under_footpads:
+    mean_slope_deg:
+      mean: 1.71
+      max: 2.75
+    effective_slope_deg:
+      mean: 2.62
+      max: 6.28
+    relief_m:
+      mean: 0.32
+      max: 0.94
+  unsafe_causes:
+    unsafe_touchdowns: 11
+    relief_over_limit: 11
+    mean_slope_over_limit: 0
+    effective_slope_over_limit: 0
+  divert_propellant_over_nominal_flight_kg:
+    mean: -2.5
+    min: -33.5
+    max: 69.7
+  against_reference:
+    safe_here_only: 37
+    safe_in_reference_only: 4

@@ -1,0 +1,20 @@
+run: s6_lidar_measured_noise_full_pixels_seed0
+kind: evaluation
+started_utc: '2026-11-17T14:03:39+00:00'
+code_commit: 2c535a741c247a056eda079e4e4231c061f0344e
+uncommitted_changes: false
+scenario: s6_hazard_avoidance_measured_lidar
+agent: site_pick_divert
+navigation: hazard_map
+seed: 0
+command_line: scripts/evaluate_agent.py scenario=s6_hazard_avoidance_measured_lidar
+  sensors.lidar.pixels_per_side=128 num_envs=64 run_name=s6_lidar_measured_noise_full_pixels_seed0
+resumed_from: ''
+episodes: 64
+success_percent: 98.44
+final_training_success_percent: ''
+outcomes:
+  success: 63
+  tilt_rate_at_contact: 1
+touchdown_vertical_speed_mps_mean: -1.174
+propellant_used_kg_mean: 326.2
