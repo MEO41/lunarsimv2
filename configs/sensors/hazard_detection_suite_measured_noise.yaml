@@ -1,0 +1,25 @@
+# The S6 suite with the ASC flash LiDAR's MEASURED range error instead of its specification.
+# hazard_detection_suite uses the specification "< (10 cm + 1 % of range)" as one sigma; the same
+# paper's Table 1 gives the measured RMS range error of the two OSIRIS-REx flight units, about ten
+# times smaller at the S6 ranges (354 m: 0.31 / 0.34 m against < 3.64 m).
+defaults:
+  - hazard_detection_suite
+  - _self_
+# Source:
+#   [ASC-FLASH] Sornsin, Short, Bourbeau, Dahlin (Advanced Scientific Concepts), "Global Shutter
+#              Solid State Flash LIDAR for Spacecraft Navigation and Docking Applications" (about
+#              2019), Table 1 p. 5: OSIRIS-REx GN&C LIDAR-1 and LIDAR-2 pre-flight range
+#              measurements (centre 64 x 64 pixels), RMS range error per range truth.
+#              https://asc3d.com/wp-content/uploads/2020/05/11005-31-Final_RevE.pdf
+lidar:
+  # [range truth m, RMS range error m], the worse of the two units at each range (model choice).
+  # LIDAR-1 / LIDAR-2: 2.8 m 0.157 / 0.160; 8.0 m 0.218 / 0.110; 30.7 m 0.18 / 0.125;
+  # 102 m 0.295 / 0.136; 354 m 0.305 / 0.336; 1009 m 0.261 / 0.765. The RMS includes the unit's
+  # mean range offset, so using it as random noise per pixel is conservative.
+  range_noise_table_m:
+    - [2.8, 0.160]
+    - [8.0, 0.218]
+    - [30.7, 0.180]
+    - [102.0, 0.295]
+    - [354.0, 0.336]
+    - [1009.0, 0.765]

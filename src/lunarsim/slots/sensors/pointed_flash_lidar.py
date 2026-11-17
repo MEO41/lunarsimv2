@@ -163,7 +163,8 @@ class PointedFlashLidar:
 
     Parameters (``lidar`` section with a ``pointing`` block): ``rate_hz``, ``field_of_view_deg``,
     ``pixels_per_side``, ``minimum_range_m``, ``maximum_range_m``, ``range_noise_m``,
-    ``range_noise_per_m``, ``ray_march_step_m`` (default 0.5), ``compile`` (default true: compile
+    ``range_noise_per_m``, ``range_noise_table_m`` (optional list of ``[range_m, sigma_m]``
+    that replaces the two before, see :meth:`range_noise_sigma`), ``ray_march_step_m`` (default 0.5), ``compile`` (default true: compile
     the march on the GPU), and ``pointing``: ``target_m``
     (site-frame point, default ``[0, 0, 0]``), ``error_deg`` (one sigma per axis, per frame),
     ``mosaic`` (``rows``, ``columns``, ``step_deg``; default one frame).
@@ -176,6 +177,14 @@ class PointedFlashLidar:
         self.maximum_range = float(parameters["maximum_range_m"])
         self.range_noise_offset = float(parameters["range_noise_m"])
         self.range_noise_slope = float(parameters["range_noise_per_m"])
+        table = parameters.get("range_noise_table_m")
+        self.range_noise_table: tuple[Tensor, Tensor] | None = None
+        if table:
+            pairs = sorted((float(pair[0]), float(pair[1])) for pair in table)
+            self.range_noise_table = (
+                torch.tensor([pair[0] for pair in pairs], device=device),
+                torch.tensor([pair[1] for pair in pairs], device=device),
+            )
         self.march_step = float(parameters.get("ray_march_step_m", 0.5))
         if bool(parameters.get("compile", True)) and not str(device).startswith("cpu"):
             enable_compiled_march()  # 7.1 -> 0.7 ms per frame of 16,000 rays (RTX 5060)
@@ -197,6 +206,24 @@ class PointedFlashLidar:
         self.last_boresight = torch.zeros(count, 3, device=device)
         self.last_boresight[:, 2] = -1.0
         self.bounds: tuple[float, float] | None = None
+
+    def range_noise_sigma(self, distance: Tensor) -> Tensor:
+        """Return the one-sigma range noise (m) at slant ``distance`` (m), same shape.
+
+        With ``range_noise_table_m`` (pairs of range and sigma, e.g. measured RMS errors of a
+        flight unit) the sigma is interpolated linearly in range and held flat beyond the first
+        and last pair; otherwise it is ``range_noise_m + range_noise_per_m * distance``.
+        """
+        if self.range_noise_table is None:
+            return self.range_noise_offset + self.range_noise_slope * distance
+        ranges, sigmas = self.range_noise_table
+        if ranges.shape[0] == 1:
+            return torch.full_like(distance, float(sigmas[0]))
+        clamped = distance.clamp(float(ranges[0]), float(ranges[-1]))
+        upper = torch.searchsorted(ranges, clamped.contiguous(), right=False).clamp(1, ranges.shape[0] - 1)
+        lower = upper - 1
+        fraction = (clamped - ranges[lower]) / (ranges[upper] - ranges[lower])
+        return sigmas[lower] + fraction * (sigmas[upper] - sigmas[lower])
 
     def reset(self, env_ids: Tensor) -> None:
         """Start the schedule and the mosaic again and forget the last frame."""
@@ -233,7 +260,7 @@ class PointedFlashLidar:
             origin = (truth.position + geometry.site_origin).unsqueeze(1).expand(count, beams, 3)
             distance, hit = march_rays_to_ground(origin, directions, geometry, self.maximum_range, self.march_step, self.bounds)
             hit = hit & (distance >= self.minimum_range)
-            sigma = self.range_noise_offset + self.range_noise_slope * distance
+            sigma = self.range_noise_sigma(distance)
             noisy = distance + sigma * torch.randn(count, beams, generator=generator, device=device)
             value = torch.where(hit, noisy, torch.full_like(distance, float("nan")))
             self.last_value = torch.where(due.unsqueeze(1), value, self.last_value)
@@ -241,7 +268,7 @@ class PointedFlashLidar:
             self.last_stamp = torch.where(due, truth.time, self.last_stamp)
             self.frame_index = self.frame_index + due.long()
         valid = due & torch.isfinite(self.last_value).any(dim=1)
-        sigma = self.range_noise_offset + self.range_noise_slope * torch.nan_to_num(self.last_value, nan=0.0)
+        sigma = self.range_noise_sigma(torch.nan_to_num(self.last_value, nan=0.0))
         ranges = Measurement(value=self.last_value.clone(), valid=valid, stamp=self.last_stamp.clone(), covariance=sigma**2)
         pointing = Measurement(
             value=self.last_boresight.clone(), valid=valid.clone(), stamp=self.last_stamp.clone(),

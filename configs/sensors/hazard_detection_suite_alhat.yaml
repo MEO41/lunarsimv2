@@ -1,0 +1,26 @@
+# The S6 suite with the ALHAT flash LiDAR flown on Morpheus, a sensor built for hazard detection,
+# instead of the ASC navigation and docking LiDAR. Narrow field of view (1 deg), so the pointing
+# mount steps it over a larger mosaic; it gives no returns closer than 150 m, so it maps the site
+# from far away, as on Morpheus.
+defaults:
+  - hazard_detection_suite
+  - _self_
+# Source:
+#   [ALHAT-2016] Roback, Amzajerdian, Bulyshev, Brewster, Barnes, "3-D Flash Lidar Performance in
+#               Flight Testing on the Morpheus Autonomous, Rocket-Propelled Lander to a Lunar-Like
+#               Hazard Field", SPIE 2016: p. 4 "20 Hz", p. 5 "1 deg FOV", "128 pixel by 128 pixel";
+#               Table 1: max operational range 1.3 km, min operational range 150 m, range
+#               precision 8 cm (1 sigma), range accuracy < 35 cm (1 sigma).
+#               https://ntrs.nasa.gov/api/citations/20160009167/downloads/20160009167.pdf
+lidar:
+  rate_hz: 20.0                  # [ALHAT-2016]
+  field_of_view_deg: 1.0         # [ALHAT-2016]
+  pixels_per_side: 32            # model choice ("cheap"): every 4th pixel of the 128 x 128 array
+  minimum_range_m: 150.0         # [ALHAT-2016] Table 1
+  maximum_range_m: 1300.0        # [ALHAT-2016] Table 1
+  range_noise_m: 0.08            # [ALHAT-2016] range precision, 1 sigma
+  range_noise_per_m: 0.0         # [ALHAT-2016] the precision is stated without a range term
+  # Not modelled: the < 35 cm absolute range accuracy (a common offset per frame shifts the
+  # whole patch along the line of sight; slope and relief barely change).
+  pointing:
+    mosaic: {rows: 8, columns: 8, step_deg: 1.0}   # model choice: 64 frames (3.2 s) cover 8 x 8 deg; Morpheus stitched 1 deg frames into a mosaic ([ALHAT-2016] p. 4)
