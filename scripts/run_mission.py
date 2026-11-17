@@ -13,7 +13,10 @@ touchdown in the last phase), and write ``runs/<run_name>_<phase>/`` with ``mani
 at each gate (site frame), propellant used, time, and the landing results; and the handoff check.
 
 Script arguments: ``mission=``, ``num_envs=`` (default 16), ``run_name=``, ``seed=`` (default 0),
-``from_phase=`` and ``log=`` (resume at a later phase from a saved gate log, for development).
+``from_phase=`` and ``log=`` (resume at a later phase from a saved gate log, for development),
+``record=<lander index>`` (for the mission video: that lander's trajectory in every phase,
+``trajectory_lander<i>.npz`` in each phase directory, and in the PhysX phase also
+``replay.npz`` for ``scripts/render_replay.py``; see ``scripts/render_mission_video.py``).
 """
 
 import argparse
@@ -43,11 +46,11 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 
 def main() -> None:
     """Run every phase of the mission and write one run directory per phase plus the summary."""
-    options = {"mission": None, "num_envs": "16", "run_name": None, "seed": "0", "from_phase": None, "log": None}
+    options = {"mission": None, "num_envs": "16", "run_name": None, "seed": "0", "from_phase": None, "log": None, "record": None}
     for argument in script_arguments:
         key, _, value = argument.partition("=")
         if key not in options:
-            raise SystemExit(f"unknown argument '{argument}' (mission=, num_envs=, run_name=, seed=, from_phase=, log=)")
+            raise SystemExit(f"unknown argument '{argument}' (mission=, num_envs=, run_name=, seed=, from_phase=, log=, record=)")
         options[key] = value
     if not options["mission"]:
         raise SystemExit("give mission=<name> (configs/missions/<name>.yaml)")
@@ -71,9 +74,19 @@ def main() -> None:
         if getattr(start_binding, "handoff_report", None) is not None:
             handoff = dict(start_binding.handoff_report, at=phase["name"])
             print(f"[mission] handoff check before {phase['name']}: {handoff}", flush=True)
+        site = site_from_parameters((scenario.slots["plant"].parameters.get("site")) or (scenario.slots["start"].parameters.get("site")))
+        recorders = []
+        if options["record"] is not None:
+            from lunarsim.tools.mission_trajectory_recording import MissionTrajectoryRecorder
+            from lunarsim.tools.replay_recording import ReplayRecorder
+
+            recorders.append(MissionTrajectoryRecorder(environment, int(options["record"]), site))
+            if scenario.slots["plant"].binding == "physx_site":
+                recorders.append(ReplayRecorder(environment, every_n_steps=2, include_contacts=True))
+        after_step = (lambda step_index, command: [recorder.record(step_index, command) for recorder in recorders]) if recorders else None
         began = time.perf_counter()
         maximum_steps = int(1.2 * environment.max_episode_length) + 10
-        episodes = collect_episodes(environment, agent, episodes_per_environment=1, maximum_steps=maximum_steps)
+        episodes = collect_episodes(environment, agent, episodes_per_environment=1, maximum_steps=maximum_steps, after_step=after_step)
         episodes = merge_agent_decision_records(episodes, agent)
         elapsed = time.perf_counter() - began
         phase_directory = REPOSITORY_ROOT / "runs" / f"{run_name}_{phase['name']}"
@@ -84,7 +97,18 @@ def main() -> None:
             extra={"mission": mission["name"], "phase": phase["name"], "previous_log": previous_log, "handoff": handoff, "wall_time_s": round(elapsed, 1)},
         )
         episodes.to_parquet(phase_directory / EPISODES_FILE_NAME, index=False)
-        site = site_from_parameters((scenario.slots["plant"].parameters.get("site")) or (scenario.slots["start"].parameters.get("site")))
+        for recorder in recorders:
+            lander = int(options["record"])
+            if hasattr(recorder, "lander_index"):
+                recorder.save(phase_directory / f"trajectory_lander{lander}.npz", phase["name"])
+            else:
+                row = episodes[episodes["environment_index"] == lander].iloc[0]
+                recorder.save(
+                    phase_directory / "replay.npz", [lander], phase["scenario"], overrides,
+                    clip_titles=[f"S7 FULL MISSION, LANDER {lander}: {str(row['outcome']).upper()}"],
+                    clip_details=[f"Apollo 17 site, terminal phase from the low gate (seed {options['seed']})"],
+                    frames_per_second=1.0 / (2 * environment.clock.control_step_duration),
+                )
         summary = summarize_phase(phase["name"], episodes, site)
         summary["wall_time_s"] = round(elapsed, 1)
         summaries.append(summary)
