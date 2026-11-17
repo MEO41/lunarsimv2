@@ -71,7 +71,23 @@ fault and records both levels on the same landings (`grain_*` columns of `metric
 `true` lets the grains drive the dust. Tests: `tests/unit/test_plume_grain_model.py`,
 `tests/smoke/test_plume_grain_scenario.py`. Comparison: `scripts/compare_plume_levels.py`.
 
-### L1 vs L2 check (development run, 16 landers; the committed run is below)
+### L1 vs L2 check (committed run, 2026-11-17)
+
+`results/s8_plume_check_l2_seed0` (64 landers, seed 0, commit `266acbf`, `comparison.yaml`);
+95.3 % landed (the grains only watch, so this is S8's own rate).
+
+| | L1 | L2 grains | Apollo reference |
+| --- | --- | --- | --- |
+| Eroded mass, landings starting above 100 ft (29) | 23.0 kg (15-36) | 57.1 kg (30-86) | 46.8-74.1 kg (Apollo 11, 36-57 L at 1.30 g/cm^3) |
+| Time with the sensors blinded (dust >= 0.5) | 14.8 s (2-46) | 0 s | heavy obscuration reported below about 100 ft |
+| Peak dust density / optical depth | 1.0 | 0.009 / 0.009 | - |
+| Peak lofted number density | - | 3.4e6 per m^3 (1.6e6-8.9e6) | 1e8 to 1e13 per m^3 ([IMH-08]) |
+
+The grains erode from the first step of every landing (S8 starts at 5-50 m; the grain shear
+exceeds the threshold well above 100 ft), so their "erosion start height" is the start height,
+not an onset; L1's onset is its 100 ft rule.
+
+### Development run (16 landers), kept for the record
 
 | | L1 | L2 grains | Apollo reference |
 | --- | --- | --- | --- |
