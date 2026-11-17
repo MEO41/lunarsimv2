@@ -13,7 +13,8 @@ two is the check that the collision surface and the contact sensors agree.
 
 With ``grain_landers`` (a list of environment indices; needs a surface with the L2 plume grains,
 ``surface.grains``) it also keeps, for those landers only, every live grain parcel per frame: its
-offset from the lander's body position, its height above the ground and its size bin; and, for
+offset from the lander's body position, its height above the ground, its velocity, the soil mass
+it carries and its size bin; and, for
 every lander, the plume readings of both levels (nozzle height, L1 dust density and eroded mass,
 the grains' dust density, optical depth, eroded mass, densest cloud cell and parcel count).
 
@@ -46,6 +47,12 @@ GRAIN_COLUMNS = (
     "l1_dust_density", "l1_eroded_mass",  # 0..1; kg since the episode start (the dust metric's ejecta mass)
     "grain_dust_density", "grain_optical_depth", "grain_eroded_mass",  # 0..1; -; kg
     "grain_peak_number_density", "grain_particles",  # grains per m^3 in the densest cloud cell; live parcels
+)
+GRAIN_PARCEL_COLUMNS = (
+    "offset_x", "offset_y", "offset_z",  # m, from the lander body position
+    "height_above_ground",  # m
+    "velocity_x", "velocity_y", "velocity_z",  # m/s, world
+    "mass",  # kg of soil the parcel carries
 )
 
 
@@ -82,7 +89,7 @@ class ReplayRecorder:
                 raise ValueError("grain_landers needs a surface with the L2 plume grains (surface.grains.enabled)")
             self.requires = ReplayRecorder.requires | frozenset({MessageKey.REGOLITH_STATE})
             self.dust_metric = environment.bindings[SlotName.METRICS]
-            self.grain_offsets: list[numpy.ndarray] = []  # per frame (G, P, 4): offset x, y, z from the body, height above ground; NaN if dead
+            self.grain_parcels: list[numpy.ndarray] = []  # per frame (G, P, len(GRAIN_PARCEL_COLUMNS)); NaN if dead
             self.grain_bins: list[numpy.ndarray] = []  # per frame (G, P) uint8
         self.columns = BASE_COLUMNS + (contact_columns() if include_contacts else ()) + (GRAIN_COLUMNS if self.grain_landers else ())
         count, device = environment.num_envs, environment.device
@@ -154,14 +161,15 @@ class ReplayRecorder:
         return torch.stack([value.float() for value in values], dim=1)
 
     def record_grain_parcels(self, geometry) -> None:
-        """Store every live parcel of the grain landers: offset from the body, height above ground, size bin."""
+        """Store every live parcel of the grain landers (GRAIN_PARCEL_COLUMNS) and its size bin."""
         model, landers = self.grain_model, self.grain_landers
         body_position, _ = self.plant.body_pose()
         position = model.position[landers]  # (G, P, 3), the frame the plant reports
         above = position[..., 2] - geometry.ground_height_at(position[..., 0], position[..., 1])
-        offsets = torch.cat((position - body_position[landers].unsqueeze(1), above.unsqueeze(2)), dim=2)
-        offsets = torch.where(model.alive[landers].unsqueeze(2), offsets, float("nan"))
-        self.grain_offsets.append(offsets.cpu().numpy().astype(numpy.float32))
+        parcels = torch.cat((position - body_position[landers].unsqueeze(1), above.unsqueeze(2), model.velocity[landers],
+                             model.mass[landers].unsqueeze(2)), dim=2)
+        parcels = torch.where(model.alive[landers].unsqueeze(2), parcels, float("nan"))
+        self.grain_parcels.append(parcels.cpu().numpy().astype(numpy.float32))
         self.grain_bins.append(model.bin[landers].to(torch.uint8).cpu().numpy())
 
     def grain_arrays(self, environment_indices: list[int]) -> dict[str, numpy.ndarray]:
@@ -174,9 +182,12 @@ class ReplayRecorder:
         order = [self.grain_landers.index(index) for index in environment_indices]
         model = self.grain_model
         return {
-            "grain_offsets": numpy.stack(self.grain_offsets)[:, order],
+            "grain_parcels": numpy.stack(self.grain_parcels)[:, order],
+            "grain_parcel_columns": numpy.array(GRAIN_PARCEL_COLUMNS),
             "grain_bins": numpy.stack(self.grain_bins)[:, order],
             "grain_bin_diameters_m": model.diameters.cpu().numpy(),
+            "grain_particle_density_kg_per_m3": numpy.array(model.particle_density),
+            "grain_extinction_efficiency": numpy.array(model.extinction_efficiency),
             "grain_bin_mass_fractions": model.mass_fractions.cpu().numpy(),
             "grain_capacity": numpy.array(model.capacity),
             "grain_line_of_sight_depression_deg": numpy.array(numpy.degrees(model.line_of_sight_depression)),

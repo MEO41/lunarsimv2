@@ -113,6 +113,19 @@ So the video confirms the reading above: the grain model works as built, and its
 comes from the physics it models (Roberts erosion, one 2.1 deg sheet, ballistic flight), not
 from a bug in the counting.
 
+Realistic render (same day; user: "Lets make more relasitic", then "Video look only", so the
+physics did not change). The dust is drawn as a camera would see the model's cloud. Each parcel
+is a 1/60 s motion streak in regolith grey, and its opacity comes from its grains' extinction
+cross-section, so the picture follows the model's own optical depth. The video has two views:
+the chase camera and a camera on the lander looking 45 deg down, like the Apollo window films
+([[replay-recording-and-rendering]]).
+
+At the faithful opacity (x1) the cloud is close to invisible. In probe frames of lander 35, the
+densest pixel had an optical depth of 0.09-0.24, and only 800-5,000 of 921,600 pixels were above
+0.01. The Apollo films show the ground fading behind a sheet of dust. A x100 version, labelled
+on every frame, shows where the streaks go. This is the same blinding gap as in the table, seen
+by eye.
+
 ### Development run (16 landers), kept for the record
 
 | | L1 | L2 grains | Apollo reference |

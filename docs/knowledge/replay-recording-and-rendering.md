@@ -37,12 +37,25 @@ plots, 3D and the end card with ffmpeg: `runs/<run>_video/mission.mp4` (3 min 46
 
 Plume grain video (M5 L2, 2026-11-17): `ReplayRecorder(grain_landers=[...])` also keeps, for
 those landers only, every live grain parcel per frame (offset from the body, height above ground,
-size bin; about 19 MB per lander, compressed, for the S8 run) and, for every lander, the readings of both plume
-levels (`GRAIN_COLUMNS`). `render_replay.py` then draws the parcels as `UsdGeom.Points` coloured
-by size; their width is 5 mrad times the distance to the camera (`grain_dot_angle_rad`), so every
-dot is about 6 px. A fixed 0.15 m width was invisible: most parcels are 100-700 m out. It also
-places a true-scale side view (`tools/plume_grain_video.py`) to the right (frame 1920 x 720).
-`scripts/record_plume_grain_video.py` flies the check and renders it; results in
+size bin, velocity, soil mass: `GRAIN_PARCEL_COLUMNS`) and, for every lander, the readings of both
+plume levels (`GRAIN_COLUMNS`). `render_replay.py` draws them in one of two styles:
+
+- `dust_style=streaks` (default; user: "Lets make more relasitic", then "Video look only"): as a
+  camera would see the model's cloud. `composite_dust_streaks` (`tools/plume_grain_video.py`)
+  projects each parcel's path during a 1/60 s exposure (model choice) with the renderer's pinhole
+  camera (focal 28 mm, aperture 36 mm). Each parcel adds its grains' extinction cross-section,
+  `1.5 Q m / (rho_p D)`, spread over the pixels it crosses. Each pixel takes
+  `1 - exp(-gain * optical depth)` of the sunlit regolith grey. The renderer's
+  `distance_to_image_plane` annotator hides the parts behind the terrain or the lander.
+  `visibility_gain` other than 1 is written on every frame;
+- `dust_style=dots`: `UsdGeom.Points` coloured by size, 5 mrad times the camera distance wide
+  (about 6 px). A fixed 0.15 m width was invisible: most parcels are 100-700 m out.
+
+`view=window` puts the camera on the lander instead of chasing it: 0.3 m in front of the ascent
+stage's forward face, looking forward and 45 deg down, along the grain model's sensor line of
+sight, like the Apollo crews' window films. A true-scale side view (`GrainSidePanel`) sits to the
+right of the 3D view (frame 1920 x 720). `scripts/record_plume_grain_video.py` flies the check and
+renders both views (`fly=0` reuses the replay, `gain=` sets the boost); results in
 [[plume-regolith-and-dust]].
 
 Users: `scripts/record_plume_grain_video.py`, `scripts/record_landing_videos.py` (landing successes and failures),

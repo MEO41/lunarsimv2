@@ -5,6 +5,7 @@ Usage::
 
     python scripts/record_plume_grain_video.py                       # fly, record, render
     python scripts/record_plume_grain_video.py render=0              # fly and record only
+    python scripts/record_plume_grain_video.py fly=0 gain=100        # render the saved replay again, dust x100
 
 It flies the committed L1 vs L2 check again (``s8_plume_check_l2``, 64 landers, seed 0, the
 same setup as ``results/s8_plume_check_l2_seed0``) and records, for two landers, every grain
@@ -16,13 +17,16 @@ parcel at 25 frames per second. The landers are chosen from the committed run:
 
 The rerun's numbers for these landers are printed next to the committed ones (GPU physics is not
 bit-reproducible). Writes ``runs/<run_name>/``: ``manifest.yaml``, ``episodes.parquet``,
-``plume_grains.npz`` (the replay) and ``chosen_landers.yaml``; then renders
-``plume_grains.mp4`` with ``scripts/render_replay.py`` (3D view with the parcels as dots, and a
-true-scale side view with both plume levels' readings).
+``plume_grains.npz`` (the replay) and ``chosen_landers.yaml``. Then it renders, with
+``scripts/render_replay.py``, the dust as a camera would see the model's cloud (motion streaks
+with the opacity of the grains' cross-section, ``dust_style=streaks``) from two cameras, the
+chase camera and the lander's window camera, each next to the true-scale side view, and joins
+them: ``plume_grains_x<gain>.mp4``.
 
 Options (``key=value``): ``run_name`` (``s8_plume_grains_video_seed0``), ``seed`` (0),
-``landings`` (64), ``landers`` (comma list, overrides the choice), ``render`` (1),
-``committed`` (``results/s8_plume_check_l2_seed0/episodes.parquet``).
+``landings`` (64), ``landers`` (comma list, overrides the choice), ``fly`` (1; 0 reuses the
+saved replay), ``render`` (1), ``gain`` (1: faithful dust opacity; anything else is written on
+every frame), ``committed`` (``results/s8_plume_check_l2_seed0/episodes.parquet``).
 """
 
 import argparse
@@ -59,7 +63,7 @@ COMPARED_COLUMNS = ("start_altitude_m", "outcome", "grain_eroded_mass_kg", "ejec
 
 def read_options() -> dict[str, str]:
     """Return the ``key=value`` options with their defaults."""
-    options = {"run_name": "s8_plume_grains_video_seed0", "seed": "0", "landings": "64", "landers": "", "render": "1",
+    options = {"run_name": "s8_plume_grains_video_seed0", "seed": "0", "landings": "64", "landers": "", "fly": "1", "render": "1", "gain": "1",
                "committed": "results/s8_plume_check_l2_seed0/episodes.parquet"}
     for argument in script_arguments:
         key, _, value = argument.partition("=")
@@ -93,9 +97,8 @@ def clip_texts(number: int, total: int, index: int, row: pandas.Series) -> tuple
     return title, detail
 
 
-def main() -> None:
-    """Fly the landings, record the chosen landers' grains, save the replay and render it."""
-    options = read_options()
+def fly_and_record(options: dict[str, str]) -> Path:
+    """Fly the landings, record the chosen landers' grains and save the replay; return its path."""
     committed = pandas.read_parquet(REPOSITORY_ROOT / options["committed"])
     landers = [int(value) for value in options["landers"].split(",")] if options["landers"] else choose_landers(committed)
     print(f"[grain video] landers {landers}", flush=True)
@@ -129,9 +132,37 @@ def main() -> None:
                            frames_per_second=25.0, notes="L2 plume grains in shadow of the L1 plume")
     print(f"[grain video] {len(episodes)} landings, success rate {episodes['success'].mean():.4f}; wrote {replay}", flush=True)
     environment.close()
-    if options["render"] == "1":
+    return replay
+
+
+def render_both_views(replay: Path, gain: str) -> Path:
+    """Render the chase view and the window view with dust streaks and join them into one MP4; return its path."""
+    parts = []
+    for view in ("chase", "window"):
+        part = replay.parent / f"plume_grains_{view}_x{gain}.mp4"
         subprocess.run([sys.executable, str(REPOSITORY_ROOT / "scripts" / "render_replay.py"), f"replay={replay}", "mode=video",
+                        "dust_style=streaks", f"view={view}", f"visibility_gain={gain}", f"output={part}",
                         "camera_distance_m=40", "camera_height_m=10"], check=True)
+        parts.append(part)
+    listing = replay.parent / "plume_grains_parts.txt"
+    listing.write_text("".join(f"file '{part.name}'\n" for part in parts))
+    output = replay.parent / f"plume_grains_x{gain}.mp4"
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", str(listing), "-c", "copy", str(output)], check=True)
+    listing.unlink()
+    for part in parts:
+        part.unlink()
+    print(f"[grain video] wrote {output}", flush=True)
+    return output
+
+
+def main() -> None:
+    """Fly and record (or reuse the saved replay), then render both views."""
+    options = read_options()
+    replay = REPOSITORY_ROOT / "runs" / options["run_name"] / "plume_grains.npz"
+    if options["fly"] == "1":
+        replay = fly_and_record(options)
+    if options["render"] == "1":
+        render_both_views(replay, options["gain"])
 
 
 if __name__ == "__main__":

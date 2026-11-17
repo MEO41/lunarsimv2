@@ -60,9 +60,13 @@ def test_grains_run_in_shadow_of_the_l1_plume(tmp_path):
     path = recorder.save(tmp_path / "grains.npz", [2, 0], "s8_plume_check_l2", [], ["a", "b"], ["", ""], frames_per_second=25.0)
     replay = numpy.load(path)
     columns = [str(name) for name in replay["columns"]]
-    offsets, frames = replay["grain_offsets"], replay["frames"]
-    assert offsets.shape[1:] == (2, capacity, 4) and replay["grain_bins"].shape == offsets.shape[:3]
-    live = numpy.isfinite(offsets[..., 0]).sum(axis=2)
+    parcels, frames = replay["grain_parcels"], replay["frames"]
+    parcel_columns = [str(name) for name in replay["grain_parcel_columns"]]
+    assert parcels.shape[1:] == (2, capacity, len(parcel_columns)) and replay["grain_bins"].shape == parcels.shape[:3]
+    live = numpy.isfinite(parcels[..., 0]).sum(axis=2)
     assert live.max() <= capacity
     assert numpy.array_equal(live, frames[:, :, columns.index("grain_particles")].astype(int))
-    assert numpy.nanmin(offsets[..., 3]) >= 0.0  # live parcels are above the ground
+    assert numpy.nanmin(parcels[..., parcel_columns.index("height_above_ground")]) >= 0.0  # live parcels are above the ground
+    assert numpy.nanmin(parcels[..., parcel_columns.index("mass")]) > 0.0
+    alive = numpy.isfinite(parcels[..., 0])
+    assert numpy.isfinite(parcels[alive][:, parcel_columns.index("velocity_x"):parcel_columns.index("velocity_z") + 1]).all()

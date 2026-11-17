@@ -15,7 +15,7 @@ Activate the Isaac environment first ([[workstation-setup-and-machines]]).
 
 | Command | What | Needs GPU |
 | --- | --- | --- |
-| `python -m pytest tests/unit -q` | 194 CPU tests (core, preset, controllers, records, figures, terrain, knowledge graph, reward, action adapter, engine cut-off, EKF on a synthetic flight, hazards, regolith, frames, orbit plant, TRN) | no |
+| `python -m pytest tests/unit -q` | 198 CPU tests (core, preset, controllers, records, figures, terrain, knowledge graph, reward, action adapter, engine cut-off, EKF on a synthetic flight, hazards, regolith, frames, orbit plant, TRN, dust streaks) | no |
 | `python scripts/run_isaac_tests.py` | `tests/physics` + `tests/smoke` (27 files, including the probe test, the EKF gate test, the PPO smoke tests, S6, S8, the S7/S5 mission phases, S10 and the L2 grains), one simulator process per file; the terrain test is skipped without the height maps | yes |
 | `python scripts/run_isaac_tests.py physics` | one folder | yes |
 | `python scripts/run_isaac_tests.py tests/smoke/test_null_loop_environment.py` | one file | yes |
@@ -50,7 +50,8 @@ python scripts/render_replay.py replay=runs/landing_videos/landings.npz mode=vid
 python scripts/contact_check.py                                                   # then:
 python scripts/render_replay.py replay=runs/contact_check/contacts.npz mode=stills
 python scripts/render_replay.py replay=runs/drop_test_5m/flips.npz mode=video
-python scripts/record_plume_grain_video.py   # M5 L2 grains: 64 landers, 2 recorded, rendered (about 20 min on the RTX 5060)
+python scripts/record_plume_grain_video.py   # M5 L2 grains: 64 landers, 2 recorded, chase + window views (about 25 min on the RTX 5060)
+python scripts/record_plume_grain_video.py fly=0 gain=100   # render the saved replay again, dust opacity x100 (labelled)
 bash scripts/push_run_results.sh                  # results of every finished run -> results/ on GitHub (user rule)
 python scripts/archive_run_results.py runs/<run_name>   # only copy into results/ (no commit)
 lunarsim figures runs/<run_name>

@@ -24,6 +24,9 @@ ARROW_RADIUS_M = 0.05
 ARROW_HEAD_LENGTH_M = 0.25
 ARROW_HEAD_RADIUS_M = 0.12
 ARROW_OUTWARD_SHIFT_M = 0.9  # arrows stand beside their pad, away from the vehicle axis
+WINDOW_OUTSIDE_FACE_M = 0.3
+CAMERA_FOCAL_LENGTH_MM = 28.0
+CAMERA_HORIZONTAL_APERTURE_MM = 36.0
 TOUCHING_COLOR = (0.15, 0.85, 0.25)
 BODY_COLOR = (0.95, 0.25, 0.25)
 
@@ -33,6 +36,16 @@ def look_at_matrix(eye, target):
     from pxr import Gf
 
     return Gf.Matrix4d().SetLookAt(Gf.Vec3d(*map(float, eye)), Gf.Vec3d(*map(float, target)), Gf.Vec3d(0, 0, 1)).GetInverse()
+
+
+def rotation_matrix_from_quaternion(quaternion) -> numpy.ndarray:
+    """Return the 3x3 body-to-world rotation of a unit quaternion (w, x, y, z)."""
+    w, x, y, z = (float(value) for value in quaternion)
+    return numpy.array([
+        [1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y)],
+        [2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x)],
+        [2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y)],
+    ])
 
 
 def rotation_from_z_to(direction: numpy.ndarray):
@@ -120,14 +133,17 @@ class ReplayRenderer:
         self.leg_bases = self.preset.leg_positions
 
         camera = UsdGeom.Camera.Define(stage, "/World/RenderCamera")
-        camera.CreateFocalLengthAttr(28.0)
-        camera.CreateHorizontalApertureAttr(36.0)
-        camera.CreateVerticalApertureAttr(36.0 * height / width)
+        camera.CreateFocalLengthAttr(CAMERA_FOCAL_LENGTH_MM)
+        camera.CreateHorizontalApertureAttr(CAMERA_HORIZONTAL_APERTURE_MM)
+        camera.CreateVerticalApertureAttr(CAMERA_HORIZONTAL_APERTURE_MM * height / width)
         camera.CreateClippingRangeAttr(Gf.Vec2f(0.05, 5000.0))
         self.camera_transform = UsdGeom.Xformable(camera).AddTransformOp()
-        render_product = replicator.create.render_product("/World/RenderCamera", (width, height))
+        self.focal_px = CAMERA_FOCAL_LENGTH_MM / CAMERA_HORIZONTAL_APERTURE_MM * width  # pinhole focal length in pixels (square pixels)
+        self.eye, self.target = None, None
+        self.render_product = replicator.create.render_product("/World/RenderCamera", (width, height))
         self.annotator = replicator.AnnotatorRegistry.get_annotator("rgb")
-        self.annotator.attach([render_product])
+        self.annotator.attach([self.render_product])
+        self.depth_annotator = None
         for _ in range(30):  # let the stage load and the renderer start
             simulation_app.update()
 
@@ -186,6 +202,21 @@ class ReplayRenderer:
             shaft_scale.Set(Gf.Vec3f(1.0, 1.0, shaft_length))
             head_translate.Set(Gf.Vec3d(0.0, 0.0, shaft_length + 0.5 * ARROW_HEAD_LENGTH_M))
 
+    def window_view(self, row: numpy.ndarray, depression_deg: float) -> tuple[numpy.ndarray, numpy.ndarray]:
+        """Return (eye, target) of a camera fixed to the lander, like the Apollo crews' window films.
+
+        The eye is 0.3 m in front of the ascent stage's forward face (body +x, the ladder side),
+        a quarter of the stage height above its middle; it looks forward and ``depression_deg``
+        down in the body frame (model choices: the box model has no windows).
+        """
+        x, y, z = self.preset.ascent_stage_center
+        eye_body = numpy.array([x + 0.5 * self.preset.ascent_stage_depth + WINDOW_OUTSIDE_FACE_M, y, z + 0.25 * self.preset.ascent_stage_height])
+        angle = math.radians(depression_deg)
+        direction_body = numpy.array([math.cos(angle), 0.0, -math.sin(angle)])
+        rotation = rotation_matrix_from_quaternion(row[3:7])
+        eye = numpy.asarray(row[0:3], dtype=numpy.float64) + rotation @ eye_body
+        return eye, eye + 10.0 * (rotation @ direction_body)
+
     @staticmethod
     def _body_up(row: numpy.ndarray) -> numpy.ndarray:
         """Return the body +z axis in the world from the frame's quaternion (w, x, y, z)."""
@@ -226,8 +257,22 @@ class ReplayRenderer:
             UsdGeom.Imageable(self.grain_points[index]).MakeInvisible()
 
     def look(self, eye, target) -> None:
-        """Point the camera from ``eye`` at ``target``."""
+        """Point the camera from ``eye`` at ``target`` (world +z up) and remember the pose."""
+        self.eye, self.target = numpy.asarray(eye, dtype=numpy.float64), numpy.asarray(target, dtype=numpy.float64)
         self.camera_transform.Set(look_at_matrix(eye, target))
+
+    def enable_depth(self) -> None:
+        """Also render the distance to the image plane (m) of every pixel, read with ``capture_depth``."""
+        import omni.replicator.core as replicator
+
+        if self.depth_annotator is None:
+            self.depth_annotator = replicator.AnnotatorRegistry.get_annotator("distance_to_image_plane")
+            self.depth_annotator.attach([self.render_product])
+
+    def capture_depth(self) -> numpy.ndarray:
+        """Return the depth image (H, W) of the last capture; inf where no surface is hit (the sky)."""
+        depth = numpy.asarray(self.depth_annotator.get_data(), dtype=numpy.float64).reshape(self.height, self.width)
+        return numpy.where(numpy.isfinite(depth) & (depth > 0.0), depth, numpy.inf)
 
     def capture(self, settle_updates: int = 1) -> numpy.ndarray:
         """Render and return the camera image (H, W, 3) as uint8; ``settle_updates`` extra frames first."""
@@ -236,7 +281,7 @@ class ReplayRenderer:
         for _ in range(60):
             self.simulation_app.update()
             pixels = numpy.asarray(self.annotator.get_data())
-            if pixels.size > 0:
+            if pixels.size > 0 and (self.depth_annotator is None or numpy.asarray(self.depth_annotator.get_data()).size > 0):
                 return pixels[..., :3].astype(numpy.uint8)
         raise RuntimeError("the camera gave no image after 60 updates")
 
