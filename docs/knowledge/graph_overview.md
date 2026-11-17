@@ -118,6 +118,7 @@ flowchart LR
   paper_one_results -- "uses" --> ppo_landing_agent
   physx_contact_settings -- "used by" --> lander_articulation_model
   physx_contact_settings -- "recorded in" --> decisions_log
+  plume_regolith_and_dust -- "sources" --> sources_bibliography
   plume_regolith_and_dust -- "part of" --> milestone_roadmap_and_status
   plume_regolith_and_dust -- "uses" --> measured_terrain_surface
   plume_regolith_and_dust -- "uses" --> lander_articulation_model
@@ -179,7 +180,7 @@ flowchart LR
 | [Touchdown metric and run records](metrics-and-run-records.md) | component | current | How a landing is judged (outcome codes, detection settings) and what every run writes to disk, plus the figure and summary tools. |
 | [Orbit to touchdown mission and terrain-relative navigation (S7, S5, milestone 6)](orbit-to-touchdown-mission.md) | component | current | Milestone 6 - float64 orbit plant, MCI/MCMF/SITE frames, phase gates and gate logs, Apollo-style quadratic guidance (braking and approach), the handoff to PhysX at the low gate, the camera TRN filter; scenarios S7 (full mission) and S5 (TRN descent); the guidance fixes that made the Apollo 11 timeline come out. |
 | [PhysX contact settings](physx-contact-settings.md) | component | current | Solver and contact settings from the contact-rest study, why PGS and not TGS, and the measured residuals. |
-| [Plume, regolith and dust (scenario S8, milestone 5)](plume-regolith-and-dust.md) | component | current | Bekker soil under the footpads, the L1 plume model, the dust fault and the dust metric of S8; first results; the L2 check that does not work in this Isaac Sim (decision pending) and the L3 data plan. |
+| [Plume, regolith and dust (scenario S8, milestone 5)](plume-regolith-and-dust.md) | component | current | Bekker soil under the footpads, the L1 plume model, the dust fault and the dust metric of S8; the L2 batched torch grain model (Roberts erosion, Apollo ejection angle, ballistic flight) and the L1 vs L2 check; the L3 data plan. |
 | [PPO landing agent (milestone 1b)](ppo-landing-agent.md) | component | current | The ppo_mlp agent, its rsl_rl adapter, the landing reward, the training script, and how the design reached a policy that learns. |
 | [Replay recording and rendering](replay-recording-and-rendering.md) | component | current | How runs are recorded frame by frame and rendered later as videos or stills, on a physics-free stage, with footpad force arrows. |
 | [Sensors and EKF (milestone 2)](sensors-and-ekf.md) | component | current | The terminal_suite sensor binding (IMU, radar altimeter, Doppler velocimeter, propellant gauge, probe switches), the ekf navigation, scenario S2 and the consistency results. |

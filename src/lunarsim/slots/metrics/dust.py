@@ -11,6 +11,12 @@ mass, and the plume torque at contact." Columns added to every ``touchdown`` rec
 - ``peak_dust_density``;
 - ``plume_force_at_contact_n``, ``plume_torque_at_contact_n_m``: the plume wrench at first contact;
 - ``footpad_sinkage_max_m`` (deepest pad over the episode) and ``footpad_sinkage_final_mean_m``.
+
+With the L2 grains running (``surface.grains``), the same numbers from the grains, prefixed
+``grain_``: ``grain_dust_blinded_time_s``, ``grain_erosion_start_nozzle_height_m``,
+``grain_eroded_mass_kg``, ``grain_peak_dust_density``, plus ``grain_peak_optical_depth`` and
+``grain_peak_number_density_per_m3`` (densest cell of the cloud, for the 1e8-1e13 /m^3 of the
+Apollo videos).
 """
 
 from __future__ import annotations
@@ -44,6 +50,9 @@ class DustMetrics(TouchdownMetrics):
         self.plume_torque_at_contact = torch.full((count,), float("nan"), device=device)
         self.deepest_sinkage = torch.zeros(count, device=device)
         self.final_sinkage = torch.zeros(count, legs, device=device)
+        self.grain_records = {name: torch.zeros(count, device=device) for name in ("grain_dust_blinded_time_s", "grain_eroded_mass_kg", "grain_peak_dust_density", "grain_peak_optical_depth", "grain_peak_number_density_per_m3")}
+        self.grain_records["grain_erosion_start_nozzle_height_m"] = torch.full((count,), float("nan"), device=device)
+        self.has_grains = False
 
     def reset(self, env_ids: Tensor, gen: torch.Generator) -> None:
         """Start new plume and soil records for ``env_ids``."""
@@ -56,6 +65,8 @@ class DustMetrics(TouchdownMetrics):
         self.plume_torque_at_contact[env_ids] = float("nan")
         self.deepest_sinkage[env_ids] = 0.0
         self.final_sinkage[env_ids] = 0.0
+        for name, values in self.grain_records.items():
+            values[env_ids] = float("nan") if name == "grain_erosion_start_nozzle_height_m" else 0.0
 
     def step(self, bus, dt: float) -> None:
         """Accumulate the plume and soil numbers, then run the touchdown metric."""
@@ -73,6 +84,17 @@ class DustMetrics(TouchdownMetrics):
         first = ((leg_force > self.contact_force_threshold) | (truth.body_contact > self.contact_force_threshold)) & ~self.has_contact
         self.plume_force_at_contact = torch.where(first, regolith.plume_force.norm(dim=1), self.plume_force_at_contact)
         self.plume_torque_at_contact = torch.where(first, regolith.plume_torque.norm(dim=1), self.plume_torque_at_contact)
+        grains = regolith.grains
+        if grains is not None:
+            self.has_grains = True
+            records = self.grain_records
+            records["grain_dust_blinded_time_s"] += (grains.dust_density >= self.blinded_density).float() * dt
+            start = records["grain_erosion_start_nozzle_height_m"]
+            records["grain_erosion_start_nozzle_height_m"] = torch.where(grains.eroding & torch.isnan(start), regolith.nozzle_height, start)
+            records["grain_eroded_mass_kg"] = grains.eroded_mass.clone()
+            records["grain_peak_dust_density"] = torch.maximum(records["grain_peak_dust_density"], grains.dust_density)
+            records["grain_peak_optical_depth"] = torch.maximum(records["grain_peak_optical_depth"], grains.optical_depth)
+            records["grain_peak_number_density_per_m3"] = torch.maximum(records["grain_peak_number_density_per_m3"], grains.peak_number_density)
         super().step(bus, dt)
 
     def extra_record_columns(self) -> dict[str, Tensor]:
@@ -90,4 +112,6 @@ class DustMetrics(TouchdownMetrics):
                 "footpad_sinkage_final_mean_m": self.final_sinkage.mean(dim=1),
             }
         )
+        if self.has_grains:
+            columns.update({name: values.clone() for name, values in self.grain_records.items()})
         return columns

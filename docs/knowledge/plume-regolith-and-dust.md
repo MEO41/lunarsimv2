@@ -3,8 +3,8 @@ id: plume-regolith-and-dust
 title: Plume, regolith and dust (scenario S8, milestone 5)
 type: component
 status: current
-updated: 2026-11-16
-summary: Bekker soil under the footpads, the L1 plume model, the dust fault and the dust metric of S8; first results; the L2 check that does not work in this Isaac Sim (decision pending) and the L3 data plan.
+updated: 2026-11-17
+summary: Bekker soil under the footpads, the L1 plume model, the dust fault and the dust metric of S8; the L2 batched torch grain model (Roberts erosion, Apollo ejection angle, ballistic flight) and the L1 vs L2 check; the L3 data plan.
 ---
 
 # Plume, regolith and dust (S8)
@@ -45,15 +45,51 @@ soil law gives 14 cm at that load); horizontal navigation error at contact 0.35 
 force at first contact is zero: the engine stops 1 s after the contact light (probe mode, as
 Apollo did), so the plume has tailed off before the pads touch.
 
-## L2 check: does not work in this Isaac Sim (decision pending)
+## L2: batched torch grains (built 2026-11-17)
 
-The design's L2 is "PhysX particles under the nozzle, few envs, visual checks of L1". A probe on
-2026-11-16 (Isaac Sim 6.0.1, Isaac Lab `e86463d`): PBD granular particles can be created
-(`omni.physx.scripts.particleUtils`), but the PhysX tensor API has no particle view
-(`create_particle_system_view` does not exist) and the particle positions do not come back
-through USD, so the plume cannot push the particles. Proposed fix, see [[pending-user-decisions]]:
-grains as many small PhysX **rigid bodies** (tensor API rigid-body views work) with a plume
-gas-drag force applied each step, in a separate check scene with a few environments.
+PhysX particles cannot be driven in Isaac Sim 6.0.1 (no particle tensor view; positions do not
+come back through USD, probe of 2026-11-16). The user chose a torch grain model that stays light
+on the GPU ("It has to be efficiently run on the gpu"). `terrain/plume_grain_model.py`, enabled by
+the `grains` block of `configs/surface/regolith_plume_l2.yaml`; method of [MLI-08] (Apollo 12):
+
+| Step | Model | Source |
+| --- | --- | --- |
+| Gas over the ground | mass flow T / v_e turns outward at 3,200 m/s in a layer `delta = 0.537 sqrt(r^2 + h^2)`; density from mass conservation | gas speed [LMI-08] Fig. 4; layer fitted to 2e-5 kg/m^3 at [LMI-08] p. 7's reference point |
+| Erosion | Roberts' excess shear `(1/2) alpha u dm/dt = tau - tau_0`, `tau = c_f rho u^2 / 2`, on 40 rings | [MLI-08] Eq. 1; `c_f` = 0.022 fitted to the Apollo 11 eroded volume |
+| Soil | 7 octave bins 4-512 um, count distribution `exp(-(36.6/mm D)^0.81)`, grain density 3,100 kg/m^3, threshold `A_N^2 (rho_p g D + gamma/D)` | [MLI-08] Eq. 5; [LMI-08] p. 3; [SL-00] form (constants model choices) |
+| Launch | speed `alpha_k u` with `alpha_k` from the drag law over 10 m of gas (6 um: 1.0, 45 um: 0.43, 362 um: 0.06); angle 2.1 deg | [LMI-08] Eqs. 4-5; [IMH-08] Table 1 (mean of Apollo 11, 14, 16, 17) |
+| Flight | ballistic under lunar gravity until the height map or 700 m | [MLI-08] p. 4 |
+| Dust seen | optical depth on a 45 deg forward-down line of sight from an (r, height) grid of the cloud, extinction efficiency 2; dust = 1 - exp(-optical depth) | model choices |
+
+Each simulated particle carries an equal share of one size bin's eroded mass (4 per bin per
+control step, 2,048 per lander, the oldest reused). New grains fly a random part of their first
+step, so a 3 km/s grain is not always counted 64 m away. Cost at 16 landers: 587 -> 545 env
+steps/s (7 %), 2.4 MB of GPU memory (`scripts/benchmark_environment.py`).
+
+`grains.drives_dust: false` (shadow, the check scenario `s8_plume_check_l2`) keeps L1 on the dust
+fault and records both levels on the same landings (`grain_*` columns of `metrics: dust`);
+`true` lets the grains drive the dust. Tests: `tests/unit/test_plume_grain_model.py`,
+`tests/smoke/test_plume_grain_scenario.py`. Comparison: `scripts/compare_plume_levels.py`.
+
+### L1 vs L2 check (development run, 16 landers; the committed run is below)
+
+| | L1 | L2 grains | Apollo reference |
+| --- | --- | --- | --- |
+| Eroded mass from 100 ft down | 24.7 kg | 59 kg (fitted) | 47-74 kg (Apollo 11, 36-57 L at 1.30 g/cm^3) |
+| Time with the sensors blinded | 13 s | 0 s | crews reported heavy obscuration below about 100 ft (Apollo 11, ALSJ) |
+| Lofted number density | (no particles) | about 3e6 per m^3 at the peak | 1e8 to 1e13 per m^3 ([IMH-08]) |
+
+Reading: L1's ejecta mass is about 2.4 times below the Apollo-anchored grains. On blinding the two
+disagree in opposite directions from the evidence: L1 saturates; the grains (Roberts erosion, one
+thin sheet at 2.1 deg) put 1.5 to 6.5 orders of magnitude fewer grains in the air than the Apollo
+videos show, the same gap [MLI-08] p. 6 reports for its model ("at least two orders of magnitude").
+So neither level is trusted for sensor blinding; L3 (below) must calibrate the lofted density,
+and S8 results must name the plume level.
+
+Known limits of L2: the [MLI-08] size fit puts most mass at 90-360 um, coarser than the "mass
+peaked near 60 microns" of its own Fig. 1; Stokes-type drag in a rarefied gas sends the finest
+grains to the full gas speed (above lunar escape speed, as [MLI-08] p. 7 also finds); one ejection
+angle for all sizes; no grain-grain collisions; the plume force on the vehicle stays L1's.
 
 ## L3 data plan (design: "Offline DEM or CFD runs, fitted to a surrogate for L1")
 
@@ -65,5 +101,6 @@ Clements papers on Apollo blowing soil, and NASA plume-surface interaction CFD o
 (3) fit `erosion_onset_height_m`, `full_dust_height_m` and `maximum_ejecta_mass_rate_kg_per_s` to
 those, and the ground-effect force to CFD pressure on the descent stage base.
 
+- sources: [[sources-bibliography]]
 - part of: [[milestone-roadmap-and-status]]
 - uses: [[measured-terrain-surface]], [[lander-articulation-model]], [[faults-and-detection]]

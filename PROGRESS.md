@@ -45,8 +45,8 @@ Last update: 2026-11-15
 - **Milestone 4 hazard part built (no learning).** S6: pointed flash LiDAR, onboard hazard map,
   LM footprint criteria from TN D-6850, `site_pick_divert`, `site_safety`
   (`docs/knowledge/hazard-detection-and-avoidance.md`).
-- **Milestone 5 built except L2.** Bekker footpad soil, L1 plume, dust fault, S8
-  (`docs/knowledge/plume-regolith-and-dust.md`); L2 waits for the user.
+- **Milestone 5 built.** Bekker footpad soil, L1 plume, dust fault, S8; L2 as batched torch grains
+  (user choice) with the L1 vs L2 check (`docs/knowledge/plume-regolith-and-dust.md`).
 - **Milestone 6 built (no learning).** float64 orbit plant, MCI/MCMF/SITE frames, phase gates and
   gate logs, Apollo-style quadratic guidance, handoff to PhysX at the low gate, camera TRN; S7
   (orbit to touchdown) and S5 (TRN descent) fly the Apollo 11 timeline

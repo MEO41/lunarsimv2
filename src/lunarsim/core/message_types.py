@@ -350,6 +350,9 @@ class RegolithState:
     plume_force: Tensor  # (N, 3) N, body frame, force of the reflected plume on the vehicle
     plume_torque: Tensor  # (N, 3) N m, body frame, about the centre of mass
     footpad_sinkage: Tensor  # (N, n_legs) m, soil sinkage of each footpad (0 without soil contact)
+    # The L2 grain model's state (lunarsim.terrain.plume_grain_model.GrainState) when it runs; the
+    # fields above then come from L1 (grains in shadow) or from the grains (``grains.drives_dust``).
+    grains: Any = None
 
     @classmethod
     def clear(cls, number_of_environments: int, number_of_legs: int, device) -> RegolithState:

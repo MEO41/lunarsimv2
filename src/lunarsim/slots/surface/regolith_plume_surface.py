@@ -12,7 +12,12 @@ every PhysX substep:
   ``contact: rigid`` keeps PhysX footpad contact;
 - **plume L1**: the reflected-plume force and torque on the vehicle from the engine thrust (the
   actuators' ``engine_thrust``) and the nozzle height, and the dust density, erosion flag and
-  ejecta rate; ``plume.enabled: false`` turns it off (the design's same-seed comparison).
+  ejecta rate; ``plume.enabled: false`` turns it off (the design's same-seed comparison);
+- **plume L2 grains** (optional ``grains`` block, :mod:`lunarsim.terrain.plume_grain_model`): batched
+  grain particles, updated once per control step; their state rides in ``RegolithState.grains``.
+  With ``grains.drives_dust: false`` (shadow) L1 still feeds the dust fault, so both levels are
+  recorded on the same trajectory; with ``true`` the grains' dust density, erosion flag and
+  ejecta rate replace L1's. The plume force on the vehicle stays L1's.
 
 Outputs: ``surface_wrench`` (plume wrench on the body, soil forces on the legs) and
 ``regolith_state`` (written at reset too, so the dust fault can read it before the first step).
@@ -29,6 +34,7 @@ from lunarsim.core.message_types import MessageKey, RegolithState, SurfaceGeomet
 from lunarsim.core.registry import register_binding
 from lunarsim.core.rotation_math import rotate_vector_body_to_parent, rotate_vector_parent_to_body
 from lunarsim.slots.surface.measured_terrain import MeasuredTerrainSurface
+from lunarsim.terrain.plume_grain_model import PlumeGrainModel
 from lunarsim.terrain.regolith_models import BekkerSoil, FootpadSoilContact, PlumeModel
 
 
@@ -59,6 +65,14 @@ class RegolithPlumeSurface(MeasuredTerrainSurface):
             self.number_of_environments, self.legs, self.device,
         )
         self.state = RegolithState.clear(self.number_of_environments, self.legs, self.device)
+        grains = dict(self.parameters.get("grains") or {})
+        self.grain_model = None
+        self.grains_drive_dust = bool(grains.get("drives_dust", False))
+        if grains.get("enabled", False):
+            self.grain_model = PlumeGrainModel(grains, self.number_of_environments, self.device, seed=int(grains.get("seed", 0)))
+            self.grain_period = int(context.clock.physics_steps_per_control_step)
+            self.grain_step_duration = float(context.clock.control_step_duration)
+            self.substeps = 0
 
     def initialize(self, environment) -> None:
         """Set up the terrain, find the plant, and write a clear regolith state."""
@@ -75,6 +89,9 @@ class RegolithPlumeSurface(MeasuredTerrainSurface):
         clear = RegolithState.clear(len(env_ids), self.legs, self.device)
         for name in ("dust_density", "eroding", "ejecta_mass_rate", "nozzle_height", "plume_force", "plume_torque", "footpad_sinkage"):
             getattr(self.state, name)[env_ids] = getattr(clear, name)
+        if self.grain_model is not None:
+            self.grain_model.reset(env_ids)
+            self.state.grains = self.grain_model.state
         self.context.bus.write(MessageKey.REGOLITH_STATE, self.state, self)
 
     def step(self, bus, dt: float) -> None:
@@ -100,8 +117,19 @@ class RegolithPlumeSurface(MeasuredTerrainSurface):
             Wrench(force=force_body, torque=torque_body, leg_forces=leg_forces, leg_force_points=leg_points),
             self,
         )
+        dust, eroding, ejecta_rate, grains = plume["dust_density"], plume["eroding"], plume["ejecta_mass_rate"], None
+        if self.grain_model is not None:
+            # The grains move once per control step (they fly ballistically; no PhysX coupling).
+            self.substeps += 1
+            if self.substeps % self.grain_period == 0:
+                ground = geometry.ground_height_at(nozzle[:, 0], nozzle[:, 1])
+                self.grain_model.step(nozzle, ground, thrust, float(self.preset.engine_exhaust_velocity), geometry.ground_height_at, self.grain_step_duration)
+            grains = self.grain_model.state
+            if self.grains_drive_dust:
+                dust, eroding, ejecta_rate = grains.dust_density, grains.eroding, grains.ejecta_mass_rate
         self.state = RegolithState(
-            dust_density=plume["dust_density"], eroding=plume["eroding"], ejecta_mass_rate=plume["ejecta_mass_rate"],
+            dust_density=dust, eroding=eroding, ejecta_mass_rate=ejecta_rate,
             nozzle_height=plume["nozzle_height"], plume_force=force_body, plume_torque=torque_body, footpad_sinkage=sinkage,
+            grains=grains,
         )
         bus.write(MessageKey.REGOLITH_STATE, self.state, self)

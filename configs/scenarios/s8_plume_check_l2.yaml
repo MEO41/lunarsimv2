@@ -1,0 +1,11 @@
+# @package _global_
+# Milestone 5 check of the L1 plume against the L2 grains: S8 with the grains in shadow (L1 feeds
+# the dust fault; the dust metric records both levels on the same trajectories).
+# scripts/compare_plume_levels.py runs it and writes the comparison.
+defaults:
+  - s8_plume_regolith
+  - override /surface: regolith_plume_l2
+  - _self_
+name: s8_plume_check_l2
+env:
+  num_envs: 16

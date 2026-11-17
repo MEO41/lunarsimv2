@@ -1,0 +1,45 @@
+# Apollo 17 terrain, Bekker footpad soil, the L1 plume and the L2 grains (milestone 5 check).
+# Grain model: lunarsim/terrain/plume_grain_model.py. Sources:
+#   [MLI-08] Metzger, Lane, Immer, Earth & Space 2008 (NTRS 20130012034)
+#   [LMI-08] Lane, Metzger, Immer, Earth & Space 2008 (NTRS 20130012062)
+#   [IMH-08] Immer, Metzger, Hintze et al., Earth & Space 2008 (arXiv 2104.07669)
+#   [SL-00]  Shao and Lu, J. Geophys. Res. 105 (D17), 22437-22443 (2000)
+defaults:
+  - regolith_plume_l1
+  - _self_
+grains:
+  enabled: true
+  drives_dust: false                    # shadow: L1 feeds the dust fault, both levels are recorded
+  seed: 0
+  # Soil
+  smallest_diameter_m: 4.0e-6            # [MLI-08] p. 3: Eq. 5 fits above about 4 microns
+  largest_diameter_m: 512.0e-6           # [MLI-08] Fig. 7: diameters 1-512 microns
+  size_scale_per_m: 36600.0              # [MLI-08] Eq. 5: lambda = 36.6 /mm (JSC-1A)
+  size_exponent: 0.81                    # [MLI-08] Eq. 5: a = 0.81
+  particle_density_kg_per_m3: 3100.0     # [LMI-08] p. 3: lunar soil particle density
+  threshold_coefficient: 0.0123          # [SL-00] form tau_0 = A_N^2 (rho_p g D + gamma/D); constant: model choice, to check against [SL-00]
+  cohesion_n_per_m: 3.0e-4               # model choice (terrestrial value of the [SL-00] form; lunar cohesion unknown)
+  # Gas over the ground
+  gas_speed_mps: 3200.0                  # [LMI-08] Fig. 4: peak gas speed of the Apollo-like CFD near the ground
+  reference_gas_density_kg_per_m3: 2.0e-5  # [LMI-08] p. 7: gas density at a particle start point near the ground
+  layer_thickness_coefficient: 0.537     # derived: gives 2e-5 kg/m^3 at 3.8 m from the axis, nozzle 3.05 m up (5 nozzle radii, [LMI-08] Table 1), hover thrust 11.87 kN
+  skin_friction_coefficient: 0.022       # fitted: 60 kg eroded from 100 ft down (Apollo 11: 36-57 L, Mason 1970 as cited in [MLI-08] p. 6, at 1.30 g/cm^3 surface bulk density, Lunar Sourcebook p. 494 as cited in NTRS 20220014634)
+  gas_temperature_k: 300.0               # model choice (static temperature of the expanded gas; [LMI-08] uses CFD values)
+  viscosity_coefficient: 1.71575e-7      # [LMI-08] Eq. 4: mu = A T^beta
+  viscosity_exponent: 0.78               # [LMI-08] Eq. 4
+  acceleration_length_m: 10.0            # [LMI-08] p. 6: particle speeds are taken at the 10 m boundary
+  # Launch and flight
+  ejection_angle_deg: 2.1                # [IMH-08] Table 1: mean of Apollo 11, 14, 16, 17 (2.6, 2.4, 1.4, 2.0; Apollo 15 landed on an 11 deg slope)
+  rings: 40                              # model choice (numerics)
+  ring_reach_nozzle_heights: 6.0         # model choice (numerics): erosion rings out to 6 nozzle heights ...
+  minimum_ring_reach_m: 20.0             # ... and at least 20 m
+  particles_per_bin_per_step: 4          # model choice (numerics): 7 bins x 4 = 28 new particles per lander per step
+  particles_per_lander: 2048             # model choice (GPU budget)
+  domain_radius_m: 700.0                 # model choice: inside the 800 m terrain
+  # Dust seen by the sensors
+  extinction_efficiency: 2.0             # model choice: large-particle limit of the extinction efficiency
+  line_of_sight_depression_deg: 45.0     # model choice: a forward-down sensor line of sight
+  grid_radius_m: 60.0                    # model choice (numerics)
+  grid_radial_cells: 40
+  grid_height_m: 6.0
+  grid_height_cells: 24

@@ -3,7 +3,7 @@ id: bindings-catalogue
 title: Bindings catalogue
 type: component
 status: current
-updated: 2026-11-16
+updated: 2026-11-17
 summary: Every binding that exists, per slot, with its file and what it does; the two scenario files.
 ---
 
@@ -22,7 +22,7 @@ summary: Every binding that exists, per slot, with its file and what it does; th
 | plant | `local_f64` | same file | The same in the SITE frame over terrain (S5) |
 | surface | `flat` | `slots/surface/flat.py` | Ground plane, friction 0.4, restitution 0; site = env grid origin |
 | surface | `procedural` | `slots/surface/procedural.py` | Random height field through `TerrainImporter` (±0.15 m, 0.5 m cells). **Smoke-tested only**; no height lookup, so height above ground is measured from z = 0 |
-| surface | `regolith_plume_l1` | `slots/surface/regolith_plume_surface.py`, `terrain/regolith_models.py` | Measured terrain plus Bekker footpad soil and the L1 plume; writes `regolith_state` (S8, [[plume-regolith-and-dust]]) |
+| surface | `regolith_plume_l1` | `slots/surface/regolith_plume_surface.py`, `terrain/regolith_models.py` | Measured terrain plus Bekker footpad soil and the L1 plume; writes `regolith_state` (S8, [[plume-regolith-and-dust]]). With a `grains` block (`regolith_plume_l2.yaml`) also the L2 torch grains (`terrain/plume_grain_model.py`), in shadow or driving the dust |
 | surface | `measured_terrain` | `slots/surface/measured_terrain.py` | Apollo 17 height map plus craters and rocks; one target per environment per reset; exact height lookup ([[measured-terrain-surface]]) |
 | sensors | `none` | `slots/sensors/none.py` | No sensors |
 | sensors | `terminal_suite` | `slots/sensors/terminal_suite.py`, `sensor_models.py`, `pointed_flash_lidar.py` | IMU, radar altimeter, Doppler velocimeter, propellant gauge, probe switches; with `terminal_suite_with_lidar.yaml` also the cheap flash LiDAR ([[sensors-and-ekf]]); with `hazard_detection_suite.yaml` the LiDAR on a pointing mount (S6); with `trn_suite.yaml` the shaded-relief TRN camera (`slots/sensors/shaded_relief_camera.py`, S5) |

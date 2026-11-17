@@ -32,7 +32,7 @@
       "title": "Bindings catalogue",
       "type": "component",
       "status": "current",
-      "updated": "2026-11-16",
+      "updated": "2026-11-17",
       "summary": "Every binding that exists, per slot, with its file and what it does; the two scenario files.",
       "path": "bindings-catalogue.md"
     },
@@ -59,7 +59,7 @@
       "title": "Decisions log",
       "type": "decision",
       "status": "current",
-      "updated": "2026-11-16",
+      "updated": "2026-11-17",
       "summary": "Every decision taken so far, with date and reason; the place to add new ones.",
       "path": "decisions-log.md"
     },
@@ -176,7 +176,7 @@
       "title": "Milestone roadmap and status",
       "type": "milestone",
       "status": "current",
-      "updated": "2026-11-16",
+      "updated": "2026-11-17",
       "summary": "The eight milestones of the design, which gates have passed, and what comes next.",
       "path": "milestone-roadmap-and-status.md"
     },
@@ -212,7 +212,7 @@
       "title": "Pending user decisions",
       "type": "plan",
       "status": "waiting-for-user",
-      "updated": "2026-11-16",
+      "updated": "2026-11-17",
       "summary": "Questions that wait for the user's answer; work that depends on them must not start before.",
       "path": "pending-user-decisions.md"
     },
@@ -230,8 +230,8 @@
       "title": "Plume, regolith and dust (scenario S8, milestone 5)",
       "type": "component",
       "status": "current",
-      "updated": "2026-11-16",
-      "summary": "Bekker soil under the footpads, the L1 plume model, the dust fault and the dust metric of S8; first results; the L2 check that does not work in this Isaac Sim (decision pending) and the L3 data plan.",
+      "updated": "2026-11-17",
+      "summary": "Bekker soil under the footpads, the L1 plume model, the dust fault and the dust metric of S8; the L2 batched torch grain model (Roberts erosion, Apollo ejection angle, ballistic flight) and the L1 vs L2 check; the L3 data plan.",
       "path": "plume-regolith-and-dust.md"
     },
     {
@@ -320,7 +320,7 @@
       "title": "Sources bibliography",
       "type": "research",
       "status": "current",
-      "updated": "2026-11-15",
+      "updated": "2026-11-17",
       "summary": "Every public source used for numbers in the preset and the plans, with its short key and link.",
       "path": "sources-bibliography.md"
     },
@@ -594,6 +594,11 @@
     {
       "source": "decisions-log",
       "target": "software-in-the-loop-bridge",
+      "relation": "mentions"
+    },
+    {
+      "source": "decisions-log",
+      "target": "plume-regolith-and-dust",
       "relation": "mentions"
     },
     {
@@ -1038,12 +1043,12 @@
     },
     {
       "source": "pending-user-decisions",
-      "target": "plume-regolith-and-dust",
+      "target": "software-in-the-loop-bridge",
       "relation": "mentions"
     },
     {
       "source": "pending-user-decisions",
-      "target": "software-in-the-loop-bridge",
+      "target": "plume-regolith-and-dust",
       "relation": "mentions"
     },
     {
@@ -1083,8 +1088,8 @@
     },
     {
       "source": "plume-regolith-and-dust",
-      "target": "pending-user-decisions",
-      "relation": "mentions"
+      "target": "sources-bibliography",
+      "relation": "sources"
     },
     {
       "source": "plume-regolith-and-dust",

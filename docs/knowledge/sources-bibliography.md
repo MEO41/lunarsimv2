@@ -3,7 +3,7 @@ id: sources-bibliography
 title: Sources bibliography
 type: research
 status: current
-updated: 2026-11-15
+updated: 2026-11-17
 summary: Every public source used for numbers in the preset and the plans, with its short key and link.
 ---
 
@@ -18,6 +18,11 @@ Short keys match the lander preset file (`configs/landers/apollo_lunar_module.ya
 | A11-MR | Apollo 11 Mission Report, NASA MSC-00171 (1969), mass table "Lunar landing", sec. 9.13.1. The SP-238 edition has the mass table as Table B-I | https://www.nasa.gov/wp-content/uploads/static/apollo50th/pdf/A11_MissionReport.pdf ; https://ntrs.nasa.gov/api/citations/19710015566/downloads/19710015566.pdf |
 | D-7143 | Hammock, Currie, Fisher, "Apollo Experience Report - Descent Propulsion System", NASA TN D-7143 (1973) | https://ntrs.nasa.gov/citations/19730011150 |
 | D-6850 | Rogers, "Apollo Experience Report - Lunar Module Landing Gear Subsystem", NASA TN D-6850 (1972) | https://ntrs.nasa.gov/citations/19720018253 |
+| MLI-08 | Metzger, Lane, Immer, "Modification of Roberts' Theory for Rocket Exhaust Plumes Eroding Lunar Soil", Earth & Space 2008 (cites Roberts 1963, IAS Paper 63-50; Mason 1970, GSA Bull. 81) | https://ntrs.nasa.gov/citations/20130012034 |
+| LMI-08 | Lane, Metzger, Immer, "Lagrangian Trajectory Modeling of Lunar Dust Particles", Earth & Space 2008 | https://ntrs.nasa.gov/citations/20130012062 |
+| IMH-08 | Immer, Metzger, Hintze et al., "Apollo Video Photogrammetry Estimation of Plume Impingement Effects", Earth & Space 2008 | https://arxiv.org/abs/2104.07669 |
+| SL-00 | Shao and Lu, "A simple expression for wind erosion threshold friction velocity", J. Geophys. Res. 105 (D17), 22437-22443 (2000); form used, constants not yet checked against the paper | https://doi.org/10.1029/2000JD900304 |
+| LSB-91 | Heiken, Vaniman, French (eds.), Lunar Sourcebook (1991), p. 494: regolith bulk density 1.30 g/cm^3 at the surface (as cited in NTRS 20220014634) | https://ntrs.nasa.gov/citations/20220014634 |
 | LN200 | Northrop Grumman, "LN-200S & LN-200HPS Inertial Measurement Unit" datasheet CS-23015 (2023), p. 2 | https://media.northropgrumman.com/cb7a772f-3ce7-42c0-818d-b385003dc8ed/LN-200S-LN-200HPS-inertial-measurement-unit-imu-datasheet_Original%20file.pdf |
 | NDL-IM1 | Karlgaard, Lugo, Shidner, Hines, Amzajerdian, Gragossian, Litton, Angster, "Navigation Doppler Lidar Performance Assessment and Trajectory Reconstruction of the Intuitive Machines IM-1 Lunar Landing", AAS/AIAA ASC 2025, p. 4 | https://ntrs.nasa.gov/api/citations/20250007036/downloads/aasimndl.pdf |
 | NDL-2022 | Amzajerdian et al., "Doppler Lidar for Precision Landing on Planetary Bodies with and without Atmosphere", IPPW 2022 slides (vibration noise model, a conservative variant) | https://ntrs.nasa.gov/api/citations/20220012826/downloads/IPPW%202022_NDL_presentaion.pdf |

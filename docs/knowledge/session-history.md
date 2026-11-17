@@ -48,6 +48,7 @@ summary: Timeline of the work so far with commit hashes, so a new session knows 
 | — | First drop trial showed long slides from 10°: footpad friction was 0.2 (material combine mode); fixed and tested; evaluations rerun |
 | — | Drop test on a steep part of the map ([[drop-test-results]]); landing video script |
 | 2026-11-16 | User: "reach the M7", no training over 20 min. M4 hazard part (S6), M5 (S8, L2 stopped), M6 (S7, S5; [[orbit-to-touchdown-mission]]) built without learning; M7 bridge and S10 ([[software-in-the-loop-bridge]]) |
+| 2026-11-17 | S7 mission video and README GIF; M5 L2 built as torch grains (user: "It has to be efficiently run on the gpu") and the L1 vs L2 check |
 
 ## Next
 

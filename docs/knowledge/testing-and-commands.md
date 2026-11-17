@@ -15,8 +15,8 @@ Activate the Isaac environment first ([[workstation-setup-and-machines]]).
 
 | Command | What | Needs GPU |
 | --- | --- | --- |
-| `python -m pytest tests/unit -q` | 188 CPU tests (core, preset, controllers, records, figures, terrain, knowledge graph, reward, action adapter, engine cut-off, EKF on a synthetic flight, hazards, regolith, frames, orbit plant, TRN) | no |
-| `python scripts/run_isaac_tests.py` | `tests/physics` + `tests/smoke` (25 files, including the probe test, the EKF gate test, the PPO smoke tests, S6, S8, the S7/S5 mission phases and S10), one simulator process per file; the terrain test is skipped without the height maps | yes |
+| `python -m pytest tests/unit -q` | 194 CPU tests (core, preset, controllers, records, figures, terrain, knowledge graph, reward, action adapter, engine cut-off, EKF on a synthetic flight, hazards, regolith, frames, orbit plant, TRN) | no |
+| `python scripts/run_isaac_tests.py` | `tests/physics` + `tests/smoke` (27 files, including the probe test, the EKF gate test, the PPO smoke tests, S6, S8, the S7/S5 mission phases, S10 and the L2 grains), one simulator process per file; the terrain test is skipped without the height maps | yes |
 | `python scripts/run_isaac_tests.py physics` | one folder | yes |
 | `python scripts/run_isaac_tests.py tests/smoke/test_null_loop_environment.py` | one file | yes |
 | `python scripts/check_installation.py` | versions against `requirements-pinned.txt`, CUDA check | yes |
@@ -40,6 +40,7 @@ python scripts/benchmark_environment.py scenario=s1_terminal_truth num_envs=1024
 python scripts/run_mission.py mission=s7_full_mission num_envs=16 run_name=s7_full_mission_seed0 seed=0   # S7 orbit to touchdown, phase by phase
 python scripts/run_mission.py mission=s5_trn num_envs=16 run_name=s5_trn_seed0 seed=0                     # S5 TRN descent
 python scripts/run_mission.py mission=s7_full_mission num_envs=16 seed=0 run_name=s7_full_mission_video_seed0 record=0 && python scripts/render_mission_video.py run=s7_full_mission_video_seed0 lander=0   # S7 video
+python scripts/evaluate_agent.py scenario=s8_plume_check_l2 num_envs=64 seed=0 run_name=s8_plume_check_l2_seed0 && python scripts/compare_plume_levels.py run=runs/s8_plume_check_l2_seed0   # M5 L1 vs L2
 python scripts/export_policy_onnx.py policy=runs/ppo_gru_s3_seed0_to1500/policy.pt kind=gru hidden_size=128   # S10 policy node
 python scripts/run_software_in_the_loop.py episodes=20 seed=1000 run_name=s10_seed1000                       # S10 parity and timing
 python scripts/render_lander_image.py --enable_cameras replay=runs/contact_check/contacts.npz clip=1 output=docs/figures/lander_at_rest.png   # on the Apollo 17 terrain (needs the contact-check recording); without replay= on flat ground

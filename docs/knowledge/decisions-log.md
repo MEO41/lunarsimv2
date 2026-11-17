@@ -3,7 +3,7 @@ id: decisions-log
 title: Decisions log
 type: decision
 status: current
-updated: 2026-11-16
+updated: 2026-11-17
 summary: Every decision taken so far, with date and reason; the place to add new ones.
 ---
 
@@ -110,3 +110,6 @@ Newest at the bottom. "User" means the user decided; the others were proposed, e
 | 2026-11-16 | Deadline misses are decided in simulation time from measured round trip + added latency + seeded jitter; a missed reply is not used and the binding holds its last output | Design S10 `timeout_ms: 20`; repeatable timing tests need seeded delays |
 | 2026-11-16 | S10 parity tolerance set before the run: same outcome in every episode, position difference below 1 m along the trajectory, touchdown speed within 0.1 m/s | Model choice; the reference filter is compiled on the GPU, the node's runs eagerly on the CPU |
 | 2026-11-16 | S10 parity tolerance not changed after the run; the failure and its cause (float rounding grown by the closed loop, shown by the exact same-arithmetic run) go to the user | User rule: do not change the design silently |
+| 2026-11-17 | M5 L2 is a batched torch grain model, not PhysX particles or rigid bodies | User choice ("It has to be efficiently run on the gpu"); PhysX particles have no tensor view in Isaac Sim 6.0.1 ([[plume-regolith-and-dust]]) |
+| 2026-11-17 | L2 follows Metzger, Lane and Immer 2008: Roberts' excess-shear erosion over the lunar size distribution, Apollo-measured ejection angle, ballistic flight | Published method for Apollo 12; ejection aerodynamics are not understood well enough to predict ([MLI-08] p. 2) |
+| 2026-11-17 | The L2 skin-friction coefficient is fitted to the Apollo 11 eroded volume (36-57 L, Mason 1970) | Only published anchor for the erosion amount; the estimates for Apollo 12 range from 36 L to 2,080 L |
