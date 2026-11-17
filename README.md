@@ -4,6 +4,17 @@ A modular lunar-landing research simulator on Isaac Lab, written from scratch.
 Every part of the control loop is a *slot* with typed inputs and outputs, so a study can swap
 sensors, faults, estimators, agents or physics in one line of a scenario file.
 
+![S7 full mission from orbit to touchdown](docs/figures/s7_full_mission.gif)
+
+**Scenario S7, one lander from lunar orbit to touchdown on the Apollo 17 site.** (1) Descent
+orbit: the descent orbit insertion burn and half an orbit down to the 15 km perilune (float64
+orbit simulation). (2) Powered descent: braking to the high gate and approach to the low gate
+with Apollo-style quadratic guidance; the green squares are Apollo 11's planned gates (NASA TN
+D-6846). (3) Terminal phase in PhysX on the measured Apollo 17 terrain: hazard map, site choice
+and touchdown at −1.4 m/s. The GIF runs faster than the speeds printed in its panels; the full
+3 min 46 s video is made by `scripts/render_mission_video.py`. Details:
+[docs/knowledge/orbit-to-touchdown-mission.md](docs/knowledge/orbit-to-touchdown-mission.md).
+
 ![Overview of the slot loop](docs/figures/slot_loop_overview.png)
 
 **The slot loop of LunarSim v2 as built up to milestone 3.** (1) A scenario file (here the
