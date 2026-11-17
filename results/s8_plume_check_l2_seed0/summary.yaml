@@ -1,0 +1,21 @@
+run: s8_plume_check_l2_seed0
+kind: evaluation
+started_utc: '2026-11-17T08:58:05+00:00'
+code_commit: 266acbf1ff11aa4b44349ed39a23591881f28c68
+uncommitted_changes: false
+scenario: s8_plume_check_l2
+agent: zem_zev
+navigation: ekf_fdi
+seed: 0
+command_line: scripts/evaluate_agent.py scenario=s8_plume_check_l2 num_envs=64 seed=0
+  run_name=s8_plume_check_l2_seed0
+resumed_from: ''
+episodes: 64
+success_percent: 95.31
+final_training_success_percent: ''
+outcomes:
+  success: 61
+  hard_horizontal: 2
+  tilt_at_contact: 1
+touchdown_vertical_speed_mps_mean: -1.303
+propellant_used_kg_mean: 105.6

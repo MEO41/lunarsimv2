@@ -146,4 +146,5 @@ s7_full_mission_video_seed0_braking,evaluation,2026-11-17T07:58:38+00:00,ad2358c
 s7_full_mission_video_seed0_descent_orbit,evaluation,2026-11-17T07:57:43+00:00,ad2358c954b717d4ce6c638860faf7e78d092558,False,s7_phase_descent_orbit,scripted_burns,truth_noise,0,16,100.0,
 s7_full_mission_video_seed0_terminal,evaluation,2026-11-17T08:01:24+00:00,ad2358c954b717d4ce6c638860faf7e78d092558,False,s7_phase_terminal,site_pick_divert,hazard_map,0,16,100.0,
 s8_no_plume_seed0,evaluation,2026-11-16T16:21:15+00:00,5fa5a341d9cb554873adc00f123834ffe916de98,False,s8_plume_regolith_no_plume,zem_zev,ekf_fdi,0,64,93.75,
+s8_plume_check_l2_seed0,evaluation,2026-11-17T08:58:05+00:00,266acbf1ff11aa4b44349ed39a23591881f28c68,False,s8_plume_check_l2,zem_zev,ekf_fdi,0,64,95.31,
 s8_plume_seed0,evaluation,2026-11-16T16:19:42+00:00,5fa5a341d9cb554873adc00f123834ffe916de98,False,s8_plume_regolith,zem_zev,ekf_fdi,0,64,95.31,
