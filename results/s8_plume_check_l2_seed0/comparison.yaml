@@ -1,0 +1,62 @@
+run: s8_plume_check_l2_seed0
+landings: 64
+landing_success_fraction: 0.9531
+landings_starting_above_100_ft: 29
+L1:
+  eroded_mass_kg:
+    mean: 26.3952
+    min: 4.7511
+    max: 67.6236
+  eroded_mass_kg_from_above_100_ft:
+    mean: 23.032
+    min: 15.0012
+    max: 36.1095
+  erosion_start_nozzle_height_m:
+    mean: 24.3966
+    min: 6.3153
+    max: 30.4795
+  blinded_time_s:
+    mean: 14.8102
+    min: 2.42
+    max: 45.9409
+  peak_dust_density:
+    mean: 1.0
+    min: 1.0
+    max: 1.0
+L2_grains:
+  eroded_mass_kg:
+    mean: 50.444
+    min: 11.2047
+    max: 91.769
+  eroded_mass_kg_from_above_100_ft:
+    mean: 57.1252
+    min: 29.7771
+    max: 85.7256
+  erosion_start_nozzle_height_m:
+    mean: 29.149
+    min: 6.3153
+    max: 49.4183
+  blinded_time_s:
+    mean: 0.0
+    min: 0.0
+    max: 0.0
+  peak_dust_density:
+    mean: 0.0093
+    min: 0.0034
+    max: 0.0222
+  peak_optical_depth:
+    mean: 0.0094
+    min: 0.0035
+    max: 0.0225
+  peak_number_density_per_m3:
+    mean: 3438483.1699
+    min: 1588096.0
+    max: 8863956.0
+references:
+  apollo_11_eroded_mass_kg:
+  - 46.8
+  - 74.1
+  apollo_lofted_number_density_per_m3:
+  - 100000000.0
+  - 10000000000000.0
+  apollo_11_dust_noticed_below_m: 30.48
