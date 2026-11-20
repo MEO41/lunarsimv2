@@ -34,47 +34,13 @@ from lunarsim.core.registry import ObservationBuilderDeclaration, check_slot_loo
 from lunarsim.core.simulation_clock import SimulationClock
 from lunarsim.env.lander_env_cfg import LanderEnvCfg
 from lunarsim.env.scenario_loader import ScenarioConfig
-
-
-class _AgentPort:
-    """Lets the environment write the agent's Command to the bus on the agent's behalf."""
-
-    slot = SlotName.AGENT
-    requires = frozenset({MessageKey.OBSERVATION})
-    provides = frozenset({MessageKey.COMMAND})
-    reads_truth = False
-
-
-class _EpisodeEventsReader:
-    """Lets the environment read the metrics output to fill the done flags."""
-
-    requires = frozenset({MessageKey.EPISODE_EVENTS})
-    provides = frozenset()
-    reads_truth = False
-
-
-class _TrainingTruthReader:
-    """Training-side reader of TruthState (reward and critic group); its truth reads are logged."""
-
-    requires = frozenset({MessageKey.TRUTH_STATE, MessageKey.EPISODE_EVENTS})
-    provides = frozenset()
-    reads_truth = True
-
-
-def truth_observation_vector(truth) -> torch.Tensor:
-    """Return the critic's view of the truth in the NavigationStateLayout order, (N, 16)."""
-    return torch.cat(
-        (
-            truth.position,
-            truth.velocity,
-            truth.orientation_quaternion,
-            truth.angular_velocity,
-            truth.mass.unsqueeze(1),
-            truth.footpad_height_above_ground.unsqueeze(1),
-            truth.surface_probe_contact.unsqueeze(1),
-        ),
-        dim=1,
-    ).to(torch.float32)
+from lunarsim.env.slot_loop_parts import (  # shared with the analytic environment
+    SLOT_RESET_ORDER,
+    _AgentPort,
+    _EpisodeEventsReader,
+    _TrainingTruthReader,
+    truth_observation_vector,
+)
 
 
 class LanderEnv(DirectRLEnv):
@@ -82,18 +48,8 @@ class LanderEnv(DirectRLEnv):
 
     cfg: LanderEnvCfg
 
-    # Slots that reset after the start slot, in this order.
-    # The surface comes first: it may move the site of an environment, and the plant places the
-    # lander relative to that site.
-    RESET_ORDER = (
-        SlotName.SURFACE,
-        SlotName.PLANT,
-        SlotName.SENSORS,
-        SlotName.FAULTS,
-        SlotName.NAVIGATION,
-        SlotName.ACTUATORS,
-        SlotName.METRICS,
-    )
+    # Slots that reset after the start slot, in this order (see slot_loop_parts.py).
+    RESET_ORDER = SLOT_RESET_ORDER
 
     def __init__(self, cfg: LanderEnvCfg, render_mode: str | None = None, **kwargs):
         """Build the simulation, then let every binding allocate its tensors."""
