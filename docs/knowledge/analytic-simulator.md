@@ -62,8 +62,23 @@ python scripts/benchmark_environment.py scenario=s1_terminal_truth plant=analyti
   rsl_rl and the export flies, simulator choice. Full CPU suite: 225 passed.
 - ZEM/ZEV over the full S1 box, 64 envs on the CPU: 60/64 (2026-11-20, a first look only).
 - CPU speed: 20,855 env steps/s at 256 envs (Windows laptop CPU, ZEM/ZEV in the loop).
-- **Not yet run on a GPU**; the GPU numbers (T2) and the paired comparison with PhysX (T3) come
-  from `noron` ([[workstation-setup-and-machines]]).
+- On `noron` (RTX 5060, commit 9e2de16): the 24 analytic tests pass on Linux; the Isaac GPU
+  tests after the `slot_loop_parts` move pass (null loop, scenario smoke, PPO smoke, free fall,
+  contact rest). Speed with ZEM/ZEV in the loop, `benchmark_environment.py`, 300 steps:
+
+| Envs | Analytic env steps/s | GPU memory (process) | PhysX env steps/s |
+| --- | --- | --- | --- |
+| 1,024 | 149,723 | 172 MiB | 70,714 (same day) |
+| 4,096 | 560,145 | 236 MiB | 159,733 (2026-11-14, [[speed-benchmarks]]) |
+| 16,384 | 1,547,578 | 396 MiB | 203,702 (2026-11-14) |
+
+  Start-up to a running environment: 1.4 s analytic, 7.1 s PhysX (Isaac Sim launch included).
+- Paired ZEM/ZEV flights (commit c1263a9, seed 1000, 4,096 held-out starts, `lunarsim
+  compare-simulators`): 97.68 % in both (Wilson 97.17-98.10 %); the **same outcome code for all
+  4,096 starts** (McNemar p = 1); RMS differences at touchdown 0.025 m/s vertical, 0.014 m/s
+  horizontal, 0.11° tilt, 0.088 m touchdown point, 0.21 kg propellant. Evaluation wall time 30 s
+  analytic, 83 s PhysX. ZEM/ZEV cuts the engine at probe contact, so the post-contact physics
+  hardly enters; the learned policies (T5) are the real test.
 
 - part of: [[analytic-to-physx-transfer-study]]
 - mirrors: [[slot-loop-architecture]]

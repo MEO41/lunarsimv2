@@ -347,7 +347,7 @@
       "title": "Speed benchmarks",
       "type": "result",
       "status": "current",
-      "updated": "2026-11-15",
+      "updated": "2026-11-20",
       "summary": "Environment steps per second and GPU memory against environment count, per GPU (goal G4).",
       "path": "speed-benchmarks.md"
     },
@@ -396,7 +396,7 @@
     },
     {
       "source": "analytic-simulator",
-      "target": "workstation-setup-and-machines",
+      "target": "speed-benchmarks",
       "relation": "mentions"
     },
     {
@@ -1563,6 +1563,11 @@
       "source": "sources-bibliography",
       "target": "lunar-surface-statistics-research",
       "relation": "cited by"
+    },
+    {
+      "source": "speed-benchmarks",
+      "target": "analytic-simulator",
+      "relation": "mentions"
     },
     {
       "source": "speed-benchmarks",

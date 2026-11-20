@@ -3,7 +3,7 @@ id: speed-benchmarks
 title: Speed benchmarks
 type: result
 status: current
-updated: 2026-11-15
+updated: 2026-11-20
 summary: Environment steps per second and GPU memory against environment count, per GPU (goal G4).
 ---
 
@@ -35,6 +35,11 @@ GPU memory ranged from 2.33 GB to 5.07 GB over these runs. Milestone 0 null loop
 
 S1 is about 20 % slower than on 2026-11-14 (probe checks, contact sensor on the body, terrain
 metrics). S2 costs another 24-27 %.
+
+## Analytic simulator, RTX 5060 (2026-11-20)
+
+`plant=analytic_rigid_body`, ZEM/ZEV in the loop: 149,723 env steps/s at 1,024 envs, 560,145 at
+4,096, 1,547,578 at 16,384; PhysX at 1,024 the same day: 70,714. Details in [[analytic-simulator]].
 
 ## RTX 5090, 32 GB
 

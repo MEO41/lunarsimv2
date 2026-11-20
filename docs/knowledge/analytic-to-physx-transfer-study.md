@@ -23,11 +23,11 @@ Both run S1 (flat ground, true-state navigation, Apollo LM, `engine_rcs_pulse`, 
 
 | Test | What | Status |
 | --- | --- | --- |
-| T1 | Analytic model check: the PhysX validation tests' known answers on A | **CPU part passes** (2026-11-20); GPU run on `noron` next |
-| T2 | Throughput of A and P with the same agent on the same GPU, 1 to 16,384 envs (RTX 5060) | Script ready (`benchmark_environment.py` takes `plant=analytic_rigid_body`) |
-| T3 | Paired flights: same 4,096 starts in A and P, same agent; McNemar test of the outcomes | Next |
+| T1 | Analytic model check: the PhysX validation tests' known answers on A | **Passes** (2026-11-20; CPU and on `noron`) |
+| T2 | Throughput of A and P with the same agent on the same GPU, 1 to 16,384 envs (RTX 5060) | First numbers: A 2.1× P at 1,024 envs, 7.6× at 16,384 ([[analytic-simulator]]); the full table (5 repeats, every count, both in one session) is still to do |
+| T3 | Paired flights: same 4,096 starts in A and P, same agent; McNemar test of the outcomes | ZEM/ZEV on the S1 box: same outcome for all 4,096 starts (2026-11-20). Still to do: the wide range (5-150 m, `start.heading_deg=[0,360]`) and trained policies |
 | T4 | Parameter sweep (Latin hypercube): mass ±30 %, vehicle cases, altitude, heading, time step | Later |
-| T5 | PPO trained in A and in P, 5 seeds each; each tested in A and P on 4,096 held-out starts | Later; P must be retrained on the RTX 5060 (the 97.95 % runs were on `minsky`) |
+| T5 | PPO trained in A and in P, 5 seeds each; each tested in A and P on 4,096 held-out starts | One-seed gate: `scripts/noron/transfer_study_gate.sh` (P must be retrained on the RTX 5060; the 97.95 % runs were on `minsky`) |
 | T6 | Domain randomization in A, tested in P | Later |
 | T7 | Wall-clock time to 90 % success in P; also "A first, then P" (`resume_from`) | `train_ppo.py` writes `checkpoint_wall_clock.csv` |
 | T8 | Model ablation: spring legs → `metrics.end_at_first_contact=true` → no engine lag / jet limits → point mass | `end_at_first_contact` built and tested |
@@ -41,6 +41,15 @@ Both run S1 (flat ground, true-state navigation, Apollo LM, `engine_rcs_pulse`, 
 - Code is written on the user's Windows machine and pushed to `noron`; all GPU work and training
   run on `noron`, only on `/media/noron/DISK02` (repository at
   `/media/noron/DISK02/Speed_Versus_Fidelity/lunarsimv2`, branch `analytic-simulator`).
+
+## Running on noron
+
+The Isaac environment `/media/noron/DISK02/isaac-lab-native/env_isaaclab` has an editable
+`lunarsim` install of the other clone (`~/Desktop/MEO/lunarsimv2`); it is not changed. Every
+command sets `PYTHONPATH=<this clone>/src` so this clone's code is imported (checked
+2026-11-20). The DISK02 clone accepts pushes to its checked-out branch
+(`receive.denyCurrentBranch=updateInstead`). Jobs and their logs live in `runs/_jobs/`.
+`scripts/push_run_results.sh` is not used here: it pushes to `main` under the owner's name.
 
 - uses: [[analytic-simulator]]
 - compares with: [[ppo-landing-agent]]
