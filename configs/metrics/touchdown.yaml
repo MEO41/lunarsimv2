@@ -12,3 +12,6 @@ maximum_altitude_m: 200.0
 # always recorded; set this to true to count a rim below nozzle_failure_clearance_m as a failure.
 nozzle_clearance_counts_as_failure: false
 nozzle_failure_clearance_m: 0.0
+# true: the episode ends at the first contact and the approach values alone judge it (no settling,
+# no tip-over after contact). One step of the analytic-to-PhysX model ablation.
+end_at_first_contact: false

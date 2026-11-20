@@ -62,7 +62,12 @@ class TouchdownMetrics(BindingBase):
     Parameters (all optional): ``contact_force_threshold_n``, ``settle_speed_mps``,
     ``settle_rate_deg_per_s``, ``settle_hold_s``, ``settle_timeout_s``, ``tip_over_tilt_deg``,
     ``maximum_horizontal_distance_m``, ``maximum_altitude_m``, ``tip_over_needs_contact``, ``nozzle_clearance_counts_as_failure``,
-    ``nozzle_failure_clearance_m``.
+    ``nozzle_failure_clearance_m``, ``end_at_first_contact``.
+
+    With ``end_at_first_contact: true`` (default false) the episode ends in the control step of the
+    first contact and counts as settled there: the approach values alone judge the landing, and
+    nothing after the contact (settling, tipping over) is simulated. The analytic-to-PhysX study
+    uses it as one step of its model ablation.
     """
 
     requires = frozenset(
@@ -87,6 +92,7 @@ class TouchdownMetrics(BindingBase):
         self.tip_over_needs_contact = bool(get("tip_over_needs_contact", False))
         self.maximum_horizontal_distance = float(get("maximum_horizontal_distance_m", 300.0))
         self.maximum_altitude = float(get("maximum_altitude_m", 200.0))
+        self.end_at_first_contact = bool(get("end_at_first_contact", False))
         self.nozzle_clearance_counts_as_failure = bool(get("nozzle_clearance_counts_as_failure", False))
         self.nozzle_failure_clearance = float(get("nozzle_failure_clearance_m", 0.0))
         self.episode_length = float(context.shared_data["episode_length_seconds"])
@@ -292,6 +298,9 @@ class TouchdownMetrics(BindingBase):
         at_rest = self.has_contact & (speed < self.settle_speed) & (tilt_rate < self.settle_rate)
         self.settled_duration = torch.where(at_rest, self.settled_duration + dt, torch.zeros_like(speed))
         settled = self.settled_duration >= self.settle_hold
+        if self.end_at_first_contact:
+            # The episode ends at the first contact; the approach values judge the landing.
+            settled = settled | first_contact
         tipped_over = tilt > self.tip_over_tilt
         if self.tip_over_needs_contact:
             tipped_over = tipped_over & self.has_contact

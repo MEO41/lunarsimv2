@@ -26,6 +26,7 @@ from lunarsim.slots.navigation import ros2_bridge as _navigation_ros2_bridge  # 
 from lunarsim.slots.navigation import terrain_relative_navigation as _navigation_trn  # noqa: F401
 from lunarsim.slots.navigation import truth as _navigation_truth  # noqa: F401
 from lunarsim.slots.navigation import truth_noise as _navigation_truth_noise  # noqa: F401
+from lunarsim.slots.plant import analytic_rigid_body as _plant_analytic_rigid_body  # noqa: F401
 from lunarsim.slots.plant import orbit_float64 as _plant_orbit_float64  # noqa: F401
 from lunarsim.slots.plant import physx_site as _plant_physx_site  # noqa: F401
 from lunarsim.slots.plant import rigid_box as _plant_rigid_box  # noqa: F401

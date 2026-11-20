@@ -1,0 +1,10 @@
+binding: analytic_rigid_body
+# The fast simulator of the analytic-to-PhysX transfer study: one rigid body with analytic
+# spring-strut legs on flat ground, in pure torch (no Isaac Sim, no PhysX). Use it with
+#   plant=analytic_rigid_body
+# on any flat-ground scenario (S1). The strut stiffness, damping and stroke, the footpad dish and
+# the descent-stage size come from the lander preset; the friction coefficient comes from the
+# surface slot (surface: flat, dynamic_friction). The values below are model choices.
+leg_contact: spring_strut
+stroke_end_stiffness_n_per_m: 1.0e7     # end stop of the strut stroke (PhysX: a hard joint limit)
+body_ground_stiffness_n_per_m: 1.0e7    # descent-stage rim against the ground (PhysX: rigid contact)
