@@ -42,6 +42,17 @@ Both run S1 (flat ground, true-state navigation, Apollo LM, `engine_rcs_pulse`, 
   run on `noron`, only on `/media/noron/DISK02` (repository at
   `/media/noron/DISK02/Speed_Versus_Fidelity/lunarsimv2`, branch `analytic-simulator`).
 
+## Open questions
+
+- **Heading and the attitude controller (found 2026-11-20).** The classical attitude loop
+  (`agents/classical/attitude_controller.py`, also used by `ppo_mlp` with `attitude_commands`)
+  always aims at heading 0. With `start.heading_deg=[0,360]` the lander turns back at up to
+  5 deg/s, and when that turn is still running at contact the body rate breaks the 2 deg/s limit:
+  9 of 64 wide-range ZEM/ZEV starts failed as `tilt_rate_at_contact` (analytic, CPU check), about
+  0.3 % without the heading range. It affects both simulators alike, so T3 stays a fair paired
+  test, but it lowers the baseline of R1. Changing the controller to hold the current heading is
+  a design change of the owner's code: the user decides.
+
 ## Running on noron
 
 The Isaac environment `/media/noron/DISK02/isaac-lab-native/env_isaaclab` has an editable
