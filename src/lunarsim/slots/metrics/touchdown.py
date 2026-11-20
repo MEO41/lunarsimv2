@@ -152,7 +152,7 @@ class TouchdownMetrics(BindingBase):
         self.touchdown_position = zeros(3)
         self.start = {
             name: zeros()
-            for name in ("altitude", "vertical_speed", "horizontal_velocity_x", "horizontal_velocity_y", "tilt", "mass")
+            for name in ("altitude", "vertical_speed", "horizontal_velocity_x", "horizontal_velocity_y", "tilt", "heading", "mass")
         }
         self._finished_records: list[dict[str, Tensor]] = []
 
@@ -183,6 +183,11 @@ class TouchdownMetrics(BindingBase):
         self.start["horizontal_velocity_x"][env_ids] = velocity[:, 0]
         self.start["horizontal_velocity_y"][env_ids] = velocity[:, 1]
         self.start["tilt"][env_ids] = tilt
+        # Heading: direction of the body x axis in the horizontal plane (from site +x toward +y).
+        body_x_axis = torch.zeros(len(env_ids), 3, device=self.device)
+        body_x_axis[:, 0] = 1.0
+        body_x_in_site = rotate_vector_body_to_parent(start.orientation_quaternion[env_ids].to(torch.float32), body_x_axis)
+        self.start["heading"][env_ids] = torch.atan2(body_x_in_site[:, 1], body_x_in_site[:, 0])
         self.start["mass"][env_ids] = start.mass[env_ids].to(torch.float32)
         self.previous["vertical_speed"][env_ids] = velocity[:, 2]
         self.previous["horizontal_speed"][env_ids] = velocity[:, :2].norm(dim=1)
@@ -378,6 +383,7 @@ class TouchdownMetrics(BindingBase):
             "start_horizontal_velocity_x_mps": self.start["horizontal_velocity_x"],
             "start_horizontal_velocity_y_mps": self.start["horizontal_velocity_y"],
             "start_tilt_deg": self.start["tilt"] * degrees,
+            "start_heading_deg": self.start["heading"] * degrees,
             "start_mass_kg": self.start["mass"],
             "had_contact": self.has_contact,
             "touchdown_time_s": self.contact_time,

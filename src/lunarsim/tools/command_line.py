@@ -4,6 +4,7 @@
 ``lunarsim figures <run_dir>``   make all figures of a run from its files
 ``lunarsim summary <run_dir>``   print the outcome table of a run
 ``lunarsim compare label=dir[,dir...] ...``  compare agents on the same held-out starts
+``lunarsim compare-simulators <run_a> <run_b>``  paired test of two runs on the same starts (T3)
 ``lunarsim knowledge-graph``     rebuild docs/knowledge/graph.json and graph_overview.md
 ``lunarsim knowledge-graph --check``  report broken links and out-of-date graph files
 """
@@ -22,6 +23,10 @@ def main(arguments: list[str] | None = None) -> int:
         command.add_argument("run_directory", help="directory with manifest.yaml and episodes.parquet")
     compare = commands.add_parser("compare", help="compare agents on the same held-out starts")
     compare.add_argument("groups", nargs="+", help="label=run_dir[,run_dir...] (for example ppo=runs/a,runs/b)")
+    paired = commands.add_parser("compare-simulators", help="paired test of two runs that flew the same starts")
+    paired.add_argument("first_run", help="run directory, for example the analytic-simulator evaluation")
+    paired.add_argument("second_run", help="run directory, for example the PhysX evaluation")
+    paired.add_argument("--labels", nargs=2, default=("analytic", "physx"), help="names of the two runs in the output")
     knowledge = commands.add_parser("knowledge-graph", help="rebuild or check the project knowledge graph")
     knowledge.add_argument("--check", action="store_true", help="only check; exit 1 on any problem")
     options = parser.parse_args(arguments)
@@ -47,6 +52,11 @@ def main(arguments: list[str] | None = None) -> int:
         print(compare_groups(groups).round(2).to_string(index=False))
         print()
         print(outcome_counts(groups).to_string())
+        return 0
+    if options.command == "compare-simulators":
+        from lunarsim.tools.paired_simulator_comparison import compare_paired_runs, format_paired_comparison
+
+        print(format_paired_comparison(compare_paired_runs(options.first_run, options.second_run, tuple(options.labels))))
         return 0
     if options.command == "figures":
         from lunarsim.tools.figures import make_figures

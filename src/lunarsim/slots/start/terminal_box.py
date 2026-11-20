@@ -13,7 +13,7 @@ from lunarsim.core.binding import BindingBase, SlotName
 from lunarsim.core.message_types import Frame, MessageKey, TruthState
 from lunarsim.core.registry import register_binding
 from lunarsim.slots.start.initial_navigation_error import InitialNavigationError
-from lunarsim.core.rotation_math import quaternion_from_axis_angle
+from lunarsim.core.rotation_math import quaternion_from_axis_angle, quaternion_multiply
 
 
 def sample_uniform(low: float, high: float, count: int, generator: torch.Generator, device) -> Tensor:
@@ -32,6 +32,9 @@ class TerminalBoxStart(BindingBase):
     - ``v_horizontal_mps``: each of the two horizontal velocity components.
     - ``tilt_deg``: tilt angle from the vertical; the tilt direction is uniform in azimuth.
     - ``horizontal_position_m`` (optional, default ``[0, 0]``): each horizontal position component.
+    - ``heading_deg`` (optional): heading (turn about the vertical) of the body x axis. Without
+      it the lander starts with heading 0. It is drawn after every other quantity, so a scenario
+      without it keeps exactly the start states it had before the option existed.
     - ``nav_error`` (optional): error of the first navigation estimate, see ``initial_navigation_error.py``.
     """
 
@@ -103,7 +106,14 @@ class TerminalBoxStart(BindingBase):
         self.position[env_ids] = torch.stack((position_x, position_y, altitude + self.center_of_mass_height), dim=1)
         self.velocity[env_ids] = torch.stack((horizontal_velocity_x, horizontal_velocity_y, vertical_speed), dim=1)
         tilt_axis = torch.stack((torch.cos(tilt_azimuth), torch.sin(tilt_azimuth), torch.zeros_like(tilt)), dim=1)
-        self.orientation[env_ids] = quaternion_from_axis_angle(tilt_axis, tilt)
+        orientation = quaternion_from_axis_angle(tilt_axis, tilt)
+        if parameters.get("heading_deg") is not None:
+            # Turn about the vertical first (body frame), then tilt (site frame): the tilt stays the drawn one.
+            heading = draw("heading_deg") * (math.pi / 180.0)
+            vertical = torch.zeros(count, 3, device=self.device)
+            vertical[:, 2] = 1.0
+            orientation = quaternion_multiply(orientation, quaternion_from_axis_angle(vertical, heading))
+        self.orientation[env_ids] = orientation
         self.angular_velocity[env_ids] = 0.0
         # Drawn from its own generator, after the start state: the start states do not change.
         self.navigation_error.reset(env_ids, gen)
