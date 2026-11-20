@@ -24,10 +24,10 @@ Both run S1 (flat ground, true-state navigation, Apollo LM, `engine_rcs_pulse`, 
 | Test | What | Status |
 | --- | --- | --- |
 | T1 | Analytic model check: the PhysX validation tests' known answers on A | **Passes** (2026-11-20; CPU and on `noron`) |
-| T2 | Throughput of A and P with the same agent on the same GPU, 1 to 16,384 envs (RTX 5060) | Full table done (first round, below): A 1.6× P at 1 env to 7.4× at 16,384; to repeat with the new controller |
-| T3 | Paired flights: same 4,096 starts in A and P, same agent; McNemar test of the outcomes | ZEM/ZEV on the S1 box: same outcome for all 4,096 starts (2026-11-20). Wide range and the gate policies: first round below; to repeat with the new controller |
+| T2 | Throughput of A and P with the same agent on the same GPU, 1 to 16,384 envs (RTX 5060) | Done (second round, below): A 1.6× P at 1 env to 7.1× (ZEM/ZEV) and 9.4× (PPO) at 16,384 |
+| T3 | Paired flights: same 4,096 starts in A and P, same agent; McNemar test of the outcomes | ZEM/ZEV on the S1 box: same outcome for all 4,096 starts (2026-11-20). S1 box and wide range done (second round, below); gate policies 99.7-99.8 % same outcome |
 | T4 | Parameter sweep (Latin hypercube): mass ±30 %, vehicle cases, altitude, heading, time step | Later |
-| T5 | PPO trained in A and in P, 5 seeds each; each tested in A and P on 4,096 held-out starts | One-seed gate `scripts/noron/transfer_study_gate.sh`: first round passed (below); to repeat with the new controller, then 5 seeds |
+| T5 | PPO trained in A and in P, 5 seeds each; each tested in A and P on 4,096 held-out starts | One-seed gate `scripts/noron/transfer_study_gate.sh`: passed twice (below); next: 5 seeds |
 | T6 | Domain randomization in A, tested in P | Later |
 | T7 | Wall-clock time to 90 % success in P; also "A first, then P" (`resume_from`) | `train_ppo.py` writes `checkpoint_wall_clock.csv`; first-round gate runs have it |
 | T8 | Model ablation: spring legs → `metrics.end_at_first_contact=true` → no engine lag / jet limits → point mass | `end_at_first_contact` built and tested |
@@ -56,8 +56,43 @@ axis is commanded. Start states (`orbit_elements`) still use heading 0. Check: Z
 CPU, 256 starts of seed 1000: 98.44 % with and without the heading range.
 
 All results below "first round" were made with the old controller and are kept in
-`runs/_superseded_heading_zero_controller/` on `noron`; the gate, T3 and T2 run again with the
-new controller.
+`runs/_superseded_heading_zero_controller/` on `noron`; the gate, T3 and T2 were run again
+with the new controller (second round, below).
+
+### Second round (heading-keeping controller, commit 121915c, `noron`, 2026-11-20)
+
+- T5 gate, seed 0, 4,096 envs, 600 iterations: training wall time **PhysX 2,390 s, analytic
+  801 s** (3.0×). On the 4,096 held-out starts of seed 1000:
+
+| Policy trained in | Flown in P | Flown in A | Same outcome code | Discordant pairs (only A / only P) | McNemar p |
+| --- | --- | --- | --- | --- | --- |
+| P | 98.02 % | 98.05 % | 99.83 % | 4 / 3 | 1 |
+| A | 97.78 % | 97.80 % | 99.73 % | 6 / 5 | 1 |
+
+  The analytic-trained policy flies 97.78 % in PhysX against 98.02 % for the PhysX-trained one
+  (0.24 points), after a third of the training time. One seed only: the change from the first
+  round (98.32 % to 98.02 %) cannot be told apart from seed noise; T5 with 5 seeds decides.
+- T3, ZEM/ZEV, 4,096 starts each:
+
+| Starts | P | A | Same outcome code | McNemar p |
+| --- | --- | --- | --- | --- |
+| S1 box, seed 1000 | 97.71 % | 97.68 % | 99.98 % | 1 |
+| Wide (5-150 m, heading 0-360°), seed 1000 | 99.44 % | 99.44 % | 100 % | 1 |
+| Wide, seed 1001 | 99.46 % | 99.46 % | 100 % | 1 |
+| Wide, seed 1002 | 99.15 % | 99.15 % | 100 % | 1 |
+
+  With the heading kept, the wide-range success rose from about 88 % (first round) to about
+  99.4 %.
+- T2, median of 5 repeats, env steps/s (`runs/t2_throughput/benchmark.jsonl`):
+
+| Envs | 1 | 16 | 256 | 1,024 | 4,096 | 8,192 | 16,384 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| P, ZEM/ZEV | 96 | 1,417 | 20,815 | 70,199 | 169,125 | 197,515 | 215,328 |
+| A, ZEM/ZEV | 153 | 2,404 | 37,233 | 144,271 | 536,656 | 962,504 | 1,532,100 |
+| A / P, ZEM/ZEV | 1.6 | 1.7 | 1.8 | 2.1 | 3.2 | 4.9 | 7.1 |
+| A / P, PPO policy | 1.6 | 1.7 | 1.8 | 2.2 | 3.5 | 5.5 | 9.4 |
+
+  The analytic repeats spread less than 3 % around the median.
 
 ### First round (old controller, heading 0; commit 48b7150 / 64a71db, `noron`)
 
