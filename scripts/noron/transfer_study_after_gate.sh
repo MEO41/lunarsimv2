@@ -2,7 +2,7 @@
 # Analytic-to-PhysX transfer study: tests that need no training, queued after the one-seed gate
 # (docs/knowledge/analytic-to-physx-transfer-study.md).
 #
-# 1. T3, wide start range: ZEM/ZEV in both simulators on the same 4,096 starts, footpad altitude
+# 1. T3: ZEM/ZEV in both simulators on the 4,096 S1 starts of seed 1000; then the wide start range: ZEM/ZEV in both simulators on the same 4,096 starts, footpad altitude
 #    5-150 m and heading 0-360 degrees (the rest of the S1 box unchanged), seeds 1000-1002, each
 #    pair compared with `lunarsim compare-simulators`.
 # 2. T2, throughput: benchmark_environment.py for both simulators, environment counts 1 to 16,384,
@@ -23,7 +23,16 @@ ANALYTIC="plant=analytic_rigid_body"
 while pgrep -f "[t]ransfer_study_gate.sh" > /dev/null; do sleep 60; done
 echo "[after-gate] commit $(git rev-parse --short HEAD), start $(date -Is)"
 
-# ---- 1. T3 wide range ----
+# ---- 1. T3 on the S1 box (seed 1000), then the wide range ----
+for simulator in physx analytic; do
+  run=t3_s1_zem_zev_${simulator}_seed1000
+  [ -f "runs/$run/episodes.parquet" ] && continue
+  extra=""; [ "$simulator" = analytic ] && extra=$ANALYTIC
+  clean_shm
+  python scripts/evaluate_agent.py scenario=s1_terminal_truth agent=zem_zev num_envs=4096 seed=1000 logged_envs=64 $extra run_name=$run > "runs/_jobs/$run.log" 2>&1
+  echo "[after-gate] $run: $(grep '\[lunarsim\] episodes' "runs/_jobs/$run.log")"
+done
+python -m lunarsim.tools.command_line compare-simulators runs/t3_s1_zem_zev_analytic_seed1000 runs/t3_s1_zem_zev_physx_seed1000
 WIDE="start.altitude_m=[5,150] +start.heading_deg=[0,360]"
 for seed in 1000 1001 1002; do
   for simulator in physx analytic; do

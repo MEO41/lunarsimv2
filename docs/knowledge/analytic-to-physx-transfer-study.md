@@ -24,12 +24,12 @@ Both run S1 (flat ground, true-state navigation, Apollo LM, `engine_rcs_pulse`, 
 | Test | What | Status |
 | --- | --- | --- |
 | T1 | Analytic model check: the PhysX validation tests' known answers on A | **Passes** (2026-11-20; CPU and on `noron`) |
-| T2 | Throughput of A and P with the same agent on the same GPU, 1 to 16,384 envs (RTX 5060) | First numbers: A 2.1× P at 1,024 envs, 7.6× at 16,384 ([[analytic-simulator]]); the full table (5 repeats, every count, both in one session) is still to do |
-| T3 | Paired flights: same 4,096 starts in A and P, same agent; McNemar test of the outcomes | ZEM/ZEV on the S1 box: same outcome for all 4,096 starts (2026-11-20). Still to do: the wide range (5-150 m, `start.heading_deg=[0,360]`) and trained policies |
+| T2 | Throughput of A and P with the same agent on the same GPU, 1 to 16,384 envs (RTX 5060) | Full table done (first round, below): A 1.6× P at 1 env to 7.4× at 16,384; to repeat with the new controller |
+| T3 | Paired flights: same 4,096 starts in A and P, same agent; McNemar test of the outcomes | ZEM/ZEV on the S1 box: same outcome for all 4,096 starts (2026-11-20). Wide range and the gate policies: first round below; to repeat with the new controller |
 | T4 | Parameter sweep (Latin hypercube): mass ±30 %, vehicle cases, altitude, heading, time step | Later |
-| T5 | PPO trained in A and in P, 5 seeds each; each tested in A and P on 4,096 held-out starts | One-seed gate: `scripts/noron/transfer_study_gate.sh` (P must be retrained on the RTX 5060; the 97.95 % runs were on `minsky`) |
+| T5 | PPO trained in A and in P, 5 seeds each; each tested in A and P on 4,096 held-out starts | One-seed gate `scripts/noron/transfer_study_gate.sh`: first round passed (below); to repeat with the new controller, then 5 seeds |
 | T6 | Domain randomization in A, tested in P | Later |
-| T7 | Wall-clock time to 90 % success in P; also "A first, then P" (`resume_from`) | `train_ppo.py` writes `checkpoint_wall_clock.csv` |
+| T7 | Wall-clock time to 90 % success in P; also "A first, then P" (`resume_from`) | `train_ppo.py` writes `checkpoint_wall_clock.csv`; first-round gate runs have it |
 | T8 | Model ablation: spring legs → `metrics.end_at_first_contact=true` → no engine lag / jet limits → point mass | `end_at_first_contact` built and tested |
 | T9 | All policies in P on the Apollo 17 terrain | Later (height maps must be downloaded on `noron`) |
 
@@ -42,16 +42,46 @@ Both run S1 (flat ground, true-state navigation, Apollo LM, `engine_rcs_pulse`, 
   run on `noron`, only on `/media/noron/DISK02` (repository at
   `/media/noron/DISK02/Speed_Versus_Fidelity/lunarsimv2`, branch `analytic-simulator`).
 
-## Open questions
+## Heading-keeping attitude controller (2026-11-20)
 
-- **Heading and the attitude controller (found 2026-11-20).** The classical attitude loop
-  (`agents/classical/attitude_controller.py`, also used by `ppo_mlp` with `attitude_commands`)
-  always aims at heading 0. With `start.heading_deg=[0,360]` the lander turns back at up to
-  5 deg/s, and when that turn is still running at contact the body rate breaks the 2 deg/s limit:
-  9 of 64 wide-range ZEM/ZEV starts failed as `tilt_rate_at_contact` (analytic, CPU check), about
-  0.3 % without the heading range. It affects both simulators alike, so T3 stays a fair paired
-  test, but it lowers the baseline of R1. Changing the controller to hold the current heading is
-  a design change of the owner's code: the user decides.
+The classical attitude loop (`agents/classical/attitude_controller.py`, also used by `ppo_mlp`
+with `attitude_commands`, by ZEM/ZEV, powered descent guidance and the build-up agents) aimed at
+heading 0. With `start.heading_deg=[0,360]` the lander turned back at up to 5 deg/s, and when that
+turn was still running at contact the body rate broke the 2 deg/s limit (9 of 64 wide-range
+ZEM/ZEV starts on the CPU; about 11 % of the wide-range T3 starts on `noron`). The user decided
+(2026-11-20) that the controller keeps the heading the lander has:
+`quaternion_for_thrust_direction(direction, current_orientation)` turns the current attitude by
+the shortest rotation that brings body +z onto the wanted direction, so no turn about the thrust
+axis is commanded. Start states (`orbit_elements`) still use heading 0. Check: ZEM/ZEV, analytic,
+CPU, 256 starts of seed 1000: 98.44 % with and without the heading range.
+
+All results below "first round" were made with the old controller and are kept in
+`runs/_superseded_heading_zero_controller/` on `noron`; the gate, T3 and T2 run again with the
+new controller.
+
+### First round (old controller, heading 0; commit 48b7150 / 64a71db, `noron`)
+
+- T5 gate, seed 0, 4,096 envs, 600 iterations: training wall time **PhysX 2,379 s, analytic
+  808 s** (2.9×). On the 4,096 held-out starts of seed 1000:
+
+| Policy trained in | Flown in P | Flown in A | Discordant pairs (only A / only P) | McNemar p |
+| --- | --- | --- | --- | --- |
+| P | 98.32 % | 98.24 % | 0 / 3 | 0.25 |
+| A | 98.27 % | 98.36 % | 4 / 0 | 0.125 |
+
+  So the analytic-trained policy flies 98.27 % in PhysX against 98.32 % for the PhysX-trained
+  one; same outcome code for 99.9 % of the pairs.
+- T3 wide range (ZEM/ZEV, altitude 5-150 m, heading 0-360°, seeds 1000-1002): A and P
+  88.04/87.99 %, 88.55/88.55 %, 87.43/87.40 %; McNemar p 0.625, 1, 1; the failures are mostly
+  `tilt_rate_at_contact` from the heading turn (fixed above).
+- T2, median of 5 repeats, env steps/s, ZEM/ZEV in the loop (PPO in the loop is 2-36 % faster
+  for A and 1-8 % for P):
+
+| Envs | 1 | 16 | 256 | 1,024 | 4,096 | 8,192 | 16,384 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| P | 94 | 1,394 | 20,339 | 66,821 | 156,275 | 185,136 | 205,879 |
+| A | 154 | 2,409 | 37,102 | 145,069 | 538,700 | 966,726 | 1,527,010 |
+| A / P | 1.6 | 1.7 | 1.8 | 2.2 | 3.4 | 5.2 | 7.4 |
 
 ## Running on noron
 

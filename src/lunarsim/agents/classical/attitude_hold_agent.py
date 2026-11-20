@@ -8,7 +8,7 @@ loop is closed.
 import torch
 
 from lunarsim.agents.agent_base import AgentBase
-from lunarsim.agents.classical.attitude_controller import AttitudeController
+from lunarsim.agents.classical.attitude_controller import AttitudeController, quaternion_for_thrust_direction
 from lunarsim.core.binding import SlotName
 from lunarsim.core.message_types import Command, NavigationStateLayout, Observation
 from lunarsim.core.physical_constants import MOON_SURFACE_GRAVITY
@@ -25,7 +25,8 @@ class AttitudeHoldAgent(AgentBase):
         super().__init__(parameters, number_of_environments, number_of_jets, device, shared_data)
         self.preset = self.shared_data["lander_preset"]
         self.attitude_controller = AttitudeController(self.preset, device=device)
-        self.upright = torch.tensor([1.0, 0.0, 0.0, 0.0], device=device).repeat(number_of_environments, 1)
+        # Upright = thrust axis along site +z, at the heading the lander has.
+        self.vertical_direction = torch.tensor([0.0, 0.0, 1.0], device=device).repeat(number_of_environments, 1)
 
     def compute_command(self, observation: Observation, control_step_duration: float) -> Command:
         """Return hover throttle (corrected for the tilt) and the jet duties that right the lander."""
@@ -35,8 +36,9 @@ class AttitudeHoldAgent(AgentBase):
         mass = state[:, layout.MASS].squeeze(1)
         vertical_share = body_up_axis_in_parent(orientation)[:, 2].clamp_min(0.5)
         throttle = mass * MOON_SURFACE_GRAVITY / (self.preset.engine_rated_thrust * vertical_share)
+        upright = quaternion_for_thrust_direction(self.vertical_direction, orientation)
         jets = self.attitude_controller.compute_jet_duties(
-            orientation, state[:, layout.ANGULAR_VELOCITY], self.upright, control_step_duration
+            orientation, state[:, layout.ANGULAR_VELOCITY], upright, control_step_duration
         )
         return Command(
             throttle=throttle, gimbal=torch.zeros(state.shape[0], 2, device=state.device), reaction_control_jets=jets

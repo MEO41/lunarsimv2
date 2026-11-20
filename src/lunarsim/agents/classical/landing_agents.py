@@ -9,7 +9,7 @@ import torch
 from torch import Tensor
 
 from lunarsim.agents.agent_base import AgentBase
-from lunarsim.agents.classical.attitude_controller import AttitudeController
+from lunarsim.agents.classical.attitude_controller import AttitudeController, quaternion_for_thrust_direction
 from lunarsim.agents.classical.vertical_controller import VerticalController
 from lunarsim.core.binding import SlotName
 from lunarsim.core.message_types import Command, NavigationStateLayout, Observation
@@ -46,7 +46,8 @@ class ClassicalLandingAgentBase(AgentBase):
         self.preset = self.shared_data["lander_preset"]
         self.attitude_controller = AttitudeController(self.preset, device=device, **self.parameters.get("attitude", {}))
         self.vertical_controller = VerticalController(self.preset, **self.parameters.get("vertical", {}))
-        self.upright = torch.tensor([1.0, 0.0, 0.0, 0.0], device=device).repeat(number_of_environments, 1)
+        # Upright = thrust axis along site +z, at the heading the lander has.
+        self.vertical_direction = torch.tensor([0.0, 0.0, 1.0], device=device).repeat(number_of_environments, 1)
         # Once the engine is cut near the ground it stays off until the next episode.
         self.engine_is_cut = torch.zeros(number_of_environments, dtype=torch.bool, device=device)
         self.engine_cutoff_signal = str(self.parameters.get("engine_cutoff_signal", "surface_probe_contact"))
@@ -149,7 +150,14 @@ class HoverHoldAgent(ClassicalLandingAgentBase):
         target = torch.full_like(altitude, float(self.parameters.get("target_altitude_m", 30.0)))
         acceleration = controller.acceleration_to_hold_altitude(altitude, velocity[:, 2], target)
         throttle = controller.throttle_for_vertical_acceleration(acceleration, mass, orientation)
-        return self.assemble_command(throttle, orientation, angular_velocity, self.upright, observation, control_step_duration)
+        return self.assemble_command(
+            throttle,
+            orientation,
+            angular_velocity,
+            quaternion_for_thrust_direction(self.vertical_direction, orientation),
+            observation,
+            control_step_duration,
+        )
 
 
 @register_binding(SlotName.AGENT, "vertical_descent")
@@ -163,4 +171,11 @@ class VerticalDescentAgent(ClassicalLandingAgentBase):
         altitude = self.height_above_ground(observation)
         acceleration = controller.acceleration_to_follow_descent_profile(altitude, velocity[:, 2])
         throttle = controller.throttle_for_vertical_acceleration(acceleration, mass, orientation)
-        return self.assemble_command(throttle, orientation, angular_velocity, self.upright, observation, control_step_duration)
+        return self.assemble_command(
+            throttle,
+            orientation,
+            angular_velocity,
+            quaternion_for_thrust_direction(self.vertical_direction, orientation),
+            observation,
+            control_step_duration,
+        )

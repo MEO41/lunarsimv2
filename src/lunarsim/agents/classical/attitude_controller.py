@@ -2,7 +2,8 @@
 """Attitude loop on the reaction-control jets (pure torch).
 
 The controller turns the lander so that its thrust axis (body +z) points along a wanted
-direction, and holds the heading. It uses only the estimated attitude and body rates, plus
+direction, and keeps the heading the lander has (no turn about the thrust axis is commanded,
+see ``quaternion_for_thrust_direction``). It uses only the estimated attitude and body rates, plus
 design data of the lander (inertia, jet couples).
 
 Per body axis:
@@ -25,24 +26,52 @@ from torch import Tensor
 from lunarsim.agents.classical.jet_selection import JetCoupleTable
 from lunarsim.assets.lander_preset import LanderPreset
 from lunarsim.core.rotation_math import (
+    body_up_axis_in_parent,
     quaternion_conjugate,
     quaternion_multiply,
     quaternion_to_rotation_vector,
 )
 
 
-def quaternion_for_thrust_direction(thrust_direction: Tensor) -> Tensor:
-    """Return the attitude (w, x, y, z) that points body +z along ``thrust_direction`` with zero heading change.
+def shortest_rotation_between(from_direction: Tensor, to_direction: Tensor) -> Tensor:
+    """Return the quaternion (w, x, y, z) of the shortest rotation that turns ``from_direction`` onto ``to_direction``.
 
-    It is the shortest rotation from site +z to the wanted direction. ``thrust_direction`` has
-    shape (N, 3) and need not be normalised.
+    Both inputs have shape (N, 3) and need not be normalised. The rotation axis is
+    ``from x to``, so the rotation has no component about ``from_direction``. Half-angle
+    formula: q = (1 + f.t, f x t), normalised. For opposite directions (an upside-down lander)
+    the formula has no unique axis and the result falls back to no rotation.
     """
-    direction = thrust_direction / thrust_direction.norm(dim=1, keepdim=True).clamp_min(1e-9)
-    # Shortest rotation from z to d: axis z x d, half-angle formula q = (1 + z.d, z x d) normalised.
-    scalar = 1.0 + direction[:, 2]
-    vector = torch.stack((-direction[:, 1], direction[:, 0], torch.zeros_like(scalar)), dim=1)
-    quaternion = torch.cat((scalar.unsqueeze(1), vector), dim=1)
-    return quaternion / quaternion.norm(dim=1, keepdim=True).clamp_min(1e-9)
+    start = torch.nn.functional.normalize(from_direction, dim=1)
+    end = torch.nn.functional.normalize(to_direction, dim=1)
+    scalar = 1.0 + (start * end).sum(dim=1, keepdim=True)
+    quaternion = torch.cat((scalar, torch.cross(start, end, dim=1)), dim=1)
+    length = quaternion.norm(dim=1, keepdim=True)
+    identity = torch.zeros_like(quaternion)
+    identity[:, 0] = 1.0
+    return torch.where(length > 1e-9, quaternion / length.clamp_min(1e-9), identity)
+
+
+def quaternion_for_thrust_direction(thrust_direction: Tensor, current_orientation: Tensor | None = None) -> Tensor:
+    """Return the attitude (w, x, y, z) that points body +z along ``thrust_direction``.
+
+    ``thrust_direction`` has shape (N, 3), in the frame of the attitude, and need not be
+    normalised.
+
+    - Without ``current_orientation``: the shortest rotation from frame +z to the direction,
+      so the heading is always zero (used to build start states).
+    - With ``current_orientation`` (N, 4): the current attitude turned by the shortest rotation
+      that brings the current body +z onto the direction. That turn has no part about the
+      thrust axis, so the controller commands no heading change and the lander keeps the
+      heading it has (decision 2026-11-20: a four-legged lander has no preferred heading, and
+      turning a random start heading back to zero took longer than a short descent).
+    """
+    if current_orientation is None:
+        frame_up = torch.zeros_like(thrust_direction)
+        frame_up[:, 2] = 1.0
+        return shortest_rotation_between(frame_up, thrust_direction)
+    turn = shortest_rotation_between(body_up_axis_in_parent(current_orientation), thrust_direction)
+    wanted = quaternion_multiply(turn, current_orientation)
+    return wanted / wanted.norm(dim=1, keepdim=True).clamp_min(1e-9)
 
 
 class AttitudeController:

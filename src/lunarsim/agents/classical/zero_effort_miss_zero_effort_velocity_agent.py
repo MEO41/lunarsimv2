@@ -195,7 +195,7 @@ class ZeroEffortMissZeroEffortVelocityAgent(ClassicalLandingAgentBase):
         thrust_acceleration = torch.where(
             self.in_final_descent.unsqueeze(1), final_thrust_acceleration, guided_thrust_acceleration
         )
-        wanted_orientation = quaternion_for_thrust_direction(thrust_acceleration)
+        wanted_orientation = quaternion_for_thrust_direction(thrust_acceleration, orientation)
         throttle = controller.throttle_for_vertical_acceleration(
             thrust_acceleration[:, 2] - MOON_SURFACE_GRAVITY, mass, orientation
         )

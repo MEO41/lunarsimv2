@@ -109,7 +109,7 @@ class OrbitGuidanceBase(ClassicalLandingAgentBase):
         """Point the thrust axis along ``thrust_acceleration`` and fly ``throttle`` once the axis is aligned."""
         _, _, orientation, angular_velocity, _ = self.split_state(observation)
         orientation32 = orientation.to(torch.float32)
-        wanted = quaternion_for_thrust_direction(thrust_acceleration.to(torch.float32))
+        wanted = quaternion_for_thrust_direction(thrust_acceleration.to(torch.float32), orientation32)
         body_axis = torch.stack(
             (
                 2.0 * (orientation32[:, 1] * orientation32[:, 3] + orientation32[:, 0] * orientation32[:, 2]),

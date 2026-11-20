@@ -73,3 +73,64 @@ def test_closed_loop_on_an_ideal_rigid_body_rights_a_ten_degree_tilt(preset):
     assert float(rotation.tilt_angle_from_vertical(orientation)) < math.radians(0.8)
     assert float(rate.norm()) < math.radians(0.3)
     assert largest_rate < math.radians(8.0)
+
+
+def heading_of(orientation: torch.Tensor) -> torch.Tensor:
+    """Return the heading (rad) of body +x projected on the site's horizontal plane."""
+    body_x = rotation.rotate_vector_body_to_parent(
+        orientation, torch.tensor([[1.0, 0.0, 0.0]]).expand(orientation.shape[0], 3)
+    )
+    return torch.atan2(body_x[:, 1], body_x[:, 0])
+
+
+def test_wanted_attitude_keeps_the_current_heading(preset):
+    """With the current attitude given, the wanted attitude points body +z along the direction, with no turn about it."""
+    headings = torch.tensor([0.0, 2.0, -2.5, 3.0])
+    yaw = rotation.quaternion_from_axis_angle(torch.tensor([[0.0, 0.0, 1.0]]).expand(4, 3), headings)
+    tilt = rotation.quaternion_from_axis_angle(
+        torch.tensor([[1.0, 0.5, 0.0]]).expand(4, 3), torch.full((4,), math.radians(8.0))
+    )
+    current = rotation.quaternion_multiply(tilt, yaw)
+    directions = torch.tensor([[0.0, 0.0, 1.0], [0.2, 0.0, 1.0], [0.0, -0.3, 1.0], [0.1, 0.1, 0.9]])
+    wanted = quaternion_for_thrust_direction(directions, current)
+    unit = directions / directions.norm(dim=1, keepdim=True)
+    assert torch.allclose(rotation.body_up_axis_in_parent(wanted), unit, atol=1e-6)
+    controller = AttitudeController(preset)
+    error = controller.attitude_error(current, wanted)
+    assert torch.allclose(error[:, 2], torch.zeros(4), atol=1e-6)  # no command about the thrust axis
+    upright = quaternion_for_thrust_direction(torch.tensor([[0.0, 0.0, 1.0]]).expand(4, 3), yaw)
+    assert torch.allclose(
+        rotation.quaternion_to_rotation_vector(
+            rotation.quaternion_multiply(rotation.quaternion_conjugate(yaw), upright)
+        ),
+        torch.zeros(4, 3),
+        atol=1e-6,
+    )
+
+
+def test_closed_loop_rights_a_tilt_and_keeps_a_large_heading(preset):
+    """Ideal rigid body at heading 150 degrees with a 10 degree tilt: upright within 10 s, heading kept within 1 degree."""
+    controller = AttitudeController(preset)
+    torque_matrix = torch.tensor(preset.jet_torque_matrix()).T
+    inertia = torch.tensor([preset.inertia_about_x, preset.inertia_about_y, preset.inertia_about_z])
+    start_heading = math.radians(150.0)
+    yaw = rotation.quaternion_from_axis_angle(torch.tensor([[0.0, 0.0, 1.0]]), torch.tensor([start_heading]))
+    tilt = rotation.quaternion_from_axis_angle(torch.tensor([[1.0, 1.0, 0.0]]), torch.tensor([math.radians(10.0)]))
+    orientation = rotation.quaternion_multiply(tilt, yaw)
+    rate = torch.zeros(1, 3)
+    vertical = torch.tensor([[0.0, 0.0, 1.0]])
+    step = 0.02
+    largest_yaw_rate = 0.0
+    for _ in range(int(10.0 / step)):
+        wanted = quaternion_for_thrust_direction(vertical, orientation)
+        duties = controller.compute_jet_duties(orientation, rate, wanted, step)
+        duties = torch.where(duties * step < preset.jet_minimum_pulse_duration, torch.zeros_like(duties), duties)
+        torque = duties @ torque_matrix
+        rate = rate + (torque - torch.cross(rate, inertia * rate, dim=1)) / inertia * step
+        increment = rotation.quaternion_from_axis_angle(rate, rate.norm(dim=1) * step)
+        orientation = rotation.quaternion_multiply(orientation, increment)
+        largest_yaw_rate = max(largest_yaw_rate, abs(float(rate[0, 2])))
+    assert float(rotation.tilt_angle_from_vertical(orientation)) < math.radians(0.8)
+    heading_change = math.remainder(float(heading_of(orientation)[0]) - start_heading, 2.0 * math.pi)
+    assert abs(heading_change) < math.radians(1.0)
+    assert largest_yaw_rate < math.radians(0.5)

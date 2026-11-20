@@ -121,9 +121,10 @@ class PolicyActionAdapter:
             direction = torch.cat(
                 (clipped[:, 1:3] * self.maximum_tilt_tangent, torch.ones_like(clipped[:, :1])), dim=1
             )
-            wanted_orientation = quaternion_for_thrust_direction(direction)
+            orientation = observation[:, layout.ORIENTATION_QUATERNION]
+            wanted_orientation = quaternion_for_thrust_direction(direction, orientation)
             jets = self.attitude_controller.compute_jet_duties(
-                observation[:, layout.ORIENTATION_QUATERNION],
+                orientation,
                 observation[:, layout.ANGULAR_VELOCITY],
                 wanted_orientation,
                 control_step_duration,
