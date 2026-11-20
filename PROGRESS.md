@@ -1,6 +1,6 @@
 # PROGRESS
 
-Last update: 2026-11-15
+Last update: 2026-11-20
 
 ## Done
 - Read the design docs and all diagrams; checked the machine; settled the open decisions (see PLAN.md).
@@ -63,6 +63,13 @@ Last update: 2026-11-15
   and `results/s6_lidar_comparison/`: 94 % safe touchdowns with the measured noise against 31 %
   with the specification; the true-map 83 % is the agent's landing accuracy after an early
   re-plan (`docs/knowledge/hazard-detection-and-avoidance.md`).
+
+- **Analytic simulator (2026-11-20, branch `analytic-simulator`).** `plant: analytic_rigid_body`
+  and `AnalyticLanderEnvironment` run S1 in pure torch without Isaac Sim, for the
+  analytic-to-PhysX transfer study; `train_ppo.py`, `evaluate_agent.py` and
+  `benchmark_environment.py` take `plant=analytic_rigid_body`; `touchdown` has
+  `end_at_first_contact`. Test T1 passes on the CPU (24 new tests, 225 in all)
+  (`docs/knowledge/analytic-simulator.md`).
 
 ## In progress
 - Nothing running. Next: the user's decisions in `docs/knowledge/pending-user-decisions.md`.

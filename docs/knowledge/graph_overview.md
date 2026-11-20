@@ -15,6 +15,7 @@ flowchart LR
     milestone_roadmap_and_status["Milestone roadmap and status"]
   end
   subgraph component
+    analytic_simulator["Analytic simulator"]
     bindings_catalogue["Bindings catalogue"]
     classical_agents["Classical agents"]
     faults_and_detection["Faults and fault detection (milestone 3)"]
@@ -49,6 +50,7 @@ flowchart LR
     open_issues["Open issues"]
   end
   subgraph plan
+    analytic_to_physx_transfer_study["Analytic-to-PhysX transfer study"]
     pending_user_decisions["Pending user decisions"]
     skipped_learning_work["Learning work skipped until more compute is available"]
     terrain_integration_plan["Terrain integration plan"]
@@ -68,6 +70,13 @@ flowchart LR
   subgraph history
     session_history["Session history"]
   end
+  analytic_simulator -- "part of" --> analytic_to_physx_transfer_study
+  analytic_simulator -- "mirrors" --> slot_loop_architecture
+  analytic_simulator -- "uses" --> lander_preset_apollo_lm
+  analytic_simulator -- "compared with" --> lander_articulation_model
+  analytic_to_physx_transfer_study -- "uses" --> analytic_simulator
+  analytic_to_physx_transfer_study -- "compares with" --> ppo_landing_agent
+  analytic_to_physx_transfer_study -- "baseline" --> milestone_1b_results
   apollo_lander_modeling_folder -- "source for" --> terrain_integration_plan
   apollo_lm_geometry_research -- "feeds" --> terrain_integration_plan
   apollo_lm_geometry_research -- "refines" --> lander_preset_apollo_lm
@@ -169,6 +178,7 @@ flowchart LR
 | [Rules from the user](rules-from-the-user.md) | rule | current | Standing instructions for all work in this repository; read first in every session. |
 | [Project goal and design documents](project-goal-and-design-documents.md) | design | current | What LunarSim v2 is for, which documents are the authority, the ten scenarios and the six goals. |
 | [Milestone roadmap and status](milestone-roadmap-and-status.md) | milestone | current | The eight milestones of the design, which gates have passed, and what comes next. |
+| [Analytic simulator](analytic-simulator.md) | component | current | plant analytic_rigid_body and AnalyticLanderEnvironment - the S1 slot loop in pure torch with an analytic lander, no Isaac Sim; the fast simulator of the transfer study. |
 | [Bindings catalogue](bindings-catalogue.md) | component | current | Every binding that exists, per slot, with its file and what it does; the two scenario files. |
 | [Classical agents](classical-agents.md) | component | current | The four-step classical controller chain ending in ZEM/ZEV guidance, its parameters, and how it uses the observed height above ground. |
 | [Faults and fault detection (milestone 3)](faults-and-detection.md) | component | current | The seeded sensor-fault schedule (faults slot) and the ekf_fdi filter with chi-square gate, isolation and loss detection; test results. |
@@ -195,6 +205,7 @@ flowchart LR
 | [Speed benchmarks](speed-benchmarks.md) | result | current | Environment steps per second and GPU memory against environment count, per GPU (goal G4). |
 | [Results with the LM-accurate lander and real terrain](terrain-results.md) | result | current | ZEM/ZEV success on flat ground with the corrected lander (97.53 %) and on the Apollo 17 terrain with craters and rocks (96.78 %), with failure causes and ground statistics. |
 | [Open issues](open-issues.md) | issue | open | Known weak points of the model and the code, with what each one affects. |
+| [Analytic-to-PhysX transfer study](analytic-to-physx-transfer-study.md) | plan | current | Revision of the rejected "Speed versus Fidelity" paper as an RL transfer study on LunarSim v2 - question, tests T1-T9, decisions, machine. |
 | [Pending user decisions](pending-user-decisions.md) | plan | waiting-for-user | Questions that wait for the user's answer; work that depends on them must not start before. |
 | [Learning work skipped until more compute is available](skipped-learning-work.md) | plan | open | The user's rule of 2026-11-16 (build through M7, no training longer than 20 minutes) and the list of every learning step left out on the way, to come back to. |
 | [Terrain integration plan](terrain-integration-plan.md) | plan | superseded | The plan (2026-11-14) for real Apollo 17 terrain and an LM-accurate lander; approved and built on 2026-11-15, kept as the record of what was agreed. |

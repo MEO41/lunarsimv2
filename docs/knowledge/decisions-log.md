@@ -3,7 +3,7 @@ id: decisions-log
 title: Decisions log
 type: decision
 status: current
-updated: 2026-11-17
+updated: 2026-11-20
 summary: Every decision taken so far, with date and reason; the place to add new ones.
 ---
 
@@ -115,3 +115,7 @@ Newest at the bottom. "User" means the user decided; the others were proposed, e
 | 2026-11-17 | The L2 skin-friction coefficient is fitted to the Apollo 11 eroded volume (36-57 L, Mason 1970) | Only published anchor for the erosion amount; the estimates for Apollo 12 range from 36 L to 2,080 L |
 | 2026-11-17 | S6 LiDAR comparison adds the measured-noise and ALHAT sensors as variants; the default S6 sensor (ASC specification noise) and the agent are not changed | Changing them changes every S6 and S7 number; the user decides ([[pending-user-decisions]] item 5) |
 | 2026-11-17 | Measured-noise table: the worse of the two OSIRIS-REx units at each range, RMS used as random noise per pixel | Conservative: the RMS includes each unit's mean range offset |
+| 2026-11-20 | Analytic simulator for the transfer study: `plant: analytic_rigid_body` in a separate pure-torch `AnalyticLanderEnvironment`, not inside `LanderEnv` | `LanderEnv` needs PhysX and Kit; their start-up and per-step cost would make the speed comparison unfair to the analytic side ([[analytic-simulator]]) |
+| 2026-11-20 | User: the main analytic model has spring-strut legs; `end_at_first_contact` is one step of the model ablation | Same outcome codes in both simulators; a point mass needs the contact rule anyway ([[analytic-to-physx-transfer-study]]) |
+| 2026-11-20 | Reset order, bus ports and critic truth vector moved to `env/slot_loop_parts.py`, used by both environments | One copy, so the two loops cannot drift apart; no change of behaviour |
+| 2026-11-20 | Analytic friction is velocity-level Coulomb with an effective mass 1/(n (1/M + r²/I_min)) | With M/4 per leg the resting lander chattered and crept 3 cm in 4 s; the rest test caught it |

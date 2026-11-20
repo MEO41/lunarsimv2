@@ -13,22 +13,35 @@ Script arguments: ``run_name=``, ``episodes_per_env=`` (default 1), ``logged_env
 ``fault_grid=true`` (S3: the held-out fault test grid of ``slots/faults/fault_grid.py``).
 An agent with decision records (``site_pick_divert``, S6) gets them merged into the episode table.
 Every other ``key=value`` is a Hydra override of the scenario.
+
+With ``plant=analytic_rigid_body`` the agent flies in the analytic simulator (pure torch, no
+Isaac Sim is started; ``--device`` picks the torch device, default ``cuda:0``). The same policy
+and the same ``seed`` give the same start states in both simulators (cross-test of the
+analytic-to-PhysX study).
 """
 
 import argparse
+import sys
 import time
 from pathlib import Path
 
-from isaaclab.app import AppLauncher
+from lunarsim.env.simulator_choice import command_line_uses_analytic_simulator  # noqa: E402  (no torch, no Isaac)
 
 parser = argparse.ArgumentParser(description="Evaluate a LunarSim agent.")
-AppLauncher.add_app_launcher_args(parser)
-arguments, scenario_arguments = parser.parse_known_args()
-simulation_app = AppLauncher(arguments).app
+USES_ANALYTIC_SIMULATOR = command_line_uses_analytic_simulator(sys.argv[1:])
+if USES_ANALYTIC_SIMULATOR:
+    parser.add_argument("--device", default="cuda:0", help="torch device of the analytic simulator")
+    arguments, scenario_arguments = parser.parse_known_args()
+    simulation_app = None
+else:
+    from isaaclab.app import AppLauncher
 
-from lunarsim.env.lander_env import LanderEnv  # noqa: E402
-from lunarsim.env.lander_env_cfg import build_lander_env_cfg  # noqa: E402
+    AppLauncher.add_app_launcher_args(parser)
+    arguments, scenario_arguments = parser.parse_known_args()
+    simulation_app = AppLauncher(arguments).app
+
 from lunarsim.env.scenario_loader import load_scenario, split_command_line  # noqa: E402
+from lunarsim.env.simulator_choice import build_environment, check_simulator_choice  # noqa: E402
 from lunarsim.tools.episode_records import EPISODES_FILE_NAME  # noqa: E402
 from lunarsim.tools.episode_runner import build_agent, collect_episodes  # noqa: E402
 from lunarsim.tools.run_manifest import write_manifest  # noqa: E402
@@ -69,10 +82,11 @@ def main() -> None:
             remaining_arguments.append(argument)
     scenario_name, overrides = split_command_line(remaining_arguments)
     scenario = load_scenario(scenario_name, overrides)
+    check_simulator_choice(scenario, USES_ANALYTIC_SIMULATOR)
     run_name = script_options["run_name"] or f"{scenario.name}_{time.strftime('%Y%m%d_%H%M%S')}"
     run_directory = REPOSITORY_ROOT / "runs" / run_name
 
-    environment = LanderEnv(build_lander_env_cfg(scenario, device=arguments.device))
+    environment = build_environment(scenario, device=arguments.device)
     agent = build_agent(environment)
     if script_options["fault_grid"].lower() in ("true", "1", "yes"):
         from lunarsim.slots.faults.fault_grid import apply_fault_grid
@@ -98,6 +112,7 @@ def main() -> None:
         environment.random_generators.seeds(),
         extra={
             "agent": scenario.slots["agent"].binding,
+            "simulator": "analytic" if USES_ANALYTIC_SIMULATOR else "isaac_physx",
             "episodes": int(len(episodes)),
             "wall_time_s": round(elapsed, 1),
             "truth_readers": environment.bus.truth_read_log,
@@ -115,4 +130,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-    simulation_app.close()
+    if simulation_app is not None:
+        simulation_app.close()

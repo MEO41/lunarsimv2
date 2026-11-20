@@ -16,7 +16,9 @@ summary: The two machines, where the Python environment lives on each, how to se
 | Development machine (until 2026-11-14) | RTX 5060, 8 GB, driver 595.99.02, Ubuntu 24.04 | All M0/M1a results | `/media/noron/DISK02/isaac-lab-native/env_isaaclab`, Isaac Lab source at `/media/noron/DISK02/isaac-lab-native/IsaacLab` |
 | `minsky` (from 2026-11-15), heavy GPU runs | RTX 5090, 32 GB; 32 CPU threads; 60 GB RAM; 1.9 TB disk | Set up 2026-11-15 by hand (not by the setup script) | **`~/lunarsim-workstation/env_isaaclab`** (pinned setup, user `minsky`); the user's `~/isaac-env` (Isaac Sim 6.2) is not used. Repo at `~/lunarsimv2`, height maps copied into `assets/terrain/apollo17/` |
 
-Repository on the development machine: `/home/noron/Desktop/MEO/lunarsimv2`. On a new
+Repository on the development machine: `/home/noron/Desktop/MEO/lunarsimv2`. The
+[[analytic-to-physx-transfer-study]] uses its own clone on the same machine,
+`/media/noron/DISK02/Speed_Versus_Fidelity/lunarsimv2` (user rule: that study works only on DISK02). On a new
 machine, wherever it is cloned.
 
 ## Using `minsky` from the development machine

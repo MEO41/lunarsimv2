@@ -3,7 +3,7 @@ id: bindings-catalogue
 title: Bindings catalogue
 type: component
 status: current
-updated: 2026-11-17
+updated: 2026-11-20
 summary: Every binding that exists, per slot, with its file and what it does; the two scenario files.
 ---
 
@@ -18,6 +18,7 @@ summary: Every binding that exists, per slot, with its file and what it does; th
 | start | `terminal_box` | `slots/start/terminal_box.py` | Uniform ranges: altitude 5–50 m (footpad plane), vertical speed −6–0 m/s, each horizontal component ±2 m/s, tilt 0–10° in any direction. `set_fixed_start_states` / `clear_fixed_start_states` for held-out sets |
 | plant | `rigid_box` | `slots/plant/rigid_box.py` | Box stand-in (milestone 0) |
 | plant | `physx_site` | `slots/plant/physx_site.py`, base `physx_root_body_plant.py` | Lander articulation ([[lander-articulation-model]]); `footpad_contact: soil` hands the footpads to a soil model (S8); wrench at the vehicle c.g. through the permanent wrench composer each substep; mass and inertia updated in PhysX once per control step; contact sensors on legs and body; reports height above ground from `SurfaceGeometry` and the surface-probe contact (probe tips of legs 2-4 at or below the ground lookup) |
+| plant | `analytic_rigid_body` | `slots/plant/analytic_rigid_body.py` | Pure-torch rigid body with analytic spring-strut legs on flat ground, no Isaac Sim; runs in `AnalyticLanderEnvironment` ([[analytic-simulator]]) |
 | plant | `orbit_f64` | `slots/plant/orbit_float64.py` | float64 RK4 point-mass orbit in MCI or MCMF (S7) |
 | plant | `local_f64` | same file | The same in the SITE frame over terrain (S5) |
 | surface | `flat` | `slots/surface/flat.py` | Ground plane, friction 0.4, restitution 0; site = env grid origin |
@@ -46,7 +47,7 @@ summary: Every binding that exists, per slot, with its file and what it does; th
 | metrics | `dust` | `slots/metrics/dust.py` | Touchdown plus dust, ejecta, plume and sinkage columns (S8) |
 | metrics | `phase_gate` | `slots/metrics/phase_gate.py` | Ends each lander at the phase gate (altitude, range, perilune, time; first met) and logs the gate state (S7, S5) |
 | metrics | `site_safety` | `slots/metrics/site_safety.py` | Touchdown plus the true footprint safety of touched and nominal site (S6) |
-| metrics | `touchdown` | `slots/metrics/touchdown.py` | See [[metrics-and-run-records]] |
+| metrics | `touchdown` | `slots/metrics/touchdown.py` | See [[metrics-and-run-records]]; `end_at_first_contact: true` ends the episode at the first contact (model ablation of the [[analytic-to-physx-transfer-study]]) |
 | agent | `zero`, `attitude_hold`, `hover_hold`, `vertical_descent`, `zem_zev` | `agents/classical/` | See [[classical-agents]] |
 | agent | `scripted_burns` | `agents/classical/powered_descent_guidance.py` | DOI burn to the 50,000 ft perilune, then attitude hold (S7) |
 | agent | `quadratic_guidance` | same file | Apollo-style braking and approach guidance over the sphere with the LM throttle logic (S7, S5; [[orbit-to-touchdown-mission]]) |

@@ -3,7 +3,7 @@ id: milestone-roadmap-and-status
 title: Milestone roadmap and status
 type: milestone
 status: current
-updated: 2026-11-17
+updated: 2026-11-20
 summary: The eight milestones of the design, which gates have passed, and what comes next.
 ---
 
@@ -31,6 +31,8 @@ test, the scenario smoke test, the truth-leak check and a speed log.
    M3 gate together with the filled results table.
 3. When `minsky` is free: the plain-`ekf` memory study ([[pending-user-decisions]] item 1).
 5. Later: the learned work skipped in M3 to M6 ([[skipped-learning-work]]).
+6. Separate study on `noron` (2026-11-20): [[analytic-to-physx-transfer-study]] with the
+   [[analytic-simulator]]; branch `analytic-simulator`.
 
 - follows: [[project-goal-and-design-documents]]
 - built: [[measured-terrain-surface]]
