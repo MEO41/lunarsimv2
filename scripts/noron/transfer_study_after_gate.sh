@@ -20,7 +20,9 @@ export PYTHONPATH=$REPOSITORY/src OMNI_KIT_ACCEPT_EULA=YES PYTHONUNBUFFERED=1
 clean_shm() { for f in /dev/shm/sem.carb-RStringInternals-* /dev/shm/carb-RStringInternals-*; do [ -e "$f" ] || continue; pid=${f##*-}; kill -0 "$pid" 2>/dev/null || rm -f "$f"; done; }
 ANALYTIC="plant=analytic_rigid_body"
 
-while pgrep -f "[t]ransfer_study_gate.sh" > /dev/null; do sleep 60; done
+# Match only a gate script run by bash, not any shell whose command line merely names the file
+# (on 2026-11-20 a leftover ssh shell kept the old pattern true for 1 h 45 min).
+while pgrep -f "^bash scripts/noron/transfer_study_gate\.sh" > /dev/null; do sleep 60; done
 echo "[after-gate] commit $(git rev-parse --short HEAD), start $(date -Is)"
 
 # ---- 1. T3 on the S1 box (seed 1000), then the wide range ----
