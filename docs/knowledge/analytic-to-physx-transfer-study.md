@@ -29,8 +29,8 @@ Both run S1 (flat ground, true-state navigation, Apollo LM, `engine_rcs_pulse`, 
 | T4 | Parameter sweep (Latin hypercube): mass ±30 %, vehicle cases, altitude, heading, time step | Later |
 | T5 | PPO trained in A and in P, 5 seeds each; each tested in A and P on 4,096 held-out starts | **Done, 10 seeds** (2026-11-21, below): no transfer gap (+0.00 points, 95 % CI -0.33 to +0.29) |
 | T6 | Domain randomization in A, tested in P | Later |
-| T7 | Wall-clock time to 90 % success in P; also "A first, then P" (`resume_from`) | `train_ppo.py` writes `checkpoint_wall_clock.csv`; first-round gate runs have it |
-| T8 | Model ablation: spring legs → `metrics.end_at_first_contact=true` → no engine lag / jet limits → point mass | `end_at_first_contact` built and tested |
+| T7 | Wall-clock time to 90 % success in P; also "A first, then P" (`resume_from`) | **Running** (started 2026-11-21 15:34): `scripts/noron/transfer_study_t7_checkpoints.sh` flies every T5 checkpoint (iterations 0-575, 20 runs, 480 evaluations) in P on the held-out starts; "A first, then P" left out (no gap to close) |
+| T8 | Model ablation: spring legs → `metrics.end_at_first_contact=true` → no engine lag / jet limits → point mass | **Queued** behind T7: `scripts/noron/transfer_study_t8_ablation.sh`, steps b1-b3 below, seeds 0-4, every policy flown in P with the standard success rule |
 | T9 | All policies in P on the Apollo 17 terrain | Later (height maps must be downloaded on `noron`) |
 
 ## Decisions (user, 2026-11-20)
@@ -145,6 +145,34 @@ and `.txt` on `noron`.
 - Reading: on flat ground with this action space the analytic model is enough: policies trained
   in it lose nothing in PhysX. The speed-up of training (2.9×) is below the environment speed-up
   at 4,096 envs (3.4×) because the PPO update does not get faster.
+
+## T8 design (2026-11-21)
+
+PPO is trained in ever simpler analytic models (seeds 0-4) and every policy is flown in full
+PhysX with the standard success rule. Step 0 is T5.
+
+| Step | Training model (all analytic) | Overrides |
+| --- | --- | --- |
+| b1_contact | spring-leg rigid body, episode ends at the first contact | `metrics.end_at_first_contact=true` |
+| b2_ideal | b1 + ideal actuators: no thrust lag, throttle slew limit, shutdown tail-off, jet minimum pulse or valve delay (throttle range, thrust and propellant use stay) | `+ actuators.ideal_response=true` |
+| b3_point_mass | point mass: thrust along the commanded direction at once (heading kept), no rotation dynamics, no legs, stops on the ground; ideal actuators; ends at contact | `plant=analytic_point_mass` + the two above |
+
+- Point-mass attitude: user decision 2026-11-21, option A (at once). A first-order lag of the
+  thrust direction (option B) is kept as an extra step if b3 breaks the transfer.
+- The Command carries jet duties, not the direction, so the PPO action adapter keeps its last
+  commanded thrust direction and the training wrapper hands it to an environment that asks for
+  it (`accepts_commanded_thrust_direction`). Only training does this; the point-mass plant
+  stops with an error in any other use. PhysX behaviour is unchanged (the T7 queue, started on
+  commit d0044b6, ran on f8123f6 from about 15:50; the PhysX path is the same).
+- Tests: `tests/unit/test_analytic_model_ablation.py` (8, CPU).
+
+## Scope (proposal 2026-11-21, after the user's RL framing)
+
+The paper answers "Can a landing policy trained in a fast analytic simulator land as well in full
+rigid-body physics, and how much wall-clock time does this save?" Core: T5 and T7; T8 as the
+third question (which simplification breaks the transfer); T6 only if T8 shows a gap; T1-T3 as
+short validation. Proposed for future work: T4 (parameter sweep) and T9 (terrain), which compare
+simulators rather than answer the RL question. Not yet confirmed by the user.
 
 ## Running on noron
 
