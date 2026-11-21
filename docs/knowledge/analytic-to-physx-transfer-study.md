@@ -139,7 +139,8 @@ and `.txt` on `noron`.
 - Simulator gap (same policy in A and P): mean +0.002 and -0.005 points; same outcome code for
   99.81 % and 99.84 % of the pairs; discordant pairs over 10 × 4,096 balanced (38/37 and 29/31).
 - Training wall time: P 2,318 s (sd 28), A 798 s (sd 3), 2.9×. 90 % success in the training
-  simulator after 393 s (P) and 125 s (A), 3.1×; reached in 10/10 for both. (T7 still needs the
+  simulator after 403 s (P) and 128 s (A), 3.1× (first iteration at or above 90 %, mean of 10
+  seeds; corrected 2026-11-21 from 393/125 s, which counted iterations from the first logged line); reached in 10/10 for both. (T7 still needs the
   checkpoints flown in P.)
 - Reading: on flat ground with this action space the analytic model is enough: policies trained
   in it lose nothing in PhysX. The speed-up of training (2.9×) is below the environment speed-up
