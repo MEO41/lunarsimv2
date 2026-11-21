@@ -27,7 +27,7 @@ Both run S1 (flat ground, true-state navigation, Apollo LM, `engine_rcs_pulse`, 
 | T2 | Throughput of A and P with the same agent on the same GPU, 1 to 16,384 envs (RTX 5060) | Done (second round, below): A 1.6× P at 1 env to 7.1× (ZEM/ZEV) and 9.4× (PPO) at 16,384 |
 | T3 | Paired flights: same 4,096 starts in A and P, same agent; McNemar test of the outcomes | ZEM/ZEV on the S1 box: same outcome for all 4,096 starts (2026-11-20). S1 box and wide range done (second round, below); gate policies 99.7-99.8 % same outcome |
 | T4 | Parameter sweep (Latin hypercube): mass ±30 %, vehicle cases, altitude, heading, time step | Later |
-| T5 | PPO trained in A and in P, 5 seeds each; each tested in A and P on 4,096 held-out starts | One-seed gate `scripts/noron/transfer_study_gate.sh`: passed twice (below); next: 5 seeds |
+| T5 | PPO trained in A and in P, 5 seeds each; each tested in A and P on 4,096 held-out starts | **Done, 10 seeds** (2026-11-21, below): no transfer gap (+0.00 points, 95 % CI -0.33 to +0.29) |
 | T6 | Domain randomization in A, tested in P | Later |
 | T7 | Wall-clock time to 90 % success in P; also "A first, then P" (`resume_from`) | `train_ppo.py` writes `checkpoint_wall_clock.csv`; first-round gate runs have it |
 | T8 | Model ablation: spring legs → `metrics.end_at_first_contact=true` → no engine lag / jet limits → point mass | `end_at_first_contact` built and tested |
@@ -117,6 +117,33 @@ with the new controller (second round, below).
 | P | 94 | 1,394 | 20,339 | 66,821 | 156,275 | 185,136 | 205,879 |
 | A | 154 | 2,409 | 37,102 | 145,069 | 538,700 | 966,726 | 1,527,010 |
 | A / P | 1.6 | 1.7 | 1.8 | 2.2 | 3.4 | 5.2 | 7.4 |
+
+## T5 over 10 seeds (heading-keeping controller, commit 23a9fba, `noron`, 2026-11-21)
+
+`scripts/noron/transfer_study_seeds.sh` ran the gate for seeds 1-9 overnight (seed 0 from the
+second round); all 20 trainings reached 600 iterations, no warnings. Every policy flew the same
+4,096 held-out starts (seed 1000) in both simulators. Analysis: `runs/_analysis/t5_seed_summary.py`
+and `.txt` on `noron`.
+
+| Trained in → flown in | Mean success, 10 seeds | sd | 95 % CI (t) |
+| --- | --- | --- | --- |
+| P → P | 97.93 % | 0.25 | 97.75-98.12 |
+| P → A | 97.94 % | 0.26 | 97.75-98.12 |
+| A → P | 97.94 % | 0.47 | 97.60-98.27 |
+| A → A | 97.93 % | 0.45 | 97.61-98.26 |
+
+- Transfer gap in P (A-trained minus P-trained): **+0.00 points**; Welch p = 0.99,
+  Mann-Whitney p = 0.68; bootstrap 95 % CI -0.33 to +0.29 points; equivalent within ±1 point
+  (TOST p < 0.0001). The A-trained policies spread more between seeds (sd 0.47 against 0.25;
+  seed 2 is the low one at 96.78 %).
+- Simulator gap (same policy in A and P): mean +0.002 and -0.005 points; same outcome code for
+  99.81 % and 99.84 % of the pairs; discordant pairs over 10 × 4,096 balanced (38/37 and 29/31).
+- Training wall time: P 2,318 s (sd 28), A 798 s (sd 3), 2.9×. 90 % success in the training
+  simulator after 393 s (P) and 125 s (A), 3.1×; reached in 10/10 for both. (T7 still needs the
+  checkpoints flown in P.)
+- Reading: on flat ground with this action space the analytic model is enough: policies trained
+  in it lose nothing in PhysX. The speed-up of training (2.9×) is below the environment speed-up
+  at 4,096 envs (3.4×) because the PPO update does not get faster.
 
 ## Running on noron
 
