@@ -126,6 +126,12 @@ class AnalyticLanderEnvironment:
         surface_name = scenario.slots[SlotName.SURFACE].binding
         if surface_name not in SURFACES_WITHOUT_A_SCENE:
             raise ValueError(f"The analytic environment runs on surface: flat only, not '{surface_name}'")
+        if getattr(plant_class, "needs_commanded_thrust_direction", False) and not bool(
+            scenario.slots[SlotName.METRICS].parameters.get("end_at_first_contact", False)
+        ):
+            raise ValueError(
+                f"plant '{scenario.slots[SlotName.PLANT].binding}' has no legs: run it with metrics.end_at_first_contact=true"
+            )
         check_slot_loop(binding_classes)
 
         self.clock = SimulationClock(
@@ -199,6 +205,15 @@ class AnalyticLanderEnvironment:
     def unwrapped(self) -> AnalyticLanderEnvironment:
         """Return the environment itself (gymnasium-style access used by some tools)."""
         return self
+
+    @property
+    def accepts_commanded_thrust_direction(self) -> bool:
+        """True when the plant flies the commanded thrust direction directly (the point-mass plant of test T8)."""
+        return bool(getattr(self.bindings[SlotName.PLANT], "needs_commanded_thrust_direction", False))
+
+    def set_commanded_thrust_direction(self, direction: torch.Tensor | None) -> None:
+        """Hand the policy's commanded thrust direction (site frame, (N, 3)) to the plant for the next control step."""
+        self.bindings[SlotName.PLANT].receive_commanded_thrust_direction(direction)
 
     @staticmethod
     def seed(seed: int = -1) -> int:

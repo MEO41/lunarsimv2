@@ -75,6 +75,9 @@ class PolicyActionAdapter:
         self.maximum_tilt_tangent = math.tan(math.radians(float(maximum_tilt_deg)))
         self.jet_table = JetCoupleTable(preset, device=device)
         self.attitude_controller = AttitudeController(preset, device=device)
+        # The thrust direction of the last attitude command (site frame, (N, 3), not normalised);
+        # None in axis_commands mode. The point-mass plant of the transfer study flies it directly.
+        self.last_thrust_direction: Tensor | None = None
         self.maximum_throttle = preset.engine_maximum_throttle_fraction
         self.hover_throttle = preset.mass_at_start * MOON_SURFACE_GRAVITY / preset.engine_rated_thrust
         self.offset, self.scale = observation_scale(device)
@@ -122,6 +125,7 @@ class PolicyActionAdapter:
                 (clipped[:, 1:3] * self.maximum_tilt_tangent, torch.ones_like(clipped[:, :1])), dim=1
             )
             orientation = observation[:, layout.ORIENTATION_QUATERNION]
+            self.last_thrust_direction = direction
             wanted_orientation = quaternion_for_thrust_direction(direction, orientation)
             jets = self.attitude_controller.compute_jet_duties(
                 orientation,

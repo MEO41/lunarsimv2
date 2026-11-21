@@ -1,2 +1,3 @@
 binding: engine_rcs_pulse
 initial_throttle: hover   # the engine is already running when the terminal phase starts
+ideal_response: false   # true: no lag, slew limit, tail-off, minimum pulse or valve delay (transfer-study test T8)

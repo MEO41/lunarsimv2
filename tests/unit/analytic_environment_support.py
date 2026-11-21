@@ -30,9 +30,11 @@ class _TruthProbe:
 TRUTH_PROBE = _TruthProbe()
 
 
-def make_environment(scenario_name: str, overrides: list[str] | None = None) -> AnalyticLanderEnvironment:
-    """Load a scenario with the analytic plant and build its environment on the CPU."""
-    scenario = load_scenario(scenario_name, ["plant=analytic_rigid_body", *(overrides or [])])
+def make_environment(
+    scenario_name: str, overrides: list[str] | None = None, plant: str = "analytic_rigid_body"
+) -> AnalyticLanderEnvironment:
+    """Load a scenario with an analytic plant (default ``analytic_rigid_body``) and build its environment on the CPU."""
+    scenario = load_scenario(scenario_name, [f"plant={plant}", *(overrides or [])])
     return AnalyticLanderEnvironment(scenario, device="cpu")
 
 

@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import math
+
 import torch
 from torch import Tensor
 
@@ -25,7 +27,10 @@ class EngineAndPulsedJetsActuators(BindingBase):
     the centre of mass.
 
     Parameters: ``initial_throttle`` - ``hover`` (default: the engine starts at the throttle
-    that balances the lunar weight) or a fraction of rated thrust.
+    that balances the lunar weight) or a fraction of rated thrust; ``ideal_response`` (default
+    false) - true removes the response limits for the model ablation of the transfer study
+    (test T8): no thrust lag, no throttle slew limit, no shutdown tail-off, no jet minimum pulse
+    and no valve delay. The throttle range, rated thrust and propellant use stay.
     """
 
     requires = frozenset({MessageKey.COMMAND, MessageKey.START_STATE})
@@ -37,23 +42,25 @@ class EngineAndPulsedJetsActuators(BindingBase):
         preset: LanderPreset = context.shared_data["lander_preset"]
         self.preset = preset
         count = self.number_of_environments
+        self.ideal_response = bool(self.parameters.get("ideal_response", False))
+        ideal = self.ideal_response
         self.engine = DescentEngineModel(
             count,
             rated_thrust=preset.engine_rated_thrust,
             minimum_throttle_fraction=preset.engine_minimum_throttle_fraction,
             maximum_throttle_fraction=preset.engine_maximum_throttle_fraction,
-            lag_time_constant=preset.engine_thrust_lag_time_constant,
-            maximum_throttle_rate=preset.engine_maximum_throttle_rate,
+            lag_time_constant=0.0 if ideal else preset.engine_thrust_lag_time_constant,
+            maximum_throttle_rate=math.inf if ideal else preset.engine_maximum_throttle_rate,
             off_below_fraction=preset.engine_off_below_fraction,
             exhaust_velocity=preset.engine_exhaust_velocity,
             device=self.device,
-            shutdown_decay_time=preset.engine_shutdown_thrust_decay_time,
+            shutdown_decay_time=0.0 if ideal else preset.engine_shutdown_thrust_decay_time,
         )
         self.jets = ReactionControlPulseModel(
             count,
             preset.number_of_jets,
-            minimum_pulse_duration=preset.jet_minimum_pulse_duration,
-            valve_delay=preset.jet_valve_delay,
+            minimum_pulse_duration=0.0 if ideal else preset.jet_minimum_pulse_duration,
+            valve_delay=0.0 if ideal else preset.jet_valve_delay,
             physics_step_duration=context.clock.physics_step_duration,
             device=self.device,
         )

@@ -1,0 +1,3 @@
+binding: analytic_point_mass
+# Point mass, thrust along the commanded direction at once, no legs (transfer-study test T8).
+# Needs metrics.end_at_first_contact=true and PPO training with ppo_mlp in attitude_commands mode.

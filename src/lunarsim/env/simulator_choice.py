@@ -18,7 +18,7 @@ from typing import Any
 import yaml
 
 # Plant bindings that run in AnalyticLanderEnvironment (their class has ``simulator = "analytic"``).
-ANALYTIC_PLANT_BINDINGS = ("analytic_rigid_body",)
+ANALYTIC_PLANT_BINDINGS = ("analytic_rigid_body", "analytic_point_mass")
 CONFIG_DIRECTORY_ENVIRONMENT_VARIABLE = "LUNARSIM_CONFIG_DIR"
 
 

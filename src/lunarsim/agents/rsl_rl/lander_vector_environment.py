@@ -107,6 +107,10 @@ class LanderVectorEnvironment(VecEnv):
         ended = torch.zeros(self.num_envs, dtype=torch.bool, device=self.device)
         for _ in range(self.policy_period_steps):
             environment_actions = self.adapter.environment_actions(actions, self._raw_policy_observation, self.control_step_duration)
+            if getattr(self.environment, "accepts_commanded_thrust_direction", False):
+                # Only the point-mass plant of the transfer study (test T8): it points the thrust
+                # along the commanded direction at once instead of turning a rigid body.
+                self.environment.set_commanded_thrust_direction(self.adapter.last_thrust_direction)
             observations, rewards, terminated, truncated, _ = self.environment.step(environment_actions)
             self._raw_policy_observation = observations["policy"]
             total_reward += torch.where(ended, torch.zeros_like(rewards), rewards)
