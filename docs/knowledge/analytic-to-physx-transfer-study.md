@@ -213,7 +213,7 @@ every limit at contact, still moving when the settle time ran out). Per seed wit
 - Reading for RQ3: the analytic model must keep the actuator response and the rotation dynamics;
   the leg model matters only because it lets the episode continue after contact.
 
-### T8 second part: point mass with standard actuators (approved 2026-11-23, running)
+### T8 second part: point mass with standard actuators (approved 2026-11-23, done 13:43)
 
 b3 changed two things at once (ideal actuators and attitude at once). Two more steps, both with
 standard actuators and ending at contact, separate them (`scripts/noron/transfer_study_t8_lag.sh`,
@@ -232,6 +232,25 @@ seeds 0-4, same PhysX evaluation):
 - The lagged plant reports the turn rate as the body rate, so the policy sees a rate and the
   touchdown metric a tilt rate. `attitude_time_constant_s: 0` (the default) is option A unchanged.
 - Tests: `tests/unit/test_analytic_model_ablation.py` (12, CPU).
+
+Results (commit 06861be, all 10 trainings reached 600 iterations, training success 97.7-99.5 %):
+
+| Step (5 seeds) | Success in P, full rule | Judged at first contact | Main failures (mean share) |
+| --- | --- | --- | --- |
+| b4_point_mass_actuators | 0.0 % (seeds 0-3: 0, seed 4: 0.1 %) | 4.8 % | propellant depleted 44.6 %, hard vertical 18.5 %, tilt at contact 12.8 %, hard horizontal 11.2 % |
+| b5_point_mass_lag | **90.7 % (CI 87.2-94.3)** | 90.8 % | tilt rate at contact 3.3 %, tilt at contact 3.2 %, hard horizontal 2.5 % |
+
+- **The attitude-at-once assumption is what breaks the point mass, not the ideal actuators:**
+  real actuators alone (b4) leave it at 0 %; adding a first-order attitude lag with the measured
+  time constant (b5) brings it to 90.7 %. b5 also beats b2 (rigid body, ideal actuators, 55.8 %).
+- b5 is still 7 points below the full model (97.8 %, seeds 0-4); its failures are tilt and tilt
+  rate at contact: the lag is a little fast for large turns (measured tau 1.6-2.2 s above 10
+  degrees) and has no angular momentum to overshoot.
+- b5 has no `not_settled` landings although its episodes also end at first contact (b1: 0.3-20.8 %).
+  Median contact values: 1.09 m/s vertical, 0.40 m/s horizontal, 2.8 degrees tilt (b1: 1.10, 0.56,
+  1.9).
+- Reading for RQ3, revised: the analytic model needs attitude dynamics that take time; a single
+  measured time constant recovers most of the transfer. Actuator response matters next (b2).
 
 ## Scope (proposal 2026-11-21, after the user's RL framing)
 
