@@ -5,8 +5,8 @@ Only the renderer reads this stage, so every lander is placed by setting its tra
 from the recording: body pose, strut strokes, and (when contacts were recorded) one arrow per
 footpad along the contact force from that leg's sensor. The terrain is rebuilt from the same
 scenario, overrides and seed, so it is the same surface that PhysX collided with. A scenario with
-``surface: flat`` (S1) gets a flat ground at z = 0 with a 10 m checker pattern (``FlatGround``) so
-that the motion over the ground can be seen.
+``surface: flat`` (S1) gets a flat ground at z = 0 with a grey regolith texture (``FlatGround``; look
+only, no relief), so that the motion over the ground can be seen.
 
 Needs Isaac Sim with the camera renderer; import it only in a process started with cameras on.
 """
@@ -66,12 +66,38 @@ def rotation_from_z_to(direction: numpy.ndarray):
 
 
 FLAT_GROUND_HALF_SIZE_M = 1000.0  # covers the PhysX grid of 4,096 environments at 20 m spacing
-FLAT_GROUND_TILE_M = 10.0
-FLAT_GROUND_COLORS = {"tiles_light": (0.32, 0.31, 0.29), "tiles_dark": (0.26, 0.25, 0.235)}  # regolith greys
+REGOLITH_TEXTURE_PIXELS = 2048
+REGOLITH_TEXTURE_TILE_M = 30.0  # one texture tile covers 30 m x 30 m (1.5 cm per pixel)
+REGOLITH_MEAN_GREY = 0.30  # the regolith grey of the terrain meshes
+# Albedo variation of the texture: (feature size in m, standard deviation of the grey). Look only:
+# soft patches and fine grain, no craters or rocks, so the ground still reads as flat.
+REGOLITH_NOISE_SCALES = ((4.0, 0.035), (1.0, 0.025), (0.25, 0.018), (0.04, 0.020))
+
+
+def regolith_texture(path: Path) -> Path:
+    """Write (once) a tileable grey regolith texture: Gaussian-filtered noise at a few scales, as a PNG."""
+    if path.exists():
+        return path
+    from PIL import Image
+
+    random = numpy.random.default_rng(17)
+    pixels = REGOLITH_TEXTURE_PIXELS
+    frequency = numpy.fft.fftfreq(pixels, d=REGOLITH_TEXTURE_TILE_M / pixels)  # cycles per metre
+    radius_squared = frequency[:, None] ** 2 + frequency[None, :] ** 2
+    grey = numpy.full((pixels, pixels), REGOLITH_MEAN_GREY)
+    for size_m, deviation in REGOLITH_NOISE_SCALES:
+        # Periodic Gaussian filter in the frequency domain, so the texture tiles without seams.
+        spectrum = numpy.fft.fft2(random.standard_normal((pixels, pixels)))
+        filtered = numpy.real(numpy.fft.ifft2(spectrum * numpy.exp(-2.0 * (numpy.pi * size_m) ** 2 * radius_squared)))
+        grey += deviation * filtered / filtered.std()
+    image = (numpy.clip(grey, 0.0, 1.0) ** (1.0 / 2.2) * 255.0).astype(numpy.uint8)  # stored in sRGB
+    path.parent.mkdir(parents=True, exist_ok=True)
+    Image.fromarray(numpy.stack((image, image, (image * 0.96).astype(numpy.uint8)), axis=2)).save(path)
+    return path
 
 
 class FlatGround:
-    """The flat ground of ``surface: flat`` for the renderer: z = 0 everywhere, drawn as a checker of two meshes."""
+    """The flat ground of ``surface: flat`` for the renderer: z = 0 everywhere, one large quad with a regolith texture."""
 
     def height_at(self, x, y):
         """Return the ground height (0) at the points (x, y), same shape as x."""
@@ -85,27 +111,38 @@ class FlatGround:
         return zeros, zeros
 
     def meshes(self) -> dict[str, tuple[numpy.ndarray, numpy.ndarray]]:
-        """Return ``name -> (vertices (n, 3), triangles (m, 3))``: the light and the dark tiles of the checker."""
-        count = int(round(2 * FLAT_GROUND_HALF_SIZE_M / FLAT_GROUND_TILE_M))
-        corners = -FLAT_GROUND_HALF_SIZE_M + FLAT_GROUND_TILE_M * numpy.arange(count)
-        column, row = numpy.meshgrid(numpy.arange(count), numpy.arange(count))
-        meshes = {}
-        for name, parity in (("tiles_light", 0), ("tiles_dark", 1)):
-            chosen = ((column + row) % 2 == parity).ravel()
-            x0, y0 = corners[column.ravel()[chosen]], corners[row.ravel()[chosen]]
-            x1, y1 = x0 + FLAT_GROUND_TILE_M, y0 + FLAT_GROUND_TILE_M
-            zero = numpy.zeros_like(x0)
-            corner_points = (
-                numpy.stack((x0, y0, zero), 1),
-                numpy.stack((x1, y0, zero), 1),
-                numpy.stack((x1, y1, zero), 1),
-                numpy.stack((x0, y1, zero), 1),
-            )
-            vertices = numpy.stack(corner_points, axis=1).reshape(-1, 3)
-            first = 4 * numpy.arange(len(x0))[:, None]
-            triangles = numpy.concatenate((first + numpy.array([0, 1, 2]), first + numpy.array([0, 2, 3])), axis=0)
-            meshes[name] = (vertices, triangles)
-        return meshes
+        """Return ``name -> (vertices (n, 3), triangles (m, 3))``: one square of two triangles, counter-clockwise from above."""
+        half = FLAT_GROUND_HALF_SIZE_M
+        vertices = numpy.array([[-half, -half, 0.0], [half, -half, 0.0], [half, half, 0.0], [-half, half, 0.0]])
+        return {"regolith": (vertices, numpy.array([[0, 1, 2], [0, 2, 3]]))}
+
+    def decorate(self, stage, mesh, vertices: numpy.ndarray) -> None:
+        """Give the ground mesh texture coordinates (one tile per 30 m, repeated) and a textured preview material."""
+        from pxr import Sdf, UsdGeom, UsdShade, Vt
+
+        coordinates = (vertices[:, :2] / REGOLITH_TEXTURE_TILE_M).astype(numpy.float32)
+        primvar = UsdGeom.PrimvarsAPI(mesh).CreatePrimvar("st", Sdf.ValueTypeNames.TexCoord2fArray, UsdGeom.Tokens.vertex)
+        primvar.Set(Vt.Vec2fArray.FromNumpy(coordinates))
+        texture_file = regolith_texture(Path(tempfile.gettempdir()) / "lunarsim_assets" / "regolith_flat.png")
+        material = UsdShade.Material.Define(stage, "/World/Looks/Regolith")
+        surface = UsdShade.Shader.Define(stage, "/World/Looks/Regolith/Surface")
+        surface.CreateIdAttr("UsdPreviewSurface")
+        surface.CreateInput("roughness", Sdf.ValueTypeNames.Float).Set(1.0)
+        surface.CreateInput("metallic", Sdf.ValueTypeNames.Float).Set(0.0)
+        reader = UsdShade.Shader.Define(stage, "/World/Looks/Regolith/Coordinates")
+        reader.CreateIdAttr("UsdPrimvarReader_float2")
+        reader.CreateInput("varname", Sdf.ValueTypeNames.Token).Set("st")
+        texture = UsdShade.Shader.Define(stage, "/World/Looks/Regolith/Texture")
+        texture.CreateIdAttr("UsdUVTexture")
+        texture.CreateInput("file", Sdf.ValueTypeNames.Asset).Set(str(texture_file))
+        texture.CreateInput("wrapS", Sdf.ValueTypeNames.Token).Set("repeat")
+        texture.CreateInput("wrapT", Sdf.ValueTypeNames.Token).Set("repeat")
+        texture.CreateInput("sourceColorSpace", Sdf.ValueTypeNames.Token).Set("sRGB")
+        texture.CreateInput("st", Sdf.ValueTypeNames.Float2).ConnectToSource(reader.ConnectableAPI(), "result")
+        texture.CreateOutput("rgb", Sdf.ValueTypeNames.Float3)
+        surface.CreateInput("diffuseColor", Sdf.ValueTypeNames.Color3f).ConnectToSource(texture.ConnectableAPI(), "rgb")
+        material.CreateSurfaceOutput().ConnectToSource(surface.ConnectableAPI(), "surface")
+        UsdShade.MaterialBindingAPI.Apply(mesh.GetPrim()).Bind(material)
 
 
 class ReplayRenderer:
@@ -154,7 +191,9 @@ class ReplayRenderer:
             mesh.CreateFaceVertexCountsAttr(Vt.IntArray.FromNumpy(numpy.full(len(triangles), 3, dtype=numpy.int32)))
             mesh.CreateFaceVertexIndicesAttr(Vt.IntArray.FromNumpy(triangles.astype(numpy.int32).ravel()))
             mesh.CreateSubdivisionSchemeAttr(UsdGeom.Tokens.none)
-            mesh.CreateDisplayColorAttr([Gf.Vec3f(*FLAT_GROUND_COLORS.get(name, (0.30, 0.29, 0.27)))])  # regolith grey
+            mesh.CreateDisplayColorAttr([Gf.Vec3f(0.30, 0.29, 0.27)])  # regolith grey
+            if isinstance(self.terrain, FlatGround):
+                self.terrain.decorate(stage, mesh, vertices)
         # Sun 15 degrees above the eastern horizon (Apollo 17 surface operations) and a faint sky
         # fill so that the shadows are not fully black. A distant light shines along its -z axis.
         sun = UsdLux.DistantLight.Define(stage, "/World/Sun")
