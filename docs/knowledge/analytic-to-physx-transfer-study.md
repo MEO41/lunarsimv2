@@ -213,6 +213,26 @@ every limit at contact, still moving when the settle time ran out). Per seed wit
 - Reading for RQ3: the analytic model must keep the actuator response and the rotation dynamics;
   the leg model matters only because it lets the episode continue after contact.
 
+### T8 second part: point mass with standard actuators (approved 2026-11-23, running)
+
+b3 changed two things at once (ideal actuators and attitude at once). Two more steps, both with
+standard actuators and ending at contact, separate them (`scripts/noron/transfer_study_t8_lag.sh`,
+seeds 0-4, same PhysX evaluation):
+
+| Step | Training model | Overrides |
+| --- | --- | --- |
+| b4_point_mass_actuators | point mass, attitude at once | `plant=analytic_point_mass metrics.end_at_first_contact=true` |
+| b5_point_mass_lag | b4 + first-order lag of the thrust axis, tau = 1.3 s | `+ plant.attitude_time_constant_s=1.3` |
+
+- tau is measured, not chosen: the analytic rigid-body lander, hovering, flown by the classical
+  attitude controller (the one behind the policy's attitude commands), reaches 63.2 % of a 2 or
+  5 degree tilt step after 1.29 s (10-90 % rise 2.59 s at 5 degrees, close to a first-order lag
+  with tau 1.29 s, which gives 2.84 s); larger steps are slower (1.61 s at 10, 2.20 s at 15
+  degrees), so the lag is a little fast for large turns. `scripts/measure_attitude_time_constant.py`.
+- The lagged plant reports the turn rate as the body rate, so the policy sees a rate and the
+  touchdown metric a tilt rate. `attitude_time_constant_s: 0` (the default) is option A unchanged.
+- Tests: `tests/unit/test_analytic_model_ablation.py` (12, CPU).
+
 ## Scope (proposal 2026-11-21, after the user's RL framing)
 
 The paper answers "Can a landing policy trained in a fast analytic simulator land as well in full

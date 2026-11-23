@@ -1,3 +1,7 @@
 binding: analytic_point_mass
-# Point mass, thrust along the commanded direction at once, no legs (transfer-study test T8).
+# Point mass, thrust along the commanded direction, no legs (transfer-study test T8).
 # Needs metrics.end_at_first_contact=true and PPO training with ppo_mlp in attitude_commands mode.
+# 0: the attitude follows the command at once (option A). > 0: first-order lag of the thrust axis
+# towards the command, in s (option B); T8 uses 1.3 s, measured on the rigid-body lander with the
+# classical attitude controller (scripts/measure_attitude_time_constant.py, 2 and 5 deg steps).
+attitude_time_constant_s: 0.0

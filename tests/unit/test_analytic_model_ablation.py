@@ -9,7 +9,7 @@ from analytic_environment_support import make_actions, make_environment, read_tr
 
 from lunarsim.core.binding import SlotName
 from lunarsim.core.physical_constants import MOON_SURFACE_GRAVITY
-from lunarsim.core.rotation_math import body_up_axis_in_parent
+from lunarsim.core.rotation_math import body_up_axis_in_parent, tilt_angle_from_vertical
 
 POINT_MASS = "analytic_point_mass"
 END_AT_CONTACT = "metrics.end_at_first_contact=true"
@@ -128,15 +128,72 @@ def test_point_mass_falls_freely_stops_on_the_ground_and_ends_the_episode():
     )
 
 
-def test_ppo_trains_two_iterations_on_the_point_mass():
-    """rsl_rl trains on the point mass: the wrapper hands the commanded direction over every control step."""
+LAGGED = "plant.attitude_time_constant_s=1.3"
+
+
+def test_lagged_point_mass_closes_63_percent_of_a_tilt_step_after_one_time_constant():
+    """With a 1.3 s lag a 10 degree command is reached to 63.2 % after 1.3 s, with a body rate about the turn axis."""
+    environment = make_environment(
+        "s1_terminal_truth", ["num_envs=1", END_AT_CONTACT, LAGGED, "actuators.ideal_response=true"], plant=POINT_MASS
+    )
+    set_start_states(environment, altitude=80.0)
+    command = tilted_direction(1, 10.0)
+    step_time = environment.clock.control_step_duration
+    tilts, rates = [], []
+    for _ in range(int(round(1.3 / step_time))):
+        environment.set_commanded_thrust_direction(command)
+        environment.step(make_actions(environment, throttle=hover_throttle(environment)))
+        truth = read_truth(environment)
+        tilts.append(math.degrees(float(tilt_angle_from_vertical(truth.orientation_quaternion)[0])))
+        rates.append(truth.angular_velocity[0].clone())
+    assert tilts[-1] == pytest.approx(10.0 * (1.0 - math.exp(-1.0)), abs=0.1)
+    assert all(later > earlier for earlier, later in zip(tilts, tilts[1:], strict=False))
+    # Turning towards +x is a rotation about +y; the rate decays as the gap closes.
+    assert float(rates[0][1]) > 0.0 and abs(float(rates[0][0])) < 1e-6 and abs(float(rates[0][2])) < 1e-6
+    assert float(rates[0][1]) == pytest.approx(math.radians(10.0) / 1.3, rel=0.05)
+    assert float(rates[-1][1]) < float(rates[0][1])
+
+
+def test_zero_time_constant_is_the_attitude_at_once():
+    """attitude_time_constant_s=0 (the default) flies exactly as option A: thrust axis on the command, zero rate."""
+    environment = make_environment(
+        "s1_terminal_truth", ["num_envs=2", END_AT_CONTACT, "plant.attitude_time_constant_s=0"], plant=POINT_MASS
+    )
+    set_start_states(environment, altitude=80.0)
+    command = tilted_direction(2, 7.0)
+    environment.set_commanded_thrust_direction(command)
+    environment.step(make_actions(environment, throttle=hover_throttle(environment)))
+    truth = read_truth(environment)
+    assert torch.allclose(body_up_axis_in_parent(truth.orientation_quaternion), command, atol=1e-5)
+    assert float(truth.angular_velocity.abs().max()) == 0.0
+
+
+def test_negative_time_constant_is_refused():
+    """A negative time constant has no meaning and stops the build."""
+    with pytest.raises(ValueError, match="attitude_time_constant_s"):
+        make_environment(
+            "s1_terminal_truth", ["num_envs=1", END_AT_CONTACT, "plant.attitude_time_constant_s=-1"], plant=POINT_MASS
+        )
+
+
+@pytest.mark.parametrize("time_constant", [0.0, 1.3])
+def test_ppo_trains_two_iterations_on_the_point_mass(time_constant):
+    """rsl_rl trains on the point mass, at once and lagged: the wrapper hands the commanded direction over every control step."""
     from rsl_rl.runners import OnPolicyRunner
 
     from lunarsim.agents.rsl_rl.lander_vector_environment import LanderVectorEnvironment
     from lunarsim.agents.rsl_rl.training_configuration import runner_configuration
 
     environment = make_environment(
-        "s1_terminal_truth", ["num_envs=16", "agent=ppo_mlp", "training=landing_ppo", END_AT_CONTACT], plant=POINT_MASS
+        "s1_terminal_truth",
+        [
+            "num_envs=16",
+            "agent=ppo_mlp",
+            "training=landing_ppo",
+            END_AT_CONTACT,
+            f"plant.attitude_time_constant_s={time_constant}",
+        ],
+        plant=POINT_MASS,
     )
     parameters = environment.scenario.slots["agent"].parameters
     vector_environment = LanderVectorEnvironment(environment, parameters)
@@ -146,4 +203,5 @@ def test_ppo_trains_two_iterations_on_the_point_mass():
     runner.learn(num_learning_iterations=2)
     truth = read_truth(environment)
     assert bool(torch.isfinite(truth.position).all())
-    assert float(truth.angular_velocity.abs().max()) == 0.0
+    if time_constant == 0.0:
+        assert float(truth.angular_velocity.abs().max()) == 0.0

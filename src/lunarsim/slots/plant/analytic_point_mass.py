@@ -8,12 +8,20 @@ observation, reward, metrics) is unchanged.
 
 Model (every physics substep, batched, semi-implicit Euler like the rigid-body plant):
 
-- **Attitude at once** (user decision 2026-11-21, option A). The body takes the attitude that
-  points its thrust axis along the policy's commanded thrust direction, at the heading it has,
-  in the same substep (``quaternion_for_thrust_direction``). There is no rotation dynamics: the
-  body rate is zero and the actuator torques are ignored. The training wrapper hands the
-  direction over (``receive_commanded_thrust_direction``) because the Command carries jet
-  duties, not the direction.
+- **Attitude at once** (``attitude_time_constant_s: 0``, the default; user decision 2026-11-21,
+  option A). The body takes the attitude that points its thrust axis along the policy's
+  commanded thrust direction, at the heading it has, in the same substep
+  (``quaternion_for_thrust_direction``). There is no rotation dynamics: the body rate is zero.
+- **Attitude with a first-order lag** (``attitude_time_constant_s`` > 0, option B, user approval
+  2026-11-23). Every substep the thrust axis turns towards the commanded direction by the
+  fraction ``1 - exp(-dt / tau)`` of the angle between them, about the shortest axis (no heading
+  change). The body rate is that turn divided by the substep, so the policy sees a rate and the
+  touchdown metric a tilt rate. The value used in T8 (1.3 s) is measured on the rigid-body lander
+  with the classical attitude controller: ``scripts/measure_attitude_time_constant.py``.
+
+In both modes the actuator torques are ignored. The training wrapper hands the direction over
+(``receive_commanded_thrust_direction``) because the Command carries jet duties, not the
+direction.
 - **Translation.** The actuator and surface forces, turned into the world frame with that
   attitude, plus lunar gravity; the mass falls by the propellant flow.
 - **Ground.** No legs: when the footpad plane reaches the flat ground the vehicle stops there
@@ -25,20 +33,30 @@ Model (every physics substep, batched, semi-implicit Euler like the rigid-body p
 
 Only training (``scripts/train_ppo.py`` with ``ppo_mlp`` in ``attitude_commands`` mode) hands the
 direction over; any other use stops with an error instead of flying a wrong attitude.
-Parameters: ``minimum_mass_kg`` (as the rigid-body plant).
+Parameters: ``attitude_time_constant_s`` (default 0 = at once), ``minimum_mass_kg`` (as the
+rigid-body plant).
 """
 
 from __future__ import annotations
 
+import math
+
 import torch
 from torch import Tensor
 
-from lunarsim.agents.classical.attitude_controller import quaternion_for_thrust_direction
+from lunarsim.agents.classical.attitude_controller import quaternion_for_thrust_direction, shortest_rotation_between
 from lunarsim.core.binding import SlotName
 from lunarsim.core.message_types import MessageKey, Wrench
 from lunarsim.core.physical_constants import MOON_SURFACE_GRAVITY
 from lunarsim.core.registry import register_binding
-from lunarsim.core.rotation_math import rotate_vector_body_to_parent
+from lunarsim.core.rotation_math import (
+    body_up_axis_in_parent,
+    quaternion_from_axis_angle,
+    quaternion_multiply,
+    quaternion_to_rotation_vector,
+    rotate_vector_body_to_parent,
+    rotate_vector_parent_to_body,
+)
 from lunarsim.slots.plant.analytic_rigid_body import AnalyticRigidBodyPlant
 
 
@@ -50,9 +68,12 @@ class AnalyticPointMassPlant(AnalyticRigidBodyPlant):
     needs_commanded_thrust_direction = True
 
     def __init__(self, parameters, context) -> None:
-        """Set up the rigid-body plant's state and geometry, plus the commanded direction and the ground flag."""
+        """Set up the rigid-body plant's state and geometry, plus the attitude lag, the commanded direction and the ground flag."""
         super().__init__(parameters, context)
         count = self.number_of_environments
+        self.attitude_time_constant = float(self.parameters.get("attitude_time_constant_s", 0.0))
+        if self.attitude_time_constant < 0.0:
+            raise ValueError(f"attitude_time_constant_s must be zero or positive, not {self.attitude_time_constant}")
         self.commanded_thrust_direction: Tensor | None = None
         self.on_ground = torch.zeros(count, dtype=torch.bool, device=self.device)
         # Reported per leg once the vehicle rests on the ground (above the metric's contact threshold).
@@ -86,7 +107,7 @@ class AnalyticPointMassPlant(AnalyticRigidBodyPlant):
         if surface_wrench.leg_forces is not None:
             raise RuntimeError("The point-mass plant has no legs; a soil surface is not supported")
         dt = physics_step_duration
-        orientation = quaternion_for_thrust_direction(self.commanded_thrust_direction, self.orientation)
+        orientation, angular_velocity_body = self._turn_towards_commanded_direction(dt)
         force_world = rotate_vector_body_to_parent(orientation, actuator_wrench.force + surface_wrench.force)
         gravity = torch.tensor([0.0, 0.0, -MOON_SURFACE_GRAVITY], device=self.device)
         velocity = self.velocity + (force_world / self.mass.unsqueeze(1) + gravity) * dt
@@ -109,10 +130,32 @@ class AnalyticPointMassPlant(AnalyticRigidBodyPlant):
         self.velocity = velocity
         self.position_world = position
         self.orientation = orientation
-        self.angular_velocity_body = torch.zeros_like(self.angular_velocity_body)
+        self.angular_velocity_body = torch.where(
+            on_ground.unsqueeze(1), torch.zeros_like(angular_velocity_body), angular_velocity_body
+        )
         self.on_ground = on_ground
         self.leg_contact_force = torch.where(
             on_ground.unsqueeze(1),
             torch.full_like(self.leg_contact_force, self.ground_contact_force_per_leg),
             torch.zeros_like(self.leg_contact_force),
         )
+
+    def _turn_towards_commanded_direction(self, dt: float) -> tuple[Tensor, Tensor]:
+        """Return the attitude after this substep and the body rate of the turn, (N, 4) and (N, 3) rad/s.
+
+        At once (time constant 0): the attitude along the commanded direction, zero rate. With a
+        lag: the shortest turn from the current thrust axis to the commanded direction, scaled by
+        ``1 - exp(-dt / tau)``; the rate is that turn over ``dt``, in the body frame.
+        """
+        if self.attitude_time_constant == 0.0:
+            orientation = quaternion_for_thrust_direction(self.commanded_thrust_direction, self.orientation)
+            return orientation, torch.zeros_like(self.angular_velocity_body)
+        full_turn = shortest_rotation_between(body_up_axis_in_parent(self.orientation), self.commanded_thrust_direction)
+        fraction = 1.0 - math.exp(-dt / self.attitude_time_constant)
+        turn_vector = quaternion_to_rotation_vector(full_turn) * fraction  # parent frame, rad
+        angle = turn_vector.norm(dim=1)
+        partial_turn = quaternion_from_axis_angle(turn_vector, angle)
+        orientation = quaternion_multiply(partial_turn, self.orientation)
+        orientation = orientation / orientation.norm(dim=1, keepdim=True).clamp_min(1e-9)
+        angular_velocity_body = rotate_vector_parent_to_body(self.orientation, turn_vector / dt)
+        return orientation, angular_velocity_body
