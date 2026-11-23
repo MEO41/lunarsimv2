@@ -26,12 +26,12 @@ video() {  # name policy outcomes label
   local name=$1 policy=$2 outcomes=$3 label=$4
   if [ ! -f "runs/$name/landings.npz" ]; then
     clean_shm
-    python scripts/record_policy_landings.py --headless policy="$policy" run_name="$name" outcomes="$outcomes" label="$label" \
+    python scripts/record_policy_landings.py policy="$policy" run_name="$name" outcomes="$outcomes" label="$label" \
       > "runs/_jobs/record_$name.log" 2>&1 || { echo "[videos] WARNING: recording $name failed (runs/_jobs/record_$name.log)"; return; }
   fi
   grep "\[videos\]" "runs/_jobs/record_$name.log" | head -1
   clean_shm
-  python scripts/render_replay.py --headless replay="runs/$name/landings.npz" mode=video > "runs/_jobs/render_$name.log" 2>&1 \
+  python scripts/render_replay.py replay="runs/$name/landings.npz" mode=video > "runs/_jobs/render_$name.log" 2>&1 \
     && echo "[videos] $name: $(ls runs/$name/landings.mp4) $(date -Is)" \
     || echo "[videos] WARNING: rendering $name failed (runs/_jobs/render_$name.log)"
 }
