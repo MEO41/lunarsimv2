@@ -29,8 +29,8 @@ Both run S1 (flat ground, true-state navigation, Apollo LM, `engine_rcs_pulse`, 
 | T4 | Parameter sweep (Latin hypercube): mass ±30 %, vehicle cases, altitude, heading, time step | Later |
 | T5 | PPO trained in A and in P, 5 seeds each; each tested in A and P on 4,096 held-out starts | **Done, 10 seeds** (2026-11-21, below): no transfer gap (+0.00 points, 95 % CI -0.33 to +0.29) |
 | T6 | Domain randomization in A, tested in P | Later |
-| T7 | Wall-clock time to 90 % success in P; also "A first, then P" (`resume_from`) | **Running** (started 2026-11-21 15:34): `scripts/noron/transfer_study_t7_checkpoints.sh` flies every T5 checkpoint (iterations 0-575, 20 runs, 480 evaluations) in P on the held-out starts; "A first, then P" left out (no gap to close) |
-| T8 | Model ablation: spring legs → `metrics.end_at_first_contact=true` → no engine lag / jet limits → point mass | **Queued** behind T7: `scripts/noron/transfer_study_t8_ablation.sh`, steps b1-b3 below, seeds 0-4, every policy flown in P with the standard success rule |
+| T7 | Wall-clock time to 90 % success in P; also "A first, then P" (`resume_from`) | **Done** (2026-11-21, below): 90 % in P after 362 s (P-trained) and 110 s (A-trained), 3.3×; "A first, then P" left out (no gap to close) |
+| T8 | Model ablation: spring legs → `metrics.end_at_first_contact=true` → no engine lag / jet limits → point mass | **b1-b3 done** (2026-11-22, below): transfer breaks with ideal actuators and with the point mass; b4-b5 (point mass with standard actuators, at once and lagged) running since 2026-11-23 |
 | T9 | All policies in P on the Apollo 17 terrain | Later (height maps must be downloaded on `noron`) |
 
 ## Decisions (user, 2026-11-20)
