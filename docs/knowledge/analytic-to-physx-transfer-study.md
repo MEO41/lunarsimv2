@@ -238,8 +238,8 @@ seeds 0-4, same PhysX evaluation):
 The paper answers "Can a landing policy trained in a fast analytic simulator land as well in full
 rigid-body physics, and how much wall-clock time does this save?" Core: T5 and T7; T8 as the
 third question (which simplification breaks the transfer); T6 only if T8 shows a gap; T1-T3 as
-short validation. Proposed for future work: T4 (parameter sweep) and T9 (terrain), which compare
-simulators rather than answer the RL question. Not yet confirmed by the user.
+short validation. Future work (user, 2026-11-23): T4 (parameter sweep) and T9 (terrain), which
+compare simulators rather than answer the RL question.
 
 ## Running on noron
 
