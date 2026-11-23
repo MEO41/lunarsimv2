@@ -4,7 +4,9 @@
 Only the renderer reads this stage, so every lander is placed by setting its transforms directly
 from the recording: body pose, strut strokes, and (when contacts were recorded) one arrow per
 footpad along the contact force from that leg's sensor. The terrain is rebuilt from the same
-scenario, overrides and seed, so it is the same surface that PhysX collided with.
+scenario, overrides and seed, so it is the same surface that PhysX collided with. A scenario with
+``surface: flat`` (S1) gets a flat ground at z = 0 with a 10 m checker pattern (``FlatGround``) so
+that the motion over the ground can be seen.
 
 Needs Isaac Sim with the camera renderer; import it only in a process started with cameras on.
 """
@@ -63,6 +65,49 @@ def rotation_from_z_to(direction: numpy.ndarray):
     return Gf.Quatf(math.cos(half), *(float(value) * math.sin(half) for value in axis))
 
 
+FLAT_GROUND_HALF_SIZE_M = 1000.0  # covers the PhysX grid of 4,096 environments at 20 m spacing
+FLAT_GROUND_TILE_M = 10.0
+FLAT_GROUND_COLORS = {"tiles_light": (0.32, 0.31, 0.29), "tiles_dark": (0.26, 0.25, 0.235)}  # regolith greys
+
+
+class FlatGround:
+    """The flat ground of ``surface: flat`` for the renderer: z = 0 everywhere, drawn as a checker of two meshes."""
+
+    def height_at(self, x, y):
+        """Return the ground height (0) at the points (x, y), same shape as x."""
+        import torch
+
+        return torch.zeros_like(torch.as_tensor(x, dtype=torch.float32))
+
+    def gradient_at(self, x, y):
+        """Return the ground slope (0, 0) at the points (x, y)."""
+        zeros = self.height_at(x, y)
+        return zeros, zeros
+
+    def meshes(self) -> dict[str, tuple[numpy.ndarray, numpy.ndarray]]:
+        """Return ``name -> (vertices (n, 3), triangles (m, 3))``: the light and the dark tiles of the checker."""
+        count = int(round(2 * FLAT_GROUND_HALF_SIZE_M / FLAT_GROUND_TILE_M))
+        corners = -FLAT_GROUND_HALF_SIZE_M + FLAT_GROUND_TILE_M * numpy.arange(count)
+        column, row = numpy.meshgrid(numpy.arange(count), numpy.arange(count))
+        meshes = {}
+        for name, parity in (("tiles_light", 0), ("tiles_dark", 1)):
+            chosen = ((column + row) % 2 == parity).ravel()
+            x0, y0 = corners[column.ravel()[chosen]], corners[row.ravel()[chosen]]
+            x1, y1 = x0 + FLAT_GROUND_TILE_M, y0 + FLAT_GROUND_TILE_M
+            zero = numpy.zeros_like(x0)
+            corner_points = (
+                numpy.stack((x0, y0, zero), 1),
+                numpy.stack((x1, y0, zero), 1),
+                numpy.stack((x1, y1, zero), 1),
+                numpy.stack((x0, y1, zero), 1),
+            )
+            vertices = numpy.stack(corner_points, axis=1).reshape(-1, 3)
+            first = 4 * numpy.arange(len(x0))[:, None]
+            triangles = numpy.concatenate((first + numpy.array([0, 1, 2]), first + numpy.array([0, 2, 3])), axis=0)
+            meshes[name] = (vertices, triangles)
+        return meshes
+
+
 class ReplayRenderer:
     """A stage with the terrain of a scenario, landers to place, force arrows and one camera."""
 
@@ -92,12 +137,16 @@ class ReplayRenderer:
         UsdGeom.SetStageUpAxis(stage, UsdGeom.Tokens.z)
         UsdGeom.SetStageMetersPerUnit(stage, 1.0)
         UsdGeom.Xform.Define(stage, "/World")
-        surface = MeasuredTerrainSurface(
-            scenario.slots["surface"].parameters,
-            BindingContext(number_of_environments=1, device="cpu", clock=SimulationClock(1, 0.005, 4, device="cpu"), bus=MessageBus()),
-        )
-        self.terrain = surface.build_terrain(scenario.root_seed)
-        self.height_field = self.terrain.height_field()
+        if scenario.slots["surface"].binding == "flat":
+            self.terrain = FlatGround()
+            self.height_field = self.terrain
+        else:
+            surface = MeasuredTerrainSurface(
+                scenario.slots["surface"].parameters,
+                BindingContext(number_of_environments=1, device="cpu", clock=SimulationClock(1, 0.005, 4, device="cpu"), bus=MessageBus()),
+            )
+            self.terrain = surface.build_terrain(scenario.root_seed)
+            self.height_field = self.terrain.height_field()
         UsdGeom.Xform.Define(stage, "/World/ground")
         for name, (vertices, triangles) in self.terrain.meshes().items():
             mesh = UsdGeom.Mesh.Define(stage, f"/World/ground/{name}")
@@ -105,7 +154,7 @@ class ReplayRenderer:
             mesh.CreateFaceVertexCountsAttr(Vt.IntArray.FromNumpy(numpy.full(len(triangles), 3, dtype=numpy.int32)))
             mesh.CreateFaceVertexIndicesAttr(Vt.IntArray.FromNumpy(triangles.astype(numpy.int32).ravel()))
             mesh.CreateSubdivisionSchemeAttr(UsdGeom.Tokens.none)
-            mesh.CreateDisplayColorAttr([Gf.Vec3f(0.30, 0.29, 0.27)])  # regolith grey
+            mesh.CreateDisplayColorAttr([Gf.Vec3f(*FLAT_GROUND_COLORS.get(name, (0.30, 0.29, 0.27)))])  # regolith grey
         # Sun 15 degrees above the eastern horizon (Apollo 17 surface operations) and a faint sky
         # fill so that the shadows are not fully black. A distant light shines along its -z axis.
         sun = UsdLux.DistantLight.Define(stage, "/World/Sun")
