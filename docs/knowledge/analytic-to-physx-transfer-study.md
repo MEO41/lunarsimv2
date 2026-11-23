@@ -260,6 +260,11 @@ third question (which simplification breaks the transfer); T6 only if T8 shows a
 short validation. Future work (user, 2026-11-23): T4 (parameter sweep) and T9 (terrain), which
 compare simulators rather than answer the RL question.
 
+## Target journal (user, 2026-11-23)
+
+Acta Astronautica (Elsevier; subscription route, no author fee); fallback Advances in Space
+Research. Write to the Elsevier template.
+
 ## Running on noron
 
 The Isaac environment `/media/noron/DISK02/isaac-lab-native/env_isaaclab` has an editable
