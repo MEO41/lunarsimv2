@@ -3,7 +3,7 @@ id: analytic-to-physx-transfer-study
 title: Analytic-to-PhysX transfer study
 type: plan
 status: current
-updated: 2026-11-20
+updated: 2026-11-25
 summary: Revision of the rejected "Speed versus Fidelity" paper as an RL transfer study on LunarSim v2 - question, tests T1-T9, decisions, machine.
 ---
 
@@ -30,7 +30,7 @@ Both run S1 (flat ground, true-state navigation, Apollo LM, `engine_rcs_pulse`, 
 | T5 | PPO trained in A and in P, 5 seeds each; each tested in A and P on 4,096 held-out starts | **Done, 10 seeds** (2026-11-21, below): no transfer gap (+0.00 points, 95 % CI -0.33 to +0.29) |
 | T6 | Domain randomization in A, tested in P | Later |
 | T7 | Wall-clock time to 90 % success in P; also "A first, then P" (`resume_from`) | **Done** (2026-11-21, below): 90 % in P after 362 s (P-trained) and 110 s (A-trained), 3.3×; "A first, then P" left out (no gap to close) |
-| T8 | Model ablation: spring legs → `metrics.end_at_first_contact=true` → no engine lag / jet limits → point mass | **b1-b3 done** (2026-11-22, below): transfer breaks with ideal actuators and with the point mass; b4-b5 (point mass with standard actuators, at once and lagged) running since 2026-11-23 |
+| T8 | Model ablation: spring legs → `metrics.end_at_first_contact=true` → no engine lag / jet limits → point mass | **Done** (b1-b3 2026-11-22, b4-b5 2026-11-23, below): transfer breaks with ideal actuators and with the point mass; lag plus body rate recovers 90.7 %. Body-rate controls, tau sweep and gate: revision round 1 (2026-11-25, below) |
 | T9 | All policies in P on the Apollo 17 terrain | Later (height maps must be downloaded on `noron`) |
 
 ## Decisions (user, 2026-11-20)
@@ -251,6 +251,42 @@ Results (commit 06861be, all 10 trainings reached 600 iterations, training succe
   1.9).
 - Reading for RQ3, revised: the analytic model needs attitude dynamics that take time; a single
   measured time constant recovers most of the transfer. Actuator response matters next (b2).
+
+## Revision round 1 experiments (simulated Acta Astronautica review, 2026-11-25)
+
+Run names start with `t9_`, but they are not test T9 (terrain); they answer the simulated review
+(decision package in `paper/acta_astronautica/paper/ars_review_round1/`). Queue:
+`scripts/noron/transfer_study_revision_round1.sh` (commit f3c172d; follow-up evaluation added
+afterwards), summary: `runs/_analysis/t9_summary.py` → `runs/_analysis/export/t9_revision_in_physx.csv`.
+Same training (600 iterations, 4,096 envs) and PhysX evaluation (4,096 starts, seed 1000), seeds 0-4.
+
+New options: `plant.body_rate_report` (`physical` default, `zero`, `held_turn_rate`: the latest
+attitude change divided by `held_turn_rate_period_s`, held until the next change) for the point
+mass, and `agent.zero_body_rate_in_policy_input` (evaluation only: the policy sees a zero rate,
+the attitude controller still gets the real one).
+
+| Model (5 seeds) | Success in P | Seeds | Note |
+| --- | --- | --- | --- |
+| b4 flown with zero rate input | 2.3 % | 0, 0, 10.3, 0.4, 0.8 | evaluation only |
+| b4_held_rate (instant, rate reported) | 26.8 % (13.6-40.0) | 23.6, 25.4, 40.5, 32.4, 12.0 | +26.8 vs b4, p = 0.005 |
+| b5_zero_rate (lag 1.3 s, no rate) | 0.0 % | 0, 0.2, 0, 0, 0 | -90.7 vs b5 |
+| b5_zero_rate flown with zero rate input | 0.8 % (0.1-1.4) | 0.4, 0.6, 0.3, 1.4, 1.3 | evaluation only |
+| b5 tau 0.3 s | 68.0 % (47.4-88.6) | 84.7, 63.4, 74.9, 41.6, 75.6 | -22.7 vs b5 (CI 2.2-43.2) |
+| b5 tau 0.65 s | 90.0 % (88.3-91.7) | 89.5, 89.4, 88.5, 91.9, 91.0 | -0.7 vs b5 (CI -4.2 to +2.8) |
+| b5 tau 2.2 s | 47.9 % (31.8-64.0) | 59.0, 55.0, 45.8, 53.3, 26.4 | -42.8 vs b5; tilt rate at contact 33 % |
+| full model, 10 ms step (unmatched) | 98.2 % (97.9-98.5) | 98.3, 97.8, 98.1, 98.4, 98.3 | +0.4 vs full model (CI -0.4 to +1.1) |
+
+Agreement gate (ZEM/ZEV in the training model against ZEM/ZEV in P, thresholds fixed before:
+same outcome >= 99.5 %, touchdown RMS <= 0.05 m/s vertical and horizontal, <= 0.25 degrees tilt):
+b1 passes (99.98 %; 0.024 / 0.014 m/s, 0.11 degrees), b2 fails (98.58 %; 0.272 / 0.125 m/s,
+0.46 degrees; 42 starts land only in the analytic model), 10 ms model passes (99.98 %; 0.032 /
+0.017 m/s, 0.11 degrees). The gate misses b1's loss, which comes from the episode design.
+
+Reading: the zero-rate failure is not an input artefact (masked 0.8 %). The point mass needs both a lag and a body rate consistent with it. Rate without lag
+(b4_held_rate) reaches 26.8 %, lag without rate (b5_zero_rate) 0 %, both (b5) 90.7 %. The
+earlier reading "a single time constant recovers the transfer" is incomplete: the lagged plant
+also gave the policy a rate. tau must be measured (half is fine, a quarter or 1.7 times is not).
+Q1 does not hinge on the 5 ms step.
 
 ## Scope (proposal 2026-11-21, after the user's RL framing)
 

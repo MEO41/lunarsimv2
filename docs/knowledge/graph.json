@@ -14,7 +14,7 @@
       "title": "Analytic-to-PhysX transfer study",
       "type": "plan",
       "status": "current",
-      "updated": "2026-11-20",
+      "updated": "2026-11-25",
       "summary": "Revision of the rejected \"Speed versus Fidelity\" paper as an RL transfer study on LunarSim v2 - question, tests T1-T9, decisions, machine.",
       "path": "analytic-to-physx-transfer-study.md"
     },

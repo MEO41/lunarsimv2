@@ -89,4 +89,15 @@ for step in b4_held_rate b5_zero_rate unmatched_step10ms b5_tau0p3 b5_tau0p65 b5
     echo "[revision] $name in PhysX: $(success_of runs/_jobs/$run.log)  (training success $(grep -o 'success_rate: [0-9.]*' "runs/_jobs/train_$name.log" | tail -1 | cut -d' ' -f2))"
   done
 done
+# ---- R20 follow-up, evaluation only: b5_zero_rate policies with a zero body rate in the policy
+# input, so that their input in PhysX matches their training input (added after b5_zero_rate fell
+# to about 0 % with the physical PhysX rate in the input) ----
+for seed in 0 1 2 3 4; do
+  run=t9_eval_b5_zero_rate_masked_rate_policy_in_physx_seed$seed
+  if [ ! -f "runs/$run/episodes.parquet" ]; then
+    clean_shm
+    $EVAL agent.policy_path="runs/t9_b5_zero_rate_seed$seed/policy.pt" agent.zero_body_rate_in_policy_input=true run_name="$run" > "runs/_jobs/$run.log" 2>&1
+  fi
+  echo "[revision] b5_zero_rate seed $seed, rate masked, in PhysX: $(success_of runs/_jobs/$run.log)"
+done
 echo "[revision] done $(date -Is)"
