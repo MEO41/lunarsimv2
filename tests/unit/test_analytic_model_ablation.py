@@ -176,6 +176,47 @@ def test_negative_time_constant_is_refused():
         )
 
 
+def test_lagged_point_mass_with_zero_rate_report_turns_but_reports_no_rate():
+    """body_rate_report=zero keeps the 1.3 s lag of the thrust axis but reports a zero body rate."""
+    environment = make_environment(
+        "s1_terminal_truth",
+        ["num_envs=1", END_AT_CONTACT, LAGGED, "plant.body_rate_report=zero", "actuators.ideal_response=true"],
+        plant=POINT_MASS,
+    )
+    set_start_states(environment, altitude=80.0)
+    command = tilted_direction(1, 10.0)
+    for _ in range(10):
+        environment.set_commanded_thrust_direction(command)
+        environment.step(make_actions(environment, throttle=hover_throttle(environment)))
+    truth = read_truth(environment)
+    assert math.degrees(float(tilt_angle_from_vertical(truth.orientation_quaternion)[0])) > 1.0
+    assert float(truth.angular_velocity.abs().max()) == 0.0
+
+
+def test_point_mass_at_once_with_held_turn_rate_reports_the_turn_over_one_decision():
+    """body_rate_report=held_turn_rate: the attitude jumps to a 10 degree command and reports 10 degrees per 0.1 s about +y until the next turn."""
+    environment = make_environment(
+        "s1_terminal_truth", ["num_envs=2", END_AT_CONTACT, "plant.body_rate_report=held_turn_rate"], plant=POINT_MASS
+    )
+    set_start_states(environment, altitude=80.0)
+    command = tilted_direction(2, 10.0)
+    for _ in range(3):
+        environment.set_commanded_thrust_direction(command)
+        environment.step(make_actions(environment, throttle=hover_throttle(environment)))
+        truth = read_truth(environment)
+        assert torch.allclose(body_up_axis_in_parent(truth.orientation_quaternion), command, atol=1e-5)
+        assert float(truth.angular_velocity[0, 1]) == pytest.approx(math.radians(10.0) / 0.1, rel=1e-3)
+        assert abs(float(truth.angular_velocity[0, 0])) < 1e-5
+
+
+def test_unknown_body_rate_report_is_refused():
+    """A body_rate_report value other than physical, zero or held_turn_rate stops the build."""
+    with pytest.raises(ValueError, match="body_rate_report"):
+        make_environment(
+            "s1_terminal_truth", ["num_envs=1", END_AT_CONTACT, "plant.body_rate_report=sometimes"], plant=POINT_MASS
+        )
+
+
 @pytest.mark.parametrize("time_constant", [0.0, 1.3])
 def test_ppo_trains_two_iterations_on_the_point_mass(time_constant):
     """rsl_rl trains on the point mass, at once and lagged: the wrapper hands the commanded direction over every control step."""

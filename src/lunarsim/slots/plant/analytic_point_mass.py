@@ -33,8 +33,20 @@ direction.
 
 Only training (``scripts/train_ppo.py`` with ``ppo_mlp`` in ``attitude_commands`` mode) hands the
 direction over; any other use stops with an error instead of flying a wrong attitude.
-Parameters: ``attitude_time_constant_s`` (default 0 = at once), ``minimum_mass_kg`` (as the
-rigid-body plant).
+
+**Reported body rate** (``body_rate_report``; observation-channel control asked for by the
+simulated review of the paper, item R20, 2026-11-25). The body rate is what the policy observes
+and what the touchdown metric judges as the tilt rate, so it can change the transfer by itself:
+
+- ``physical`` (default, the T8 runs): zero at once, the turn over the substep with a lag.
+- ``zero``: always zero, also with a lag (a lag without a rate).
+- ``held_turn_rate``: the attitude change of the latest turn divided by
+  ``held_turn_rate_period_s`` (default 0.1 s, one policy decision: 5 control steps of 4 substeps
+  of 5 ms), held until the attitude turns again (an attitude at once with a rate).
+
+Parameters: ``attitude_time_constant_s`` (default 0 = at once), ``body_rate_report`` (default
+``physical``), ``held_turn_rate_period_s`` (default 0.1), ``minimum_mass_kg`` (as the rigid-body
+plant).
 """
 
 from __future__ import annotations
@@ -52,6 +64,7 @@ from lunarsim.core.registry import register_binding
 from lunarsim.core.rotation_math import (
     body_up_axis_in_parent,
     quaternion_from_axis_angle,
+    quaternion_conjugate,
     quaternion_multiply,
     quaternion_to_rotation_vector,
     rotate_vector_body_to_parent,
@@ -74,6 +87,14 @@ class AnalyticPointMassPlant(AnalyticRigidBodyPlant):
         self.attitude_time_constant = float(self.parameters.get("attitude_time_constant_s", 0.0))
         if self.attitude_time_constant < 0.0:
             raise ValueError(f"attitude_time_constant_s must be zero or positive, not {self.attitude_time_constant}")
+        self.body_rate_report = str(self.parameters.get("body_rate_report", "physical"))
+        if self.body_rate_report not in ("physical", "zero", "held_turn_rate"):
+            raise ValueError(f"body_rate_report must be physical, zero or held_turn_rate, not {self.body_rate_report}")
+        self.held_turn_rate_period = float(self.parameters.get("held_turn_rate_period_s", 0.1))
+        if self.held_turn_rate_period <= 0.0:
+            raise ValueError(f"held_turn_rate_period_s must be positive, not {self.held_turn_rate_period}")
+        # Parent-frame rate of the latest turn, used by body_rate_report=held_turn_rate.
+        self.held_turn_rate_parent = torch.zeros(count, 3, device=self.device)
         self.commanded_thrust_direction: Tensor | None = None
         self.on_ground = torch.zeros(count, dtype=torch.bool, device=self.device)
         # Reported per leg once the vehicle rests on the ground (above the metric's contact threshold).
@@ -94,6 +115,9 @@ class AnalyticPointMassPlant(AnalyticRigidBodyPlant):
             (env_ids,), torch.zeros(count, 3, device=self.device)
         )
         self.on_ground = self.on_ground.index_put((env_ids,), torch.zeros(count, dtype=torch.bool, device=self.device))
+        self.held_turn_rate_parent = self.held_turn_rate_parent.index_put(
+            (env_ids,), torch.zeros(count, 3, device=self.device)
+        )
 
     def apply_wrench(self, bus, physics_step_duration: float) -> None:
         """Advance one physics substep: attitude at once, translation under thrust and gravity, stop on the ground."""
@@ -108,6 +132,7 @@ class AnalyticPointMassPlant(AnalyticRigidBodyPlant):
             raise RuntimeError("The point-mass plant has no legs; a soil surface is not supported")
         dt = physics_step_duration
         orientation, angular_velocity_body = self._turn_towards_commanded_direction(dt)
+        angular_velocity_body = self._reported_body_rate(orientation, angular_velocity_body)
         force_world = rotate_vector_body_to_parent(orientation, actuator_wrench.force + surface_wrench.force)
         gravity = torch.tensor([0.0, 0.0, -MOON_SURFACE_GRAVITY], device=self.device)
         velocity = self.velocity + (force_world / self.mass.unsqueeze(1) + gravity) * dt
@@ -159,3 +184,24 @@ class AnalyticPointMassPlant(AnalyticRigidBodyPlant):
         orientation = orientation / orientation.norm(dim=1, keepdim=True).clamp_min(1e-9)
         angular_velocity_body = rotate_vector_parent_to_body(self.orientation, turn_vector / dt)
         return orientation, angular_velocity_body
+
+    def _reported_body_rate(self, orientation: Tensor, physical_body_rate: Tensor) -> Tensor:
+        """Return the body rate the plant reports, (N, 3) rad/s, as chosen by ``body_rate_report``.
+
+        ``physical`` passes the turn rate through, ``zero`` reports no rate, and
+        ``held_turn_rate`` reports the latest attitude change (from the attitude before this
+        substep to ``orientation``) divided by ``held_turn_rate_period_s``, kept until the attitude
+        turns again, in the body frame of ``orientation``.
+        """
+        if self.body_rate_report == "physical":
+            return physical_body_rate
+        if self.body_rate_report == "zero":
+            return torch.zeros_like(physical_body_rate)
+        change = quaternion_multiply(orientation, quaternion_conjugate(self.orientation))
+        turn_vector = quaternion_to_rotation_vector(change)  # parent frame, rad
+        # Smaller changes are float32 noise of re-pointing the same command (about 1e-7 rad).
+        turned = turn_vector.norm(dim=1) > 1e-5
+        self.held_turn_rate_parent = torch.where(
+            turned.unsqueeze(1), turn_vector / self.held_turn_rate_period, self.held_turn_rate_parent
+        )
+        return rotate_vector_parent_to_body(orientation, self.held_turn_rate_parent)

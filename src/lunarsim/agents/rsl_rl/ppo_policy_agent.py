@@ -8,7 +8,10 @@ The policy file is the exported actor (TorchScript, with rsl_rl's observation no
 
 Parameters: ``policy_path`` (required for flying; relative paths are taken from the repository
 root), ``action_mode``, ``maximum_tilt_deg`` and ``policy_period_steps`` (must match the
-training run). The ``ppo:`` section of the agent file holds the training settings and is not used here.
+training run), and ``zero_body_rate_in_policy_input`` (default false; when true, the body rate
+the policy sees is set to zero before scaling, while the attitude controller still gets the real
+rate - an evaluation-only check of the observation channel asked for by the simulated review of
+the transfer-study paper, item R20). The ``ppo:`` section of the agent file holds the training settings and is not used here.
 """
 
 from __future__ import annotations
@@ -22,7 +25,7 @@ from lunarsim.agents.rsl_rl.decision_history import DecisionHistory
 from lunarsim.agents.rsl_rl.policy_action_adapter import PolicyActionAdapter
 from lunarsim.agents.rsl_rl.training_configuration import policy_kind
 from lunarsim.core.binding import SlotName
-from lunarsim.core.message_types import Command, Observation
+from lunarsim.core.message_types import Command, NavigationStateLayout, Observation
 from lunarsim.core.registry import register_binding
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[4]
@@ -47,6 +50,7 @@ class ProximalPolicyOptimizationMultilayerPerceptronAgent(AgentBase):
         # The policy decides every policy_period_steps control steps, as in training; between
         # decisions the attitude controller keeps flying the held action.
         self.policy_period_steps = int(self.parameters.get("policy_period_steps", 1))
+        self.zero_body_rate_in_policy_input = bool(self.parameters.get("zero_body_rate_in_policy_input", False))
         self.steps_since_decision = torch.zeros(number_of_environments, dtype=torch.long, device=device)
         self.held_actions = torch.zeros(number_of_environments, self.adapter.action_dimension, device=device)
         ppo = dict(self.parameters.get("ppo") or {})
@@ -69,7 +73,7 @@ class ProximalPolicyOptimizationMultilayerPerceptronAgent(AgentBase):
         """Return the Command of the policy's mean action (new at decision steps, held between them)."""
         decide = self.steps_since_decision % self.policy_period_steps == 0
         if bool(decide.any()):
-            scaled = self.adapter.scale_observation(observation.policy)
+            scaled = self.adapter.scale_observation(self._policy_input(observation.policy))
             with torch.no_grad():
                 if self.kind == "gru":
                     actions, hidden_state = self.policy(scaled, self.hidden_state)
@@ -88,3 +92,11 @@ class ProximalPolicyOptimizationMultilayerPerceptronAgent(AgentBase):
             self.restarted &= ~decide
         self.steps_since_decision += 1
         return self.adapter.command_from_policy_actions(self.held_actions, observation.policy, control_step_duration)
+
+    def _policy_input(self, observation: torch.Tensor) -> torch.Tensor:
+        """Return the raw observation the policy sees: unchanged, or with a zero body rate when ``zero_body_rate_in_policy_input`` is set."""
+        if not self.zero_body_rate_in_policy_input:
+            return observation
+        masked = observation.clone()
+        masked[:, NavigationStateLayout.ANGULAR_VELOCITY] = 0.0
+        return masked

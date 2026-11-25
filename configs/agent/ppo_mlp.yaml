@@ -10,6 +10,9 @@ maximum_tilt_deg: 15.0
 # jets every control step (50 Hz). At 50 Hz decisions the 0.995 discount looked only ~4 s ahead
 # and the policy learned to hover until the propellant ran out.
 policy_period_steps: 5
+# Evaluation-only check (simulated review item R20): true sets the body rate the policy sees to
+# zero; the attitude controller still gets the real rate. Not used in training.
+zero_body_rate_in_policy_input: false
 # Training settings (rsl_rl 5.4 OnPolicyRunner). Model choices, starting from Isaac Lab's
 # default PPO settings for locomotion tasks; changed: no entropy bonus.
 ppo:
