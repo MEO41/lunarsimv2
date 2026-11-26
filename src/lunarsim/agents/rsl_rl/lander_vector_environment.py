@@ -25,6 +25,7 @@ from tensordict import TensorDict
 from lunarsim.core.message_types import MessageKey
 from lunarsim.agents.rsl_rl.decision_history import DecisionHistory
 from lunarsim.agents.rsl_rl.policy_action_adapter import PolicyActionAdapter
+from lunarsim.agents.rsl_rl.policy_input_options import PolicyInputOptions
 from lunarsim.slots.metrics.touchdown import OUTCOME_CODE
 
 LOG_WINDOW_EPISODES = 4096
@@ -44,6 +45,9 @@ class LanderVectorEnvironment(VecEnv):
             environment.binding_context.shared_data["lander_preset"], self.device, agent_parameters
         )
         self.num_actions = self.adapter.action_dimension
+        # Observation-channel controls of the transfer study (policy_input_options).
+        self.policy_input_options = PolicyInputOptions.from_agent_parameters(agent_parameters)
+        self.last_actions = torch.zeros(self.num_envs, self.num_actions, device=self.device)
         self.control_step_duration = environment.scenario.control_step_duration
         self.policy_period_steps = int(agent_parameters.get("policy_period_steps", 1))
         # rsl_rl counts decisions; one decision spans policy_period_steps control steps.
@@ -83,6 +87,12 @@ class LanderVectorEnvironment(VecEnv):
         """
         self._raw_policy_observation = observations["policy"]
         groups = {name: self.adapter.scale_observation(values) for name, values in observations.items()}
+        # The policy group alone gets the options; the controller keeps the unmasked observation.
+        self.last_actions = torch.where(restarted.unsqueeze(1), torch.zeros_like(self.last_actions), self.last_actions)
+        groups["policy"] = self.policy_input_options.append_last_action(
+            self.adapter.scale_observation(self.policy_input_options.raw_policy_observation(observations["policy"])),
+            self.last_actions,
+        )
         if self.history is not None:
             from lunarsim.agents.rsl_rl.history_models import HISTORY_GROUP, HISTORY_MASK_GROUP
 
@@ -118,6 +128,7 @@ class LanderVectorEnvironment(VecEnv):
             if bool(just_ended.any()):
                 self._record_finished_episodes(just_ended)
             ended |= just_ended
+        self.last_actions = actions.detach().clone()
         self._observations = self._to_tensor_dictionary(observations, restarted=ended)
         log = {}
         if self.recent_success:

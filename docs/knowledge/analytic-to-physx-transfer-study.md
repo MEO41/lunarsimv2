@@ -3,7 +3,7 @@ id: analytic-to-physx-transfer-study
 title: Analytic-to-PhysX transfer study
 type: plan
 status: current
-updated: 2026-11-25
+updated: 2026-11-26
 summary: Revision of the rejected "Speed versus Fidelity" paper as an RL transfer study on LunarSim v2 - question, tests T1-T9, decisions, machine.
 ---
 
@@ -287,6 +287,30 @@ Reading: the zero-rate failure is not an input artefact (masked 0.8 %). The poin
 earlier reading "a single time constant recovers the transfer" is incomplete: the lagged plant
 also gave the policy a rate. tau must be measured (half is fine, a quarter or 1.7 times is not).
 Q1 does not hinge on the 5 ms step.
+
+## Revision round 2 experiments (simulated Acta Astronautica review, 2026-11-26)
+
+Run names start with `t10_`. Decision package and goals (with the reading rules written before
+the runs): `paper/acta_astronautica/paper/ars_review_round2/`. Queue:
+`scripts/noron/transfer_study_revision_round2.sh`. Same training and PhysX evaluation, seeds 0-4.
+
+Wiring found in the code (review item R8): with `body_rate_report=zero` the zero rate goes into
+`TruthState`, so the policy input, the body-rate reward term, the critic and the tilt-rate check at
+contact all see zero; `held_turn_rate` feeds the held rate to all four. The round-1 controls
+therefore do not separate the observation from the training signal.
+
+New options (`src/lunarsim/agents/rsl_rl/policy_input_options.py`, training and evaluation):
+`agent.zero_body_rate_in_policy_input` (now also a training option: only the policy input is
+zero) and `agent.last_action_in_policy_input` (the previous clipped action appended to the
+policy input, zero at the first decision). A policy trained with an option is flown with it.
+
+| Run | What | Answers |
+| --- | --- | --- |
+| `t10_b5_rate_hidden_from_policy` | b5, rate hidden from the policy only | R8 |
+| `t10_b5_zero_rate_last_action` | b5_zero_rate + previous action in the input, flown with zero rate input | R9 |
+| `t10_refined_physx_{analytic,physx}_policy` | final T5 policies, 10 seeds each, PhysX at 2.5 ms and 32 position iterations | S24 |
+
+Results: pending.
 
 ## Scope (proposal 2026-11-21, after the user's RL framing)
 

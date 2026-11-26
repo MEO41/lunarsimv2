@@ -246,3 +246,89 @@ def test_ppo_trains_two_iterations_on_the_point_mass(time_constant):
     assert bool(torch.isfinite(truth.position).all())
     if time_constant == 0.0:
         assert float(truth.angular_velocity.abs().max()) == 0.0
+
+
+# ---- observation-channel controls of review round 2 (items R8 and R9) ----
+
+
+def test_zero_rate_option_masks_only_the_policy_input():
+    """The zero-rate option sets the three body-rate values to zero and leaves every other value alone."""
+    from lunarsim.agents.rsl_rl.policy_input_options import PolicyInputOptions
+    from lunarsim.core.message_types import NavigationStateLayout
+
+    observation = torch.arange(32, dtype=torch.float32).reshape(2, 16)
+    masked = PolicyInputOptions(zero_body_rate=True).raw_policy_observation(observation)
+    assert float(masked[:, NavigationStateLayout.ANGULAR_VELOCITY].abs().max()) == 0.0
+    keep = torch.ones(16, dtype=torch.bool)
+    keep[NavigationStateLayout.ANGULAR_VELOCITY] = False
+    assert torch.equal(masked[:, keep], observation[:, keep])
+    assert float(observation[:, NavigationStateLayout.ANGULAR_VELOCITY].abs().max()) > 0.0  # input not changed in place
+    assert PolicyInputOptions().raw_policy_observation(observation) is observation
+
+
+def test_last_action_option_appends_the_clipped_previous_action():
+    """The last-action option appends the previous action, clipped to [-1, 1]; without it the input is unchanged."""
+    from lunarsim.agents.rsl_rl.policy_input_options import PolicyInputOptions
+
+    scaled = torch.zeros(2, 16)
+    previous = torch.tensor([[0.5, -2.0, 0.1], [3.0, 0.0, -0.2]])
+    joined = PolicyInputOptions(last_action=True).append_last_action(scaled, previous)
+    assert joined.shape == (2, 19)
+    assert torch.allclose(joined[:, 16:], previous.clamp(-1.0, 1.0))
+    assert PolicyInputOptions().append_last_action(scaled, previous) is scaled
+
+
+def test_training_wrapper_builds_the_policy_input_with_both_options():
+    """With both options the policy group has a zero rate and the previous action, zero after a restart; the critic keeps the rate."""
+    from lunarsim.agents.rsl_rl.lander_vector_environment import LanderVectorEnvironment
+    from lunarsim.core.message_types import NavigationStateLayout
+
+    environment = make_environment(
+        "s1_terminal_truth",
+        [
+            "num_envs=8",
+            "agent=ppo_mlp",
+            "training=landing_ppo",
+            END_AT_CONTACT,
+            "plant.attitude_time_constant_s=1.3",
+            "agent.zero_body_rate_in_policy_input=true",
+            "agent.last_action_in_policy_input=true",
+        ],
+        plant=POINT_MASS,
+    )
+    parameters = environment.scenario.slots["agent"].parameters
+    vector_environment = LanderVectorEnvironment(environment, parameters)
+    first = vector_environment.get_observations()["policy"]
+    assert first.shape[1] == 16 + vector_environment.num_actions
+    assert float(first[:, 16:].abs().max()) == 0.0  # no previous action at the start
+    actions = torch.full((8, vector_environment.num_actions), 0.3)
+    actions[:, 1] = 0.8  # a tilt command, so the lagged body turns
+    observations, _, ended, _ = vector_environment.step(actions)
+    policy = observations["policy"]
+    running = ~ended.bool()
+    assert bool(running.any())
+    assert torch.allclose(policy[running, 16:], actions[running])
+    assert float(policy[:, NavigationStateLayout.ANGULAR_VELOCITY].abs().max()) == 0.0
+    assert float(vector_environment._raw_policy_observation[:, NavigationStateLayout.ANGULAR_VELOCITY].abs().max()) > 0.0
+
+
+@pytest.mark.parametrize("options", [["agent.zero_body_rate_in_policy_input=true"], ["plant.body_rate_report=zero", "agent.last_action_in_policy_input=true"]])
+def test_ppo_trains_two_iterations_with_the_policy_input_options(options):
+    """rsl_rl trains the lagged point mass with each observation-channel control of review round 2."""
+    from rsl_rl.runners import OnPolicyRunner
+
+    from lunarsim.agents.rsl_rl.lander_vector_environment import LanderVectorEnvironment
+    from lunarsim.agents.rsl_rl.training_configuration import runner_configuration
+
+    environment = make_environment(
+        "s1_terminal_truth",
+        ["num_envs=16", "agent=ppo_mlp", "training=landing_ppo", END_AT_CONTACT, "plant.attitude_time_constant_s=1.3", *options],
+        plant=POINT_MASS,
+    )
+    parameters = environment.scenario.slots["agent"].parameters
+    vector_environment = LanderVectorEnvironment(environment, parameters)
+    configuration = runner_configuration(parameters["ppo"], 0, "smoke", has_critic_group=True)
+    configuration["max_iterations"] = 2
+    runner = OnPolicyRunner(vector_environment, configuration, log_dir=None, device="cpu")
+    runner.learn(num_learning_iterations=2)
+    assert bool(torch.isfinite(read_truth(environment).position).all())
