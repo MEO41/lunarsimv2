@@ -310,7 +310,25 @@ policy input, zero at the first decision). A policy trained with an option is fl
 | `t10_b5_zero_rate_last_action` | b5_zero_rate + previous action in the input, flown with zero rate input | R9 |
 | `t10_refined_physx_{analytic,physx}_policy` | final T5 policies, 10 seeds each, PhysX at 2.5 ms and 32 position iterations | S24 |
 
-Results: pending.
+Results (queue finished 2026-11-26 19:26, commit 79c5447; summary script
+`runs/_analysis/t10_summary.py`, reanalysis of round-1 data in `runs/_analysis/revision_round2_reanalysis.py`):
+
+| Run | PhysX success, mean (95 % CI) | Seeds 0-4 | At first contact | Main failures |
+|---|---|---|---|---|
+| `t10_b5_rate_hidden_from_policy` (R8) | 92.9 % (90.8-95.0) | 92.5, 91.8, 94.0, 95.2, 91.0 | 93.5 % | tilt 3.3 %, hard horizontal 2.1 % |
+| `t10_b5_zero_rate_last_action` (R9) | 0.5 % (seeds 0.2-0.7) | 0.5, 0.5, 0.7, 0.2, 0.6 | 0.5 % | tilt 53.4 %, hard horizontal 25.9 % |
+
+- R8 against b5 (90.7 %): +2.2 points, Welch 95 % CI -1.4 to +5.7, p 0.19. First branch of the reading
+  rule: the policy does not need the rate as an observation; the rate acts through the training
+  signal (reward rate penalty, tilt-rate check and touchdown term, critic). These three were not separated.
+- R9 against b5_zero_rate flown with zero rate input (0.8 %): -0.3 points, CI -0.9 to +0.3. Second
+  branch: the previous action does not replace the rate. Training success 98.8-99.3 %.
+- S24, refined PhysX (2.5 ms step, 8 substeps, 32 position iterations), 10 seeds per route: analytic
+  route 97.94 -> 97.92 % (seed-paired change -0.02, CI -0.06 to +0.02), PhysX route 97.93 -> 97.92 %
+  (-0.01, CI -0.04 to +0.01); 99.86 / 99.87 % of starts keep their outcome; route difference 0.00
+  points (90 % Welch -0.31 to +0.31). Q1 is insensitive to these PhysX settings.
+- Paper text: the claim "the policy must observe the turning" was replaced by "the turn rate must
+  enter the training signal".
 
 ## Scope (proposal 2026-11-21, after the user's RL framing)
 
